@@ -173,6 +173,19 @@ export function getLlmPolicy(): LlmPolicy {
   };
 }
 
+/**
+ * 配置指纹（Phase 3 评测 §7.4）：`${model}|${embeddingModel}|retries=${maxRetries}|timeout=${timeoutMs}`。
+ * 为什么在 config.ts 而不是 evals 里拼：指纹的四项输入全是这里的配置真相，
+ * 拼接规则放源头，evals/基线只消费结果——配置项增减时只改一处。
+ * 稳定且不含任何密钥：跨轮比对用它识别「是不是同一套配置在跑」，
+ * 指纹变了 → 基线口径已对不上（baseline.ts 给 stale 提示，不判回归）。
+ */
+export function buildConfigId(): string {
+  const config = getConfig();
+  const policy = getLlmPolicy();
+  return `${config.model}|${config.embeddingModel}|retries=${policy.maxRetries}|timeout=${policy.timeoutMs}`;
+}
+
 // ── 护栏家族（AGENT_GUARD_*）的 .env 回填 ─────────────────────────────────
 // 背景：这六个开关的读取点（chat CLI / kb-search / chat.service / llm-injection-scan）
 // 全部裸读 process.env，而 loadEnv() 只返回合并表、从不写回 process.env——

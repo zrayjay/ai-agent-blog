@@ -19,7 +19,10 @@ import type { EvalCase, JudgeEvalCase } from "./types.js";
  * v2：新增检索套件的语料库与查询集（corpus.ts，10 篇文档 + 50 条查询，
  * 由 runner 按 embedding key 门控；本文件的 18 条离线用例未动）
  * v3：新增评审套件 EVAL_JUDGE_CASES（8 条 LLM-as-judge 用例，由 runner 按
- * chat key 门控；轨迹/路由用例仍未动） */
+ * chat key 门控；轨迹/路由用例仍未动）
+ * v3 补记（Phase 3 治理）：traj-04 / traj-09 增加声明式效率预算 limits
+ * （纯增注记：剧本模型下实际工具数恒等于期望序列，预算必然满足，判分结果
+ * 与此前逐位一致，故不升版；任何语义改动仍须升版。效率维度登记见 governance.ts） */
 export const EVAL_DATASET_VERSION = "3";
 
 /** 黄金数据集：10 条轨迹用例 + 8 条路由用例 */
@@ -32,7 +35,10 @@ export const EVAL_CASES: EvalCase[] = [
     userMessage: "查一下订单 A-1024 的物流到哪了",
     script: [
       { kind: "tool-calls", calls: [{ toolName: "query_logistics", input: { orderId: "A-1024" } }] },
-      { kind: "text", text: "您的订单 A-1024 已发货，顺丰速运承运（运单号 SF1234567890），预计明天 18 点前送达。" },
+      {
+        kind: "text",
+        text: "您的订单 A-1024 已发货，顺丰速运承运（运单号 SF1234567890），预计明天 18 点前送达。",
+      },
     ],
     expectedToolCalls: ["query_logistics"],
   },
@@ -55,9 +61,17 @@ export const EVAL_CASES: EvalCase[] = [
     script: [
       {
         kind: "tool-calls",
-        calls: [{ toolName: "create_ticket", input: { subject: "物流停滞投诉", description: "用户反馈快递三天物流无更新，要求跟进处理" } }],
+        calls: [
+          {
+            toolName: "create_ticket",
+            input: { subject: "物流停滞投诉", description: "用户反馈快递三天物流无更新，要求跟进处理" },
+          },
+        ],
       },
-      { kind: "text", text: "非常抱歉给您带来不便，已为您创建投诉工单 TK-EVAL-0001，加急件会在 2 小时内跟进。" },
+      {
+        kind: "text",
+        text: "非常抱歉给您带来不便，已为您创建投诉工单 TK-EVAL-0001，加急件会在 2 小时内跟进。",
+      },
     ],
     expectedToolCalls: ["create_ticket"],
   },
@@ -69,9 +83,14 @@ export const EVAL_CASES: EvalCase[] = [
     script: [
       { kind: "tool-calls", calls: [{ toolName: "search_orders", input: { keyword: "6688" } }] },
       { kind: "tool-calls", calls: [{ toolName: "query_logistics", input: { orderId: "A-1024" } }] },
-      { kind: "text", text: "您名下最新一笔是订单 A-1024（9 月 25 日下单）：已发货，顺丰速运 SF1234567890，预计明天 18 点前送达。" },
+      {
+        kind: "text",
+        text: "您名下最新一笔是订单 A-1024（9 月 25 日下单）：已发货，顺丰速运 SF1234567890，预计明天 18 点前送达。",
+      },
     ],
     expectedToolCalls: ["search_orders", "query_logistics"],
+    // 效率预算（Phase 3）：双工具链声明 3 次上限——留 1 次余量表达「多一步都算超支」的口径
+    limits: { maxToolCalls: 3 },
   },
   {
     caseId: "traj-05",
@@ -94,7 +113,12 @@ export const EVAL_CASES: EvalCase[] = [
     suite: "trajectory",
     description: "服务时间直答（负例：常识问题不必动工具）",
     userMessage: "你们的人工客服工作时间是几点到几点？",
-    script: [{ kind: "text", text: "人工客服的工作时间是每天 9:00-21:00，其他时间可以留言，上线后会第一时间回复您。" }],
+    script: [
+      {
+        kind: "text",
+        text: "人工客服的工作时间是每天 9:00-21:00，其他时间可以留言，上线后会第一时间回复您。",
+      },
+    ],
     expectedToolCalls: [],
   },
   {
@@ -105,7 +129,15 @@ export const EVAL_CASES: EvalCase[] = [
     script: [
       {
         kind: "tool-calls",
-        calls: [{ toolName: "create_ticket", input: { subject: "退货申请：蓝牙耳机", description: "用户申请退回上周购买的蓝牙耳机，待售后审核" } }],
+        calls: [
+          {
+            toolName: "create_ticket",
+            input: {
+              subject: "退货申请：蓝牙耳机",
+              description: "用户申请退回上周购买的蓝牙耳机，待售后审核",
+            },
+          },
+        ],
       },
       { kind: "text", text: "已为您登记退货工单 TK-EVAL-0001，售后会在 24 小时内联系您确认取件方式。" },
     ],
@@ -120,11 +152,24 @@ export const EVAL_CASES: EvalCase[] = [
       { kind: "tool-calls", calls: [{ toolName: "query_logistics", input: { orderId: "A-9999" } }] },
       {
         kind: "tool-calls",
-        calls: [{ toolName: "create_ticket", input: { subject: "订单 A-9999 催单", description: "系统查无此单物流记录，用户要求人工核实订单状态" } }],
+        calls: [
+          {
+            toolName: "create_ticket",
+            input: {
+              subject: "订单 A-9999 催单",
+              description: "系统查无此单物流记录，用户要求人工核实订单状态",
+            },
+          },
+        ],
       },
-      { kind: "text", text: "系统里暂时查不到订单 A-9999 的物流记录，已为您建了催单工单 TK-EVAL-0001，人工核实后会尽快回复您。" },
+      {
+        kind: "text",
+        text: "系统里暂时查不到订单 A-9999 的物流记录，已为您建了催单工单 TK-EVAL-0001，人工核实后会尽快回复您。",
+      },
     ],
     expectedToolCalls: ["query_logistics", "create_ticket"],
+    // 效率预算（Phase 3）：同 traj-04——双工具链 3 次上限（governance.ts 已登记 efficiency 维度）
+    limits: { maxToolCalls: 3 },
   },
   {
     caseId: "traj-10",

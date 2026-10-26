@@ -9,6 +9,7 @@ import { pathToFileURL } from "node:url";
 import {
   buildBaseline,
   compareBaseline,
+  criticalCaseViolations,
   loadBaseline,
   runEvals,
   saveBaseline,
@@ -38,6 +39,13 @@ export async function main(args: string[] = []): Promise<void> {
 
   printReportToConsole(report);
 
+  // 统一报告字段（Phase 3 §7.4）：评测器版本 + 配置指纹一行速读；
+  // 执行出错（errored）出现时追加计数——归因时先查基础设施再查判分
+  console.log(
+    `评测器版本 v${report.evaluatorVersion} · 配置指纹 ${report.configId}` +
+      (report.totals.errors !== undefined ? ` · 执行出错 ${report.totals.errors} 例` : ""),
+  );
+
   try {
     const written = writeReportFile(report);
     console.log(`报告已写入：${written}`);
@@ -49,9 +57,9 @@ export async function main(args: string[] = []): Promise<void> {
   }
 
   // ── 基线回归门禁（P3，教程 week16 Day 6）───────────────────────────────
-  // 退出码 = 两道闸的与：用例全过 && 无（非 stale）回归。
+  // 退出码 = 两道闸的与：用例全过 && 无（非 stale）回归 && 无关键用例失败。
   // 基线是 .data/ 下的本地文件（不进 git）：换机器/CI 首次跑没有基线 →
-  // 只提示不拦截；数据集版本不一致 → stale 提示，不拦截。
+  // 只提示不拦截；数据集版本/配置指纹不一致 → stale 提示，不拦截。
   let hasRegression = false;
   if (args.includes("--update-baseline")) {
     try {
@@ -88,7 +96,15 @@ export async function main(args: string[] = []): Promise<void> {
     }
   }
 
-  // 全过且无回归 = 0，否则 = 1：CI 把 pnpm eval 当门禁，退出码就是判决
+  // 关键用例阻断（Phase 3 §8.2）：与基线无关的一票否决——critical 用例失败
+  // （含 --update-baseline 重置基线的场合）直接拦门禁，安全底线不被容差吸收
+  const criticalViolations = criticalCaseViolations(report);
+  for (const violation of criticalViolations) {
+    console.log(`[CRITICAL] ${violation.suite}: ${violation.message}`);
+    hasRegression = true;
+  }
+
+  // 全过且无回归（含关键用例全过）= 0，否则 = 1：CI 把 pnpm eval 当门禁，退出码就是判决
   process.exitCode = report.totals.passed === report.totals.total && !hasRegression ? 0 : 1;
 }
 

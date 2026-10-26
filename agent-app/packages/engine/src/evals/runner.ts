@@ -27,7 +27,7 @@
 // （setRagStore/getRagStore）——评测不能改变生产代码的全局状态。
 import type { ToolLoopStepEvent } from "../agent-loop.js";
 import { runToolLoop } from "../agent-loop.js";
-import { getConfig } from "../config.js";
+import { buildConfigId, getConfig } from "../config.js";
 import { checkHardRules } from "../service/supervisor.js";
 import { chunkText } from "../rag/chunker.js";
 import { embed } from "../rag/embedder.js";
@@ -36,14 +36,18 @@ import type { Chunk, RagStore, RetrievedChunk } from "../rag/types.js";
 import { EVAL_CORPUS, EVAL_QUERIES } from "./corpus.js";
 import { EVAL_CASES, EVAL_DATASET_VERSION, EVAL_JUDGE_CASES } from "./dataset.js";
 import { createEvalTools, createScriptedModel } from "./fixtures.js";
+import { scoreEfficiency } from "./scorers/efficiency.js";
 import { createLlmJudge, scoreJudge } from "./scorers/judge.js";
 import type { JudgeFn } from "./scorers/judge.js";
 import { computeRetrievalMetrics, scoreRetrieval } from "./scorers/retrieval.js";
 import { scoreRouting } from "./scorers/routing.js";
 import { scoreTrajectory } from "./scorers/trajectory.js";
+import { EVAL_EVALUATOR_VERSION } from "./types.js";
 import type {
+  EvalCase,
   EvalReport,
   EvalResult,
+  EvalTotals,
   JudgeEvalCase,
   RetrievalEvalCase,
   RoutingEvalCase,
@@ -54,7 +58,7 @@ import type {
 const EVAL_SYSTEM_PROMPT =
   "你是电商客服助手，可以搜索订单、查询物流、创建工单。用中文简洁回答；不需要工具的场景直接回答，不要为了用工具而用工具。";
 
-/** 跑一条轨迹用例：真实工具循环 + onStep 捕获实际执行序列 → 打分 */
+/** 跑一条轨迹用例：真实工具循环 + onStep 捕获实际执行序列 → 打分（声明了 limits 的用例叠加效率判分） */
 async function runTrajectoryCase(testCase: TrajectoryEvalCase): Promise<EvalResult> {
   const startedAt = Date.now();
   const steps: ToolLoopStepEvent[] = [];
@@ -70,8 +74,19 @@ async function runTrajectoryCase(testCase: TrajectoryEvalCase): Promise<EvalResu
         steps.push(event);
       },
     });
-    const { passed, score, detail } = scoreTrajectory(testCase.expectedToolCalls, steps);
-    return { caseId: testCase.caseId, suite: testCase.suite, passed, score, detail, durationMs: Date.now() - startedAt };
+    const trajectoryScore = scoreTrajectory(testCase.expectedToolCalls, steps);
+    const elapsed = Date.now() - startedAt;
+    // 效率判分（Phase 3 §7.2）：只有声明了 limits 的用例才叠加——预算是声明了才生效的合同。
+    // 合成口径：过 = 轨迹与效率都过；分 = 两者都过取轨迹分（保留部分分语义），否则取较小者；
+    // 效率失败时把超限明细并进 detail，报告里一眼可见「对但超支」。
+    let { passed, score, detail } = trajectoryScore;
+    if (testCase.limits !== undefined) {
+      const efficiencyScore = scoreEfficiency(steps, testCase.limits, elapsed);
+      passed = trajectoryScore.passed && efficiencyScore.passed;
+      score = passed ? trajectoryScore.score : Math.min(trajectoryScore.score, efficiencyScore.score);
+      if (!efficiencyScore.passed) detail = `${detail}；${efficiencyScore.detail}`;
+    }
+    return { caseId: testCase.caseId, suite: testCase.suite, passed, score, detail, durationMs: elapsed };
   } catch (err) {
     return {
       caseId: testCase.caseId,
@@ -82,6 +97,8 @@ async function runTrajectoryCase(testCase: TrajectoryEvalCase): Promise<EvalResu
         `评测执行出错：${err instanceof Error ? err.message : String(err)}。` +
         "请检查该用例的 script 编排（最后一轮必须是 text）与工具表是否匹配。",
       durationMs: Date.now() - startedAt,
+      // Phase 3 §7.4：执行抛错 ≠ 判不过——errored 单独标记，totals.errors 单独计数
+      errored: true,
     };
   }
 }
@@ -91,7 +108,14 @@ function runRoutingCase(testCase: RoutingEvalCase): EvalResult {
   const startedAt = Date.now();
   const decision = checkHardRules(testCase.state);
   const { passed, score, detail } = scoreRouting(testCase.expectedTarget, decision);
-  return { caseId: testCase.caseId, suite: testCase.suite, passed, score, detail, durationMs: Date.now() - startedAt };
+  return {
+    caseId: testCase.caseId,
+    suite: testCase.suite,
+    passed,
+    score,
+    detail,
+    durationMs: Date.now() - startedAt,
+  };
 }
 
 // ── P2：检索套件（Tier 2，key 门控 + 依赖注入）───────────────────────────
@@ -129,6 +153,23 @@ export interface EvalRunOptions {
   judgeAvailable?: boolean;
   /** 评审员注入（单测用假实现）；不传时用 createLlmJudge() 的真实实现 */
   judgeDeps?: JudgeFn;
+  /**
+   * 评审证据钩子（Phase 3 §7.3，可选）：按用例返回注入 judge prompt 的验证证据。
+   * 当前评测管线没有逐用例 verification，默认不注入（hook 缺省 = evidence undefined，
+   * prompt 不出现【验证证据】段）；Phase 4 verification 落地后接上此钩子即可，
+   * runner 无需再改。
+   */
+  judgeEvidence?: (testCase: JudgeEvalCase) => unknown;
+  /**
+   * 候选区用例注入（Phase 3 §7.1 数据集治理，单测用合成用例验证机制）：
+   * 候选用例不进正式数据集（76 条正式集才是门禁对象），只随本选项传入实体题目。
+   */
+  candidateCases?: EvalCase[];
+  /**
+   * 是否执行候选区用例（默认 false）：正式集永远是门禁对象，候选区只在显式
+   * opt-in 时参与——「先候选观察、过审转正（登记 governance）」的晋升通道。
+   */
+  includeCandidates?: boolean;
 }
 
 /** 检索套件每次查询取 top-5：recall@5 的观测窗口（通过线是 top-3，见 EVAL_RELEVANCE_K） */
@@ -175,17 +216,30 @@ function missingJudgeKeySkipReason(): string {
  * 跑一条评审用例：调用评审员拿二元判定 → scoreJudge 比对期望。
  * 单例兜错：一次 judge 调用抛错（网络/配额/解析炸在门外）只 FAIL 该用例，
  * 其余用例照跑——与轨迹套件同一口径，报告保留全貌。
+ * judgeEvidence 钩子提供时按用例取证据注入（缺省 undefined = prompt 不出现证据段）。
  */
-async function runJudgeCase(testCase: JudgeEvalCase, judgeFn: JudgeFn): Promise<EvalResult> {
+async function runJudgeCase(
+  testCase: JudgeEvalCase,
+  judgeFn: JudgeFn,
+  judgeEvidence?: (testCase: JudgeEvalCase) => unknown,
+): Promise<EvalResult> {
   const startedAt = Date.now();
   try {
     const verdict = await judgeFn({
       userMessage: testCase.userMessage,
       answer: testCase.answer,
       rubric: testCase.rubric,
+      evidence: judgeEvidence?.(testCase),
     });
     const { passed, score, detail } = scoreJudge(testCase.expectedPass, verdict);
-    return { caseId: testCase.caseId, suite: "judge", passed, score, detail, durationMs: Date.now() - startedAt };
+    return {
+      caseId: testCase.caseId,
+      suite: "judge",
+      passed,
+      score,
+      detail,
+      durationMs: Date.now() - startedAt,
+    };
   } catch (err) {
     return {
       caseId: testCase.caseId,
@@ -196,6 +250,8 @@ async function runJudgeCase(testCase: JudgeEvalCase, judgeFn: JudgeFn): Promise<
         `评审调用出错：${err instanceof Error ? err.message : String(err)}。` +
         "请检查网络与 API 密钥配置后重跑本套件（该错误只影响此用例，不连坐其他评审用例）。",
       durationMs: Date.now() - startedAt,
+      // Phase 3 §7.4：执行抛错 ≠ 判不过——errored 单独标记，totals.errors 单独计数
+      errored: true,
     };
   }
 }
@@ -297,6 +353,26 @@ export async function runEvals(options?: EvalRunOptions): Promise<EvalReport> {
     }
   }
 
+  // ── 候选区（Phase 3 §7.1 数据集治理）：只在显式 opt-in 时执行 ───────────
+  // 候选用例随 options.candidateCases 注入（正式集一条不动），走与 Tier 1 相同
+  // 的离线判分管线；门控套件（检索/评审）的候选机制等 Phase 4 落地——混入即报错，
+  // 与 EVAL_CASES 的「宁可报错不可缺席」双护栏同一取向。默认不 opt-in：
+  // 本段整体跳过，报告形状与既有消费方完全一致。
+  if (options?.includeCandidates === true && options.candidateCases !== undefined) {
+    for (const testCase of options.candidateCases) {
+      if (testCase.suite === "trajectory") {
+        results.push(await runTrajectoryCase(testCase));
+      } else if (testCase.suite === "routing") {
+        results.push(runRoutingCase(testCase));
+      } else {
+        throw new Error(
+          `候选区用例 ${testCase.caseId}（suite=${testCase.suite}）属于 key 门控套件：` +
+            "候选区当前只支持离线的轨迹/路由套件，请移除该用例。",
+        );
+      }
+    }
+  }
+
   // ── Tier 2：检索套件（corpus.ts 的 50 条，三态门控）────────────────────
   // vitest 裸调用（不传 options）时检索套件整体缺席：既不跑也不记 skipped，
   // 报告与 P1 完全同形——离线回归测试依赖这一点；显式传参时如实记录。
@@ -343,19 +419,23 @@ export async function runEvals(options?: EvalRunOptions): Promise<EvalReport> {
     } else {
       const judgeFn = options?.judgeDeps ?? createLlmJudge();
       for (const testCase of EVAL_JUDGE_CASES) {
-        results.push(await runJudgeCase(testCase, judgeFn));
+        results.push(await runJudgeCase(testCase, judgeFn, options?.judgeEvidence));
       }
     }
   }
 
   // total 只数实际执行的用例（passed + failed）：跳过不是失败，
-  // 无 key 环境跑 pnpm eval 退出码仍应为 0（skipped ≠ failed）
-  const totals = {
+  // 无 key 环境跑 pnpm eval 退出码仍应为 0（skipped ≠ failed）。
+  // errors 是 failed 的子集（执行抛错的那部分），>0 才出现——三态互斥但可归因：
+  // skipped ≠ failed ≠ errored 各管各的口径。
+  const totals: EvalTotals = {
     total: results.length,
     passed: results.filter((r) => r.passed).length,
     failed: results.filter((r) => !r.passed).length,
     skipped: skipped.length,
   };
+  const errorCount = results.filter((r) => r.errored === true).length;
+  if (errorCount > 0) totals.errors = errorCount;
 
   const report: EvalReport = {
     datasetVersion: EVAL_DATASET_VERSION,
@@ -364,6 +444,10 @@ export async function runEvals(options?: EvalRunOptions): Promise<EvalReport> {
     totals,
     results,
     skipped,
+    // 统一报告字段（Phase 3 §7.4）：评测器版本 + 配置指纹恒填——报告可追溯
+    // 「哪一版判分口径 + 哪套模型配置」出的结果（基线比对用它识别口径漂移）
+    evaluatorVersion: EVAL_EVALUATOR_VERSION,
+    configId: buildConfigId(),
   };
   // 可选字段只在真的发生时出现：纯 P1 场景的报告形状与 v1 逐字段一致
   if (Object.keys(skipReasons).length > 0) report.skipReasons = skipReasons;

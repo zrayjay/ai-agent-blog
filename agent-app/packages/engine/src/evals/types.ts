@@ -39,13 +39,23 @@ export type EvalSuiteName = "trajectory" | "routing" | "retrieval" | "judge";
  * 这里是「评测自己的编排层」，换一个词避免与 ai 的形状混淆。
  */
 export type ScriptedModelTurn =
-  | { kind: "text"; text: string }
-  | { kind: "tool-calls"; calls: ScriptedToolCall[] };
+  { kind: "text"; text: string } | { kind: "tool-calls"; calls: ScriptedToolCall[] };
 
 /** 脚本化的一笔工具调用：工具名 + 已按 schema 组织好的入参 */
 export interface ScriptedToolCall {
   toolName: string;
   input: Record<string, unknown>;
+}
+
+/**
+ * 效率预算（Phase 3 §7.2）：轨迹用例可声明的确定性效率限额。
+ * - maxToolCalls：整轮循环的工具调用次数上限（防过度行动）；
+ * - maxDurationMs：整轮耗时上限（防拖沓；由 runner 用实测耗时核对）。
+ * 两个字段都可缺省：缺哪项就不核对哪项——预算是「声明了才生效」的合同。
+ */
+export interface EfficiencyLimits {
+  maxToolCalls?: number;
+  maxDurationMs?: number;
 }
 
 /**
@@ -65,6 +75,8 @@ export interface TrajectoryEvalCase {
   script: ScriptedModelTurn[];
   /** 期望的工具调用序列（toolName 按发生顺序） */
   expectedToolCalls: string[];
+  /** 效率预算（可选，Phase 3）：声明后 runner 在轨迹判分之外叠加 efficiency 打分 */
+  limits?: EfficiencyLimits;
 }
 
 /**
@@ -128,11 +140,7 @@ export interface JudgeEvalCase {
 }
 
 /** 一条评测用例：判别联合，suite 是标签 */
-export type EvalCase =
-  | TrajectoryEvalCase
-  | RoutingEvalCase
-  | RetrievalEvalCase
-  | JudgeEvalCase;
+export type EvalCase = TrajectoryEvalCase | RoutingEvalCase | RetrievalEvalCase | JudgeEvalCase;
 
 /** 单用例结果：过了没有、得分多少（0..1）、给人看的差异说明 */
 export interface EvalResult {
@@ -147,6 +155,9 @@ export interface EvalResult {
   detail: string;
   /** 单用例耗时（报告的分套件耗时列用它累加） */
   durationMs: number;
+  /** 该用例是否因执行抛错而失败（Phase 3 §7.4，可选）：区别于「跑完了但判不过」——
+   *  errored=true 的用例同时计入 failed 与 totals.errors，归因时先查基础设施再查判分 */
+  errored?: boolean;
 }
 
 /** 汇总计数。
@@ -158,7 +169,13 @@ export interface EvalTotals {
   passed: number;
   failed: number;
   skipped: number;
+  /** 执行出错的用例数（Phase 3 §7.4，可选，>0 才出现）：errored 是 failed 的子集，单列出来便于归因 */
+  errors?: number;
 }
+
+/** 评测器版本（Phase 3 §7.4）：判分口径自身的版本——数据集版本管「考什么」，
+ *  评测器版本管「怎么判」，两者独立升版，报告里都带着 */
+export const EVAL_EVALUATOR_VERSION = "1";
 
 /**
  * 整轮评测报告：CLI 打印 + 落盘 .data/eval-report.json 的同一份数据。
@@ -182,6 +199,12 @@ export interface EvalReport {
   metrics?: Record<string, number>;
   /** 跳过原因（可选）：键为套件名，说明为什么整个套件被跳过 + 怎么修复（中文） */
   skipReasons?: Record<string, string>;
+  /** 评测器版本（Phase 3 §7.4，可选）：runner 恒填 EVAL_EVALUATOR_VERSION——
+   *  报告可追溯到「哪一版判分口径」出的结果 */
+  evaluatorVersion?: string;
+  /** 配置指纹（Phase 3 §7.4，可选）：`${model}|${embeddingModel}|retries=…|timeout=…}`，
+   *  稳定且不含密钥——换模型/嵌入/重试/超时后基线比对只给 stale 提示（口径变了） */
+  configId?: string;
 }
 
 /**
