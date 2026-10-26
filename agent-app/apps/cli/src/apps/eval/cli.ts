@@ -7,6 +7,11 @@
 // 质量门禁（Phase 4）：--gate 在评测跑完后叠加 evaluateQualityGate 裁决退出码
 // （--gate-policy full|ci 选预设，--strict 把 inconclusive 也拦下）；不带 --gate
 // 时行为与引入门禁前逐字节一致。
+// 失败案例候选区（Phase 5，PRD §13）：--export-failures 在评测跑完后把失败案例
+// 导出进 .data/failure-candidates.jsonl 候选区（内容哈希去重）；--list-failures /
+// --approve-failure <id> / --reject-failure <id>（配合 --reviewer <署名>）是纯
+// 候选区操作，不跑评测、提前返回——转正永远是人手工改 dataset.ts（§13.3），
+// Agent 代码不碰正式集/基线/门禁。
 // 与 chat/cli.ts 同款约定：main(args) 导出供 index.ts 路由，直接运行时自启。
 import { pathToFileURL } from "node:url";
 import {
@@ -14,9 +19,12 @@ import {
   compareBaseline,
   criticalCaseViolations,
   evaluateQualityGate,
+  exportFailureCases,
+  listFailureCandidates,
   loadBaseline,
   QUALITY_GATE_POLICY_CI_TIER1,
   QUALITY_GATE_POLICY_FULL,
+  reviewCandidate,
   runEvals,
   saveBaseline,
 } from "@agent-app/engine/evals";
@@ -36,10 +44,82 @@ function resolveGatePolicy(raw: string | undefined): QualityGatePolicy | undefin
   return undefined;
 }
 
+/** 读布尔开关后跟的值参数（如 --reviewer <name>）；开关不存在返回 undefined */
+function flagValue(args: string[], flag: string): string | undefined {
+  const index = args.indexOf(flag);
+  return index >= 0 ? args[index + 1] : undefined;
+}
+
+/**
+ * 失败案例候选区的纯操作分支（--list-failures / --approve-failure / --reject-failure）：
+ * 只读写 .data/failure-candidates.jsonl，不跑评测、不碰门禁退出码语义——
+ * 列表/审核是审核员的工作台动作，跟「这一轮评测过没过」是两件事。
+ * 处理过任一候选区操作 → 返回 true（调用方直接 return）。
+ */
+function handleFailureCandidateOps(args: string[]): boolean {
+  const listRequested = args.includes("--list-failures");
+  const approveId = flagValue(args, "--approve-failure");
+  const rejectId = flagValue(args, "--reject-failure");
+  if (!listRequested && approveId === undefined && rejectId === undefined) return false;
+  if (approveId !== undefined && rejectId !== undefined) {
+    console.error("--approve-failure 与 --reject-failure 互斥：一次只裁决一条候选。");
+    process.exitCode = 1;
+    return true;
+  }
+
+  if (listRequested) {
+    const candidates = listFailureCandidates();
+    if (candidates.length === 0) {
+      console.log("失败案例候选区为空：评测失败后可执行 pnpm eval --export-failures 导出候选。");
+      return true;
+    }
+    console.log(`失败案例候选区（${candidates.length} 条，.data/failure-candidates.jsonl）：`);
+    for (const candidate of candidates) {
+      console.log(
+        `[${candidate.candidateId}] ${candidate.caseId} · ${candidate.suite} · ${candidate.reviewStatus}`,
+      );
+      console.log(`    ${candidate.detail}`);
+    }
+    console.log(
+      "转正提示：approved 候选由人工手工写入 dataset.ts 并登记 governance（Agent 不得自动改正式集）。",
+    );
+    return true;
+  }
+
+  const decision =
+    approveId !== undefined
+      ? { id: approveId, decision: "approved" as const }
+      : { id: rejectId as string, decision: "rejected" as const };
+  const reviewer = flagValue(args, "--reviewer");
+  if (reviewer === undefined || reviewer.trim() === "") {
+    console.error(
+      `--${decision.decision === "approved" ? "approve" : "reject"}-failure 需要配合 --reviewer <署名>：候选区没有匿名的门禁。`,
+    );
+    process.exitCode = 1;
+    return true;
+  }
+  try {
+    reviewCandidate(decision.id, { decision: decision.decision, reviewer: reviewer.trim() });
+    console.log(
+      `已${decision.decision === "approved" ? "通过" : "驳回"}候选 ${decision.id}（审核人：${reviewer.trim()}）。`,
+    );
+    if (decision.decision === "approved") {
+      console.log("提醒：通过 ≠ 转正——请人工把该用例写入 dataset.ts 并登记 governance 后升版数据集。");
+    }
+  } catch (err) {
+    console.error(err instanceof Error ? err.message : String(err));
+    process.exitCode = 1;
+  }
+  return true;
+}
+
 /**
  * 评测入口。args 支持 --trace（引擎执行轨迹）、--update-baseline（把本轮结果
  * 存为回归基线）、--gate（跑完后叠加质量门禁裁决）、--gate-policy full|ci
  * （门禁策略预设，默认 full，仅与 --gate 同用）与 --strict（inconclusive 也拦）。
+ * Phase 5 候选区：--export-failures（评测后导出失败案例）、--list-failures /
+ * --approve-failure <id> / --reject-failure <id>（配合 --reviewer <署名>，
+ * 纯候选区操作，不跑评测、提前返回）。
  */
 export async function main(args: string[] = []): Promise<void> {
   if (args.includes("--trace")) enableTrace();
@@ -59,6 +139,8 @@ export async function main(args: string[] = []): Promise<void> {
 
   let report;
   try {
+    // 候选区纯操作（列表/审核）不跑评测：处理过即提前返回（Phase 5 §13）
+    if (handleFailureCandidateOps(args)) return;
     report = await runEvals();
   } catch (err) {
     // 错误礼仪同 chat/cli.ts：告诉用户怎么修，而不是甩一串堆栈
@@ -87,6 +169,23 @@ export async function main(args: string[] = []): Promise<void> {
     console.error("请检查对 .data/ 目录的写权限（或当前工作目录是否为 agent-app 根目录）。");
     process.exitCode = 1;
     return;
+  }
+
+  // ── 失败案例导出（Phase 5 §13，--export-failures 显式开启）──────────────
+  // 从内存中的本轮报告导出失败案例进候选区（内容哈希去重）。导出失败只警告
+  // 不改退出码：候选区是改进原料的留档，不该倒过来把一轮合法评测判成失败。
+  if (args.includes("--export-failures")) {
+    try {
+      const { added, skipped } = exportFailureCases(report);
+      console.log(
+        `失败案例导出：新增 ${added} 条，去重跳过 ${skipped} 条（候选区 .data/failure-candidates.jsonl）`,
+      );
+      console.log(
+        "候选区需人工审核：pnpm eval --list-failures 查看；转正由人工改 dataset.ts（Agent 不自动改正式集）。",
+      );
+    } catch (err) {
+      console.error(`失败案例导出失败：${err instanceof Error ? err.message : String(err)}`);
+    }
   }
 
   // ── 基线回归门禁（P3，教程 week16 Day 6）───────────────────────────────
