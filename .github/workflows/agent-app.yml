@@ -90,3 +90,10 @@ jobs:
       - name: 评测套件（Tier 1 门禁；无 key 时 Tier 2/3 跳过）
         run: pnpm eval
         working-directory: agent-app
+
+      # Phase 4 质量门禁（ci 策略）：必跑套件只含零网络的轨迹/路由——CI 无 key 时
+      # 检索/评审被跳过，但 ci 策略不要求它们，缺席不会把门禁打成 inconclusive。
+      # 规则里额外含关键用例一票否决与可选检查的 not_applicable 留痕。
+      - name: 质量门禁（ci 策略：Tier 1 全绿 + 无关键用例失败）
+        run: pnpm quality-gate --gate-policy ci
+        working-directory: agent-app

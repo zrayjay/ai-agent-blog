@@ -34,12 +34,7 @@ import { MemoryStateStore, transition } from "./state-store.js";
 import type { OrchestrationSnapshot, StateStore } from "./state-store.js";
 import { AcceptanceCritic, LlmPlanner, LoopExecutor } from "./defaults.js";
 import type { Executor, Planner } from "./roles.js";
-import {
-  defaultRetryPolicy,
-  type FailurePolicy,
-  type RetryPolicy,
-  backoffDelay,
-} from "./policies.js";
+import { defaultRetryPolicy, type FailurePolicy, type RetryPolicy, backoffDelay } from "./policies.js";
 import { DEFAULT_MAX_STEPS } from "../agent-loop.js";
 
 /** 编排事件：状态迁移 / 子任务完成 / 失败 / 升级 / 中止——观察者出口（可接 SSE / 审计 / OTel 前置） */
@@ -92,7 +87,10 @@ function detectCycle(graph: Map<string, string[]>): string[] {
   const cycles: string[] = [];
 
   function visit(id: string): void {
-    if (stack.has(id)) { cycles.push(id); return; }
+    if (stack.has(id)) {
+      cycles.push(id);
+      return;
+    }
     if (visited.has(id)) return;
     visited.add(id);
     stack.add(id);
@@ -118,11 +116,13 @@ export class Orchestrator {
   constructor(options: OrchestratorOptions = {}) {
     this.stateStore = options.stateStore ?? new MemoryStateStore();
     this.planner = options.planner ?? new LlmPlanner();
-    this.executor = options.executor ?? new LoopExecutor({
-      tools: options.defaultTools ?? {},
-      systemPrompt: options.defaultSystemPrompt ?? "你是任务执行者。严格按目标完成任务，产出具体结果。",
-      maxSteps: DEFAULT_MAX_STEPS,
-    });
+    this.executor =
+      options.executor ??
+      new LoopExecutor({
+        tools: options.defaultTools ?? {},
+        systemPrompt: options.defaultSystemPrompt ?? "你是任务执行者。严格按目标完成任务，产出具体结果。",
+        maxSteps: DEFAULT_MAX_STEPS,
+      });
     this.critic = options.critic ?? new AcceptanceCritic();
     this.retryPolicy = options.retryPolicy ?? defaultRetryPolicy;
     this.failurePolicy = options.failurePolicy ?? { onFail: "retry" };
@@ -212,12 +212,15 @@ export class Orchestrator {
       const upstream = new Map(snapshot.outputs.map((o) => [o.taskId, o.text]));
 
       // ── DAG 条件派发：入度计数 + 就绪波次 + Effect.all 并行 ──
+      // 断点续跑语义（Phase 4 §9.1 修复）：依赖已在上一轮完成的边视为已满足——
+      // 不从入度扣除的话，重入时下游任务永远凑不齐就绪条件，被静默丢弃。
+      // 全新运行 completed 为空集，行为与修复前逐字节一致。
       const taskMap = new Map(tasks.map((t) => [t.id, t]));
       const results = new Map<string, TaskOutput>();
       const inDegree = new Map<string, number>();
       const dependents = new Map<string, string[]>();
       for (const task of tasks) {
-        const deps = (task.dependsOn ?? []).filter((d) => taskMap.has(d));
+        const deps = (task.dependsOn ?? []).filter((d) => taskMap.has(d) && !completed.has(d));
         inDegree.set(task.id, deps.length);
         for (const dep of deps) {
           dependents.set(dep, [...(dependents.get(dep) ?? []), task.id]);
@@ -226,23 +229,28 @@ export class Orchestrator {
 
       // 派发循环抽成内部 Effect——失败统一在外层落终态（escalated / failed）
       const dispatch = Effect.gen(function* () {
-        let ready: TaskSpec[] = tasks.filter(
-          (t) => (inDegree.get(t.id) ?? 0) === 0 && !completed.has(t.id),
-        );
+        let ready: TaskSpec[] = tasks.filter((t) => (inDegree.get(t.id) ?? 0) === 0 && !completed.has(t.id));
 
         while (ready.length > 0) {
           // 中止检查：abort → 软着陆（已完成产出已在 store，后续不派发）
           if (signal?.aborted) {
             const remaining = tasks.length - completed.size;
-            self.onEvent?.({ type: "interrupted", id: spec.id, completedCount: completed.size, remainingCount: remaining });
+            self.onEvent?.({
+              type: "interrupted",
+              id: spec.id,
+              completedCount: completed.size,
+              remainingCount: remaining,
+            });
             break;
           }
 
           // 预算检查：波次之间判——超支是控制信号，直接失败（外层统一落 failed 终态）
           if (budget.exhausted) {
-            return yield* Effect.fail(new BudgetExceededError({
-              message: "编排预算超支：任务未在 token/时间预算内完成",
-            }));
+            return yield* Effect.fail(
+              new BudgetExceededError({
+                message: "编排预算超支：任务未在 token/时间预算内完成",
+              }),
+            );
           }
 
           // 并行执行本波就绪任务（Effect.all = 同波并行，fiber scope 托管）
@@ -279,9 +287,18 @@ export class Orchestrator {
         }
       });
 
-      // 派发失败 → 落终态（EscalatedError → escalated，其余 → failed）后原样上抛
+      // 派发失败 → 落终态（EscalatedError → escalated，其余 → failed）后原样上抛。
+      // 落终态前先把已完成的子任务产出回写快照：波次产出原本只在成功路径回写，
+      // 失败路径若不同步，断点续跑会重跑已成功的子任务（Phase 4 §9.1 故障注入发现）。
       const dispatched = yield* Effect.result(dispatch);
       if (dispatched._tag === "Failure") {
+        const syncedOnFailure = [...snapshot.outputs];
+        for (const [taskId, text] of upstream) {
+          if (!syncedOnFailure.some((o) => o.taskId === taskId)) {
+            syncedOnFailure.push({ taskId, text });
+          }
+        }
+        snapshot = { ...snapshot, outputs: syncedOnFailure };
         const terminal = dispatched.failure instanceof EscalatedError ? "escalated" : "failed";
         snapshot = yield* self.persistTerminal(snapshot, terminal);
         return yield* Effect.fail(dispatched.failure);
@@ -306,14 +323,19 @@ export class Orchestrator {
       if (overallAcceptance.type !== "none") {
         snapshot = self.moveTo(snapshot, "reviewing");
         yield* Effect.tryPromise({ try: () => self.stateStore.save(snapshot), catch: (c) => c });
-        const verdict = yield* Effect.result(Effect.tryPromise({
-          try: () => self.critic.review(
-            { id: spec.id, title: "编排终审", goal: spec.goal },
-            overallAcceptance,
-            { taskId: spec.id, text: summary, tokensUsed: totalTokens, durationMs: 0, steps: 0 },
-          ),
-          catch: (cause) => cause,
-        }));
+        const verdict = yield* Effect.result(
+          Effect.tryPromise({
+            try: () =>
+              self.critic.review({ id: spec.id, title: "编排终审", goal: spec.goal }, overallAcceptance, {
+                taskId: spec.id,
+                text: summary,
+                tokensUsed: totalTokens,
+                durationMs: 0,
+                steps: 0,
+              }),
+            catch: (cause) => cause,
+          }),
+        );
         if (verdict._tag === "Failure") {
           // 终审不达标：manual → escalated（等人拍板），其余 → failed（可修后重入）
           if (overallAcceptance.type === "manual") {
@@ -371,18 +393,19 @@ export class Orchestrator {
           try: () => self.executor.execute(task, { budget, upstream, signal: undefined }),
           catch: (cause) => cause,
         });
-        const guarded = task.maxDurationMs !== undefined
-          ? baseAttempt.pipe(
-              Effect.timeout(Duration.millis(task.maxDurationMs)),
-              Effect.catch((err: unknown) =>
-                (err as { _tag?: string } | null)?._tag === "TimeoutError"
-                  ? Effect.fail(new Error(
-                      `子任务「${task.title}」执行超时（maxDurationMs=${task.maxDurationMs}）`,
-                    ))
-                  : Effect.fail(err),
-              ),
-            )
-          : baseAttempt;
+        const guarded =
+          task.maxDurationMs !== undefined
+            ? baseAttempt.pipe(
+                Effect.timeout(Duration.millis(task.maxDurationMs)),
+                Effect.catch((err: unknown) =>
+                  (err as { _tag?: string } | null)?._tag === "TimeoutError"
+                    ? Effect.fail(
+                        new Error(`子任务「${task.title}」执行超时（maxDurationMs=${task.maxDurationMs}）`),
+                      )
+                    : Effect.fail(err),
+                ),
+              )
+            : baseAttempt;
 
         const outcome = yield* Effect.result(guarded);
 
@@ -406,17 +429,25 @@ export class Orchestrator {
         if (output !== null && task.acceptance && task.acceptance.type !== "none") {
           const accepted = output; // 提取 const：闭包内 TS 窄化不跨变量赋值
           const acceptance = task.acceptance;
-          const review = yield* Effect.result(Effect.tryPromise({
-            try: () => self.critic.review(task, acceptance, accepted),
-            catch: (cause) => cause,
-          }));
+          const review = yield* Effect.result(
+            Effect.tryPromise({
+              try: () => self.critic.review(task, acceptance, accepted),
+              catch: (cause) => cause,
+            }),
+          );
           if (review._tag === "Failure") {
             if (acceptance.type === "manual") {
               // 需人工拍板 → 升级（不重试不降级：产出本身没问题，是流程要求人）
-              self.onEvent?.({ type: "escalated", id: orchestrationId, reason: `「${task.title}」需人工验收` });
-              return yield* Effect.fail(new EscalatedError({
-                message: `「${task.title}」需人工验收（acceptance.type=manual）`,
-              }));
+              self.onEvent?.({
+                type: "escalated",
+                id: orchestrationId,
+                reason: `「${task.title}」需人工验收`,
+              });
+              return yield* Effect.fail(
+                new EscalatedError({
+                  message: `「${task.title}」需人工验收（acceptance.type=manual）`,
+                }),
+              );
             }
             failure = review.failure; // contains / llm-judge 不达标 → 打回重做或按策略降级
             output = null;

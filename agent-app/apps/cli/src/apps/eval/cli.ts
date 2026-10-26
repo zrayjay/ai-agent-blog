@@ -4,25 +4,58 @@
 // writeReportFile()（.data/eval-report.json 留档）→ 基线回归门禁（P3）→
 // 全过且无回归退出 0，否则退出 1（CI 拿退出码当门禁：pnpm eval && ... 的那道闸）。
 // 基线门禁三态：--update-baseline 写基线；已有基线则比对回退；没有则提示首次生成。
+// 质量门禁（Phase 4）：--gate 在评测跑完后叠加 evaluateQualityGate 裁决退出码
+// （--gate-policy full|ci 选预设，--strict 把 inconclusive 也拦下）；不带 --gate
+// 时行为与引入门禁前逐字节一致。
 // 与 chat/cli.ts 同款约定：main(args) 导出供 index.ts 路由，直接运行时自启。
 import { pathToFileURL } from "node:url";
 import {
   buildBaseline,
   compareBaseline,
   criticalCaseViolations,
+  evaluateQualityGate,
   loadBaseline,
+  QUALITY_GATE_POLICY_CI_TIER1,
+  QUALITY_GATE_POLICY_FULL,
   runEvals,
   saveBaseline,
 } from "@agent-app/engine/evals";
+import type { BaselineViolation, QualityGatePolicy } from "@agent-app/engine/evals";
 import { printReportToConsole, writeReportFile } from "@agent-app/engine/evals";
 import { enableTrace } from "@agent-app/engine/trace";
 
 /**
- * 评测入口。args 支持 --trace（引擎执行轨迹）与 --update-baseline
- * （把本轮结果存为回归基线，见基线门禁三态）。
+ * 解析 --gate-policy 的值：full（发布门禁，四套件必跑）/ ci（CI Tier 1 门禁，
+ * 只要求轨迹/路由）。未传默认 full；认识的值之外直接报错——门禁策略拼错还
+ * 静默往下跑，等于把关闸的钥匙插错锁孔。
+ */
+function resolveGatePolicy(raw: string | undefined): QualityGatePolicy | undefined {
+  if (raw === undefined) return QUALITY_GATE_POLICY_FULL;
+  if (raw === "full") return QUALITY_GATE_POLICY_FULL;
+  if (raw === "ci") return QUALITY_GATE_POLICY_CI_TIER1;
+  return undefined;
+}
+
+/**
+ * 评测入口。args 支持 --trace（引擎执行轨迹）、--update-baseline（把本轮结果
+ * 存为回归基线）、--gate（跑完后叠加质量门禁裁决）、--gate-policy full|ci
+ * （门禁策略预设，默认 full，仅与 --gate 同用）与 --strict（inconclusive 也拦）。
  */
 export async function main(args: string[] = []): Promise<void> {
   if (args.includes("--trace")) enableTrace();
+
+  const gateEnabled = args.includes("--gate");
+  const gateStrict = args.includes("--strict");
+  const gatePolicyRaw = args.includes("--gate-policy") ? args[args.indexOf("--gate-policy") + 1] : undefined;
+  let gatePolicy: QualityGatePolicy | undefined;
+  if (gateEnabled) {
+    gatePolicy = resolveGatePolicy(gatePolicyRaw);
+    if (gatePolicy === undefined) {
+      console.error(`不认识的质量门禁策略：--gate-policy ${gatePolicyRaw}（可选 full | ci）。`);
+      process.exitCode = 1;
+      return;
+    }
+  }
 
   let report;
   try {
@@ -61,6 +94,7 @@ export async function main(args: string[] = []): Promise<void> {
   // 基线是 .data/ 下的本地文件（不进 git）：换机器/CI 首次跑没有基线 →
   // 只提示不拦截；数据集版本/配置指纹不一致 → stale 提示，不拦截。
   let hasRegression = false;
+  const baselineViolations: BaselineViolation[] = [];
   if (args.includes("--update-baseline")) {
     try {
       const saved = saveBaseline(buildBaseline(report));
@@ -84,6 +118,7 @@ export async function main(args: string[] = []): Promise<void> {
     }
     if (baseline !== null) {
       for (const violation of compareBaseline(report, baseline)) {
+        baselineViolations.push(violation);
         if (violation.stale === true) {
           console.log(`[提示] ${violation.message}`);
         } else {
@@ -104,7 +139,42 @@ export async function main(args: string[] = []): Promise<void> {
     hasRegression = true;
   }
 
-  // 全过且无回归（含关键用例全过）= 0，否则 = 1：CI 把 pnpm eval 当门禁，退出码就是判决
+  // ── 质量门禁（Phase 4 §12，--gate 显式开启）────────────────────────────
+  // 门禁只裁决退出码，绝不反哺执行：评测已经跑完，这里只是把报告 + 违规清单
+  // 交给纯函数 evaluateQualityGate 出结论。逐规则打印中文原因，让 CI 日志的
+  // 读者不需要翻代码就知道差在哪。
+  if (gateEnabled && gatePolicy !== undefined) {
+    const gate = evaluateQualityGate({ report, baselineViolations, criticalViolations }, gatePolicy);
+    console.log("=".repeat(64));
+    console.log(`质量门禁（策略：${gatePolicy === QUALITY_GATE_POLICY_CI_TIER1 ? "ci" : "full"}）`);
+    for (const rule of gate.rules) {
+      console.log(`[GATE] ${rule.id} · ${rule.status}${rule.blocking ? "（阻断）" : ""} — ${rule.reason}`);
+    }
+    console.log("=".repeat(64));
+    if (gate.status === "passed") {
+      console.log("[QUALITY GATE] passed — 全部门禁规则通过");
+      process.exitCode = 0;
+    } else if (gate.status === "failed") {
+      console.log("[QUALITY GATE] failed — 存在阻断性失败规则，退出码 1 拦截");
+      process.exitCode = 1;
+    } else {
+      // inconclusive：必跑套件被跳过等「无法判定」——不通过也不算失败。
+      // 默认放行但大声标出来；--strict 把「不确定」也当失败（发布前最后把关用）。
+      console.log(
+        "[INCONCLUSIVE] 质量门禁无法得出确定结论（存在被跳过/缺席的必跑维度）——不是通过，也不视为失败",
+      );
+      if (gateStrict) {
+        console.log("[STRICT] --strict 已开启：inconclusive 按失败处理，退出码 1");
+        process.exitCode = 1;
+      } else {
+        process.exitCode = 0;
+      }
+    }
+    return;
+  }
+
+  // 全过且无回归（含关键用例全过）= 0，否则 = 1：CI 把 pnpm eval 当门禁，退出码就是判决。
+  // --gate 路径在上面已按门禁结论定退出码并提前返回——默认行为与引入门禁前逐字节一致。
   process.exitCode = report.totals.passed === report.totals.total && !hasRegression ? 0 : 1;
 }
 

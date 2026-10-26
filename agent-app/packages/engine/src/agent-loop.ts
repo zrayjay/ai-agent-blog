@@ -235,19 +235,32 @@ export async function runToolLoop(options: RunToolLoopOptions): Promise<ToolLoop
       });
       const toolStartedAt = Date.now();
       if (tool?.execute) {
-        try {
-          // ② 调度：execute 就是普通函数；call.input 已由 SDK 按 schema 解析好
-          output = jsonOutput(
-            await tool.execute(call.input, {
-              toolCallId: call.toolCallId,
-              messages,
-            }),
-          );
-        } catch (err) {
+        // 入参校验防线（Phase 4 故障注入发现）：SDK 对没通过工具 schema 校验的
+        // 调用并不打断 generateText，而是把该调用标成 invalid + error 原地混进
+        // toolCalls。循环若无视这个标记，垃圾入参会静默流进 execute——违背
+        // 「参数过 schema 才到 execute」的引擎契约（types.ts），模型也永远没机会
+        // 知道参数不合法。按失败通道折成 error-json 回灌，模型能修正，循环不死。
+        // 判据用 SDK 自带的标记（in-band 数据，不引依赖）；有效调用无此标记，零开销。
+        if (Reflect.get(call, "invalid") === true) {
+          const sdkError: unknown = Reflect.get(call, "error");
+          const reason = sdkError instanceof Error ? sdkError.message : "工具入参未通过 schema 校验";
           failed = true;
-          output = errorOutput({
-            error: `工具 ${call.toolName} 执行失败：${err instanceof Error ? err.message : String(err)}`,
-          });
+          output = errorOutput({ error: `工具 ${call.toolName} 入参不合法：${reason}` });
+        } else {
+          try {
+            // ② 调度：execute 就是普通函数；call.input 已由 SDK 按 schema 解析好
+            output = jsonOutput(
+              await tool.execute(call.input, {
+                toolCallId: call.toolCallId,
+                messages,
+              }),
+            );
+          } catch (err) {
+            failed = true;
+            output = errorOutput({
+              error: `工具 ${call.toolName} 执行失败：${err instanceof Error ? err.message : String(err)}`,
+            });
+          }
         }
       } else {
         failed = true;
