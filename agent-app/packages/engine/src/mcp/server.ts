@@ -37,12 +37,14 @@ import { randomUUID } from "node:crypto";
 import { McpServer, ResourceTemplate } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
+import type { ToolSet } from "ai";
 import { createDemoTools } from "../tools/demo-tools.js";
 import { searchKnowledgeBase } from "../tools/kb-search.js";
 import { createRagStoreFromEnv } from "../rag/store.factory.js";
 import { getRagStore, setRagStore } from "../rag/retrieve.js";
 import type { RagStore } from "../rag/types.js";
-import type { AgentTool } from "../types.js";
+// 这里是运行时工具桥接边界：接受 ai 的 ToolSet 单项；避免把不同输入
+// Schema 的 Tool<TInput> 误收窄为 Tool<unknown>（Zod 4 后回调参数逆变）。
 
 /** 服务器元信息：版本与 engine package.json 保持同一口径（升级时两处一起改） */
 const SERVER_VERSION = "0.1.0";
@@ -66,7 +68,7 @@ function resolveStore(): RagStore {
 }
 
 /** 引擎工具 → MCP 工具的翻译器（单一真源：schema 原样透传，不复制） */
-function registerEngineTool(server: McpServer, name: string, engineTool: AgentTool): void {
+function registerEngineTool(server: McpServer, name: string, engineTool: ToolSet[string]): void {
   // 收窄检查：引擎工具的 inputSchema 一律是 zod schema（demo-tools / kb-search 的
   // 既有约定，MCP SDK 也直接吃 zod）。不是 zod 属于编码错误，当场炸出来而不是静默降级。
   if (!(engineTool.inputSchema instanceof z.ZodType)) {
