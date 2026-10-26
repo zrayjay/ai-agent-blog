@@ -1,0 +1,59 @@
+# 临时依赖修复工作流：在独立修复分支重建 lockfile，并复跑全部离线验证。
+# 本文件将在合并到 main 前从修复分支删除；不会修改正式安全审计规则。
+name: Dependency remediation validation
+on:
+  push:
+    branches:
+      - fix/agent-app-security-audit-20261026
+
+permissions:
+  contents: write
+
+jobs:
+  remediate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Regenerate security-patched lockfile
+        working-directory: agent-app
+        run: pnpm install --no-frozen-lockfile
+      - name: Commit regenerated lockfile to fix branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add agent-app/pnpm-lock.yaml
+          if ! git diff --cached --quiet; then
+            git commit -m "fix(deps): regenerate audited pnpm lockfile"
+            git push origin HEAD:fix/agent-app-security-audit-20261026
+          fi
+      - name: Dependency audit - high and critical gate
+        working-directory: agent-app
+        run: pnpm audit --audit-level high
+      - name: Build workspace
+        working-directory: agent-app
+        run: pnpm -r build
+      - name: Typecheck workspace
+        working-directory: agent-app
+        run: pnpm typecheck
+      - name: Validate architecture boundaries
+        working-directory: agent-app
+        run: pnpm lint:deps
+      - name: Engine unit/integration tests
+        working-directory: agent-app
+        run: pnpm --filter @agent-app/engine test
+      - name: API unit/e2e tests
+        working-directory: agent-app
+        run: pnpm --filter @agent-app/api test
+      - name: Offline selftest
+        working-directory: agent-app
+        run: pnpm selftest
+      - name: Quality gate CI Tier 1
+        working-directory: agent-app
+        run: pnpm quality-gate --gate-policy ci
