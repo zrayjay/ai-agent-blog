@@ -15,6 +15,8 @@ flowchart LR
   P6 --> P7["P7 多 Agent/产品化"]
 ```
 
+**队列设计强制依据**：[03-QUEUE-SCHEDULING.md](./03-QUEUE-SCHEDULING.md) + [04-SCENARIO-MATRIX.md](./04-SCENARIO-MATRIX.md)。所有功能 PR 必须标注适用 SC 编号，先验收 Task/Wake/Approval，再逐步扩展 Tool/Trigger/Notification。不能以 BullMQ 可运行代替调度可靠性。
+
 **里程碑**：M1 = P0–P2（可靠后台任务）→ M2 = P3（用户可创建 Agent）→ M3 = P4–P5（可靠工具与记忆）→ M4 = P6–P7（持续目标和多 Agent）。各阶段依赖并非意味着所有 UI/测试完全串行：P4、P5 的基础契约可在 P3 期间并行设计。
 
 ## P0 基线冻结与复用审计（第一批）
@@ -26,6 +28,7 @@ flowchart LR
 - [ ] P0-02 整理 Agent Loop、Effect Orchestrator、StateStore、Tool Assembly、Run Contract、Memory、MCP 与 Guardrails 入口和当前责任界限；识别功能重复、版本不匹配、未覆盖测试。
 - [ ] P0-03 扩充 CI：执行 engine/API/CLI 的确定性测试与依赖边界检查；需真 Key 的测试走独立受控门禁，不允许跳过被写为通过。
 - [ ] P0-04 建立 ADR、迁移清单和变更保护测试；先不改执行算法，不搬动业务目录。
+- [ ] P0-05 将 54 个场景编号纳入测试规划，冻结独立 Task/Run/Inbox/ToolOperation/Approval/Notification/Trigger 状态机、租约/会话保留权与运行配额默认策略。
 
 **验收**：原 chat/kb/service/team + CLI 冒烟可复现；CI 无回归；产出清晰的 P1 差异列表。**不直接创建 Agent Factory。**
 
@@ -39,6 +42,7 @@ flowchart LR
 - [ ] P1-03 `packages/shared` 定义 versioned DTO、RunEvent；保留旧 ChatStreamEvent 兼容。
 - [ ] P1-04 扩展 Next.js 布局：Agents、Tasks、Runs、Approvals 空状态页面，旧 chat/kb/service 保留。
 - [ ] P1-05 编写数据库迁移、权限越权、创建与读写等测试。
+- [ ] P1-06 新增 queue-scope/故障恢复表设计：`conversation_inbox`, `run_attempts`, `execution_leases`, `resource_leases`, `tool_operations`, `trigger_occurrences`, `notification_deliveries`，为事务 Outbox、去重、epoch fencing 和会话 reservation 建立约束。
 
 **验收**：未登录请求被拒绝；越权返回拒绝；迁移前后旧数据可用；不通过单纯 sessionId 猜测访问别人的数据。
 
@@ -53,8 +57,13 @@ flowchart LR
 - [ ] P2-04 PostgreSQL 持久化 RunEvent seq、运行状态、工作租约 epoch；状态更新 CAS/fencing，SSE 支持 last event sequence 回放和去重。
 - [ ] P2-05 ToolOperation + 持久 Approval：审批等待不占用无限长 HTTP 请求；超时/拒绝失败关闭；外部动作 unknown 先核对再重试。
 - [ ] P2-06 继承现有 Verification/Telemetry，保存 Outcome 与验证证据；服务断电、队列重复投递、取消/审批竞态测试。
+- [ ] P2-07 **Task Lane**：Scheduler 支持用户并发配额、同会话单 Run、不同 Agent 受限并发，逻辑队列状态与积压可观测。
+- [ ] P2-08 **Wake Lane**：用户消息持久 Inbox seq；busy pending/deferred；运行时仅在安全点 ACK-steering，否则 continuation；处理状态展示且绝不丢正文。
+- [ ] P2-09 **Approval Lane**：审批等待释放 execution lease 保留 conversation reservation，参数/版本/权限/期限再校验；恢复不自动重放不确定外部动作。
+- [ ] P2-10 **恢复与排障**：CAS+epoch fencing、transactional outbox relay、ToolOperation unknown 与对账、SSE replay、队列 dashboard/告警。
+- [ ] P2-11 **场景验收**：按照 54 场景矩阵 P2 门禁执行真实 PG+Redis+双 Worker 的重复投递、故障、取消/审批竞态测试；未通过不得宣称后台持久执行已完成。
 
-**验收**：关浏览器后任务仍运行；重新登录看见完整事件与结果；重启不重复执行外部写操作；重复消息不会生成重复业务副作用；取消能稳定进入终态。
+**验收**：关浏览器后任务仍运行；重新登录看见完整事件与结果；重启不重复执行外部写操作；重复消息不会生成重复业务副作用；取消能稳定进入终态。**同时证明**：同会话连续 20 条消息不丢失/不并行 Run，两个无冲突 Agent 能并发，审批等待释放 Worker 但保留会话恢复权，DB/Redis 故障有明确补发或 fail-closed 路径。
 
 ## P3 Agent Factory（第一个差异化里程碑）
 
@@ -79,6 +88,7 @@ flowchart LR
 - [ ] P4-03 Browser Worker：独立 Chromium profile、Playwright/CDP、导航/读取/输入/截图/下载；沙箱、网络/文件权限。
 - [ ] P4-04 审批/接管：Agent 控制与人工控制互斥，交还后重新观察页面；未知副作用必须人工核对。
 - [ ] P4-05 GitHub、搜索、只读查询等高价值连接器先上线，真实服务授权后再单独验收。
+- [ ] P4-06 **Tool Lane / Resource Lease**：浏览器 Profile、工作区文件等写资源独占，Agent 与人工交接互斥；操作 unknown 不盲重试；验收 SC22、SC27–SC31。
 
 **验收**：未经授权的工具不可用，批准参数变更失效；浏览器接管时双写互斥；断连与重启不会重复发邮件/付款；只读路径优先。
 
@@ -104,6 +114,7 @@ flowchart LR
 - [ ] P6-03 Scheduler 将触发事件入 Outbox/BullMQ，按同一逻辑创建 Task/Run；避免同目标重叠执行并检查授权和预算。
 - [ ] P6-04 独立 NotificationOutbox：通知失败不重跑任务；邮件/消息渠道真实账号另行授权验收。
 - [ ] P6-05 触发误差、重复触发、网络断开、时区/DST、暂停和最大次数测试。
+- [ ] P6-06 **Trigger/Notification Lane**：Goal QUEUE/SKIP/COALESCE/REPLACE、misfire/时区/DST/occurrenceId 去重与通知独立重试；验收 SC41–SC47。
 
 **验收**：新闻研究 Agent 可以按计划定时执行、生成成果并通知；中断或通知失败后无重复外部写操作，用户可追溯每轮结果。
 
@@ -118,6 +129,7 @@ flowchart LR
 - [ ] P7-04 统一 Eval / Trace / Verification / Quality Gate / 风险事件；记录端到端成功率、P50/P95、工具失败率、token/实际成本。
 - [ ] P7-05 故障演练、备份恢复、密钥轮换、浏览器隔离、负载/长稳测试；安全红队与 CI 门禁。
 - [ ] P7-06 改进用户体验、文档和运维指南；真实连接器使用权限由用户单独授权。
+- [ ] P7-07 结合场景矩阵实现多用户公平调度、跨 Agent 子任务失败/补偿、性能背压与队列告警；验收 SC19、SC52–SC53。
 
 **验收**：市场/财务/法律 Agent 按授权完成一项协作任务；可以停止和恢复；中间失败有确定终态与证据，必要时人工审批；系统的成功率与成本可测。
 
