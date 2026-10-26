@@ -1,8 +1,8 @@
-# Agent Quality Engineering · 实施文档（v0 骨架）
+# Agent Quality Engineering · 实施文档（v1 · 全阶段落地）
 
 > 对应任务：看板 #4dc2361a（父）
-> 本文档是质量工程体系的**正式实施文档**，与 [AGENT-QUALITY-ENGINEERING-AUDIT.md](./AGENT-QUALITY-ENGINEERING-AUDIT.md)（Phase 0 审计报告）配对保留，作为后续验收依据。
-> 状态标注：🟦 待 Phase N 填充。
+> 本文档是质量工程体系的**正式实施文档**，与 [AGENT-QUALITY-ENGINEERING-AUDIT.md](./AGENT-QUALITY-ENGINEERING-AUDIT.md)（Phase 0 审计报告）配对保留，作为验收依据。
+> 状态：Phase 0–5 全部落地（2026-10-26）；各节标注落地提交所在分支链（串行：phase-0 → … → phase-5 → final-acceptance）。
 
 ---
 
@@ -12,49 +12,50 @@
 
 现状基线见审计报告「盘点总表」——四大件（评测/护栏/编排/基线）已实现且有测试（护栏与基线为「附条件」：护栏默认全关、基线不进 CI），缺口集中于 Verification（无）、结构化 Trace（弱）、Quality Gate 与 CI 覆盖（不完整）。
 
-## 2. 总体架构（🟦 待 Phase 2 收敛后补架构图）
+## 2. 总体架构（已落地）
 
-逻辑依赖方向（与 PRD §2.2 一致）：
+逻辑依赖方向（与 PRD §2.2 一致，全部实现）：
 
 ```text
-Agent Engine ─┬─ Trace / Run Events（Phase 2 扩展 trace.ts）
-              ├─ Verification（Phase 1 新建 verification/）
-              ├─ Guardrails（已有，默认关闭待评估）
-              └─ Orchestrator（已有）
-Evaluation（已有 evals/，Phase 3 补维度）←─ Run Results + Trace Summaries + Verifier Results
-Quality Gate（Phase 4，落 evals/ 内）←─ Evaluation + Baseline + Reliability + Security
+Agent Engine ─┬─ Trace / Run Events（src/telemetry/，trace.ts 保留为人类可读出口，零改动）
+              ├─ Verification（src/verification/，Phase 1 新建）
+              ├─ Guardrails（已有 + Phase 2 加 emitEvent 发射缝）
+              └─ Orchestrator（已有 + Phase 4 修复失败路径回写/续跑入度两处缺陷）
+Evaluation（src/evals/，Phase 3 补治理/维度/报告字段）←─ Run Results + Trace Summaries + Verifier Results
+Quality Gate（src/evals/quality-gate.ts，Phase 4）←─ Evaluation + Baseline + Reliability + Security
+Experimentation / Failure candidates（src/evals/experiments.ts、failure-cases.ts，Phase 5）
 ```
 
-## 3. 统一数据契约（🟦 待 Phase 1 填充）
+## 3. 统一数据契约（✅ Phase 1 落地）
 
-- Run 标识体系：runId / parentRunId / taskId / agentId / stepId / attempt / traceId / datasetId / caseId
-- Run 状态机与既有 orchestrator 状态机的分层关系
-- RunOutcome 与 VerificationResult 分离保存
-- 兼容性映射（pending/completed 等既有状态的处置）
+- `src/run-contract.ts`：`RunIdentifiers`（runId/parentRunId/taskId/agentId/stepId/attempt 从 1 起/traceId/datasetId/caseId）；`RunStatus` 六态（queued/running/succeeded/failed/cancelled/timed_out）；`RUN_TRANSITIONS` 数据表 + `assertRunStatusTransition`（终态不可被改写、同终态幂等放行，非法迁移抛 `RunStatusTransitionError`）；`RunOutcome`（status 收窄终态，**succeeded ≠ 验收通过**已成文）。
+- 与 orchestrator 八态状态机**分层并存、互不收编**（头注释文档化）。
+- `RunOutcome` 与 `VerificationResult` 分离返回/保存（`runWithVerification` 返回两者）。
 
-## 4. Outcome Verification（🟦 待 Phase 1 填充）
+## 4. Outcome Verification（✅ Phase 1 落地）
 
-- Verifier 契约与 VerificationRunner
-- 第一批确定性验证器及选择依据
-- 验证状态判定规则（passed/failed/inconclusive）
+- `src/verification/`：`Verifier` 契约（id/version/required 缺省 true/verify 纯确定性）+ `VerificationRunner`（聚合规则：必查 failed→failed 一票否决；验证器抛错/空清单/skipped→**inconclusive 绝不默认通过**且落账不吞错；可选只落账永不翻转）+ 注册表。
+- 内置验证器：Schema（Zod）/ ToolExecution（不信任自述，只看轨迹）/ Artifact（只读 fs，ENOENT→failed、其余 fs 错误→inconclusive）。
+- 集成接缝：`runWithVerification()`（agent-loop 零改动，onStep/onEvent 链式转发）。
 
-## 5. Observability & Tracing（🟦 待 Phase 2 填充）
+## 5. Observability & Tracing（✅ Phase 2 落地）
 
-- 事件模型（AgentRunEvent）与 trace.ts 的兼容扩展方案
-- 脱敏策略（复用 pii-mask）
-- 观测指标口径（分母/窗口/排除规则）
+- `src/telemetry/`：`AgentRunEvent` 模型（19 型事件目录）+ `createRunEventRecorder`（内存总账为真源、sink 抛错降级不丢事件、ingest 去重+空关联键补挂）+ `redactEvent`（秘密 KEY/sk-/Bearer 模式 + maskPii 复用，默认开启）+ `computeRunMetrics`（分母规则成文：成功率排除 cancelled、cancelRate 全终态分母、0/0→undefined 不伪造零）。
+- 发射接缝全部 additive-optional：agent-loop `onEvent?`（llm.request._/tool.call._）、runWithVerification（run._/verification._ + 终局映射）、gate `emitEvent`（guardrail.triggered）。
+- 兼容：text 模式逐字节不变；JSON 模式保留；`AGENT_TRACE=1`/`--trace` 不变；retry._/subrun._ 目录占位、发射延迟（无数据→undefined 不误报）。
 
-## 6. Evaluation & Regression（🟦 待 Phase 3 填充）
+## 6. Evaluation & Regression（✅ Phase 3 落地）
 
-- 评测维度补齐清单、Judge 加固点
-- 报告字段扩展（评测器版本/配置标识）
-- 基线共享策略（进 git 与否，需人工确认）与数据集治理
+- 治理：`src/evals/governance.ts`（datasetId、7 维维度、8 条 critical 用例一票否决、候选区机制）；效率维度 `scorers/efficiency.ts`；安全/可靠性评分器递延 Phase 4（安全链路测试落地，维度评分接入仍开放）。
+- Judge：`JUDGE_RUBRIC_VERSION` 进 prompt、【验证证据】段（数据性声明栅栏）、`parseJudgeVerdict` 导出 + 错误类型对抗测试（失败不默认通过既有语义保持）。
+- 报告：`evaluatorVersion` / `configId`（buildConfigId，无秘密）/ `totals.errors` 分列（skipped ≠ failed ≠ errored）。
+- 基线：`getBaselineTolerance`（env 可配，默认 0.03）、configId 口径不一致→stale 提示、`criticalCaseViolations` 进 CLI 退出码。**基线文件仍在 .data（gitignored），进 git 与否待人工决策**。
 
-## 7. Quality Gate & Reliability（🟦 待 Phase 4 填充）
+## 7. Quality Gate & Reliability（✅ Phase 4 落地）
 
-- 门禁规则表（passed/failed/inconclusive 判定依据）
-- CI 分层（PR 必跑 / 按需）与 engine/cli 测试补入 CI
-- 可靠性故障注入矩阵覆盖表
+- `src/evals/quality-gate.ts`：R1–R6 规则与执行分离、FULL / CI_TIER1 双具名策略、inconclusive 绝不自动转 passed（R2 必需套件跳过→inconclusive）、每条规则输出中文判定原因、缺席可选检查→not_applicable 不假装通过。CLI `--gate/--gate-policy/--strict`；`pnpm quality-gate` 脚本 + CI evals job 接入（ci 策略）。
+- 可靠性：`test/reliability.spec.ts` 故障矩阵 14 例（LLM 超时/畸形输出/步数耗尽、工具异常/超时/空结果、取消四态+重复 abort 幂等+竞态、幂等重放）；**暴露并修复 3 个真实引擎缺陷**（agent-loop 畸形入参静默透传、orchestrator 失败路径不回写产出、续跑入度不扣已完成依赖）。
+- 安全：`test/security-chain.spec.ts` 5 例真实链路（注入入参 denied-as-data+事件、白名单绕过、PII 出边界打码、案例 10 密钥总账留原文/sink 副本脱敏、高危确认事件）；既有 hardening/guardrails/kb-search/API e2e 保持。
 
 ## 8. Experimentation & Feedback Loop（🟩 Phase 5 已落地第一版）
 
@@ -106,7 +107,8 @@ Quality Gate（Phase 4，落 evals/ 内）←─ Evaluation + Baseline + Reliabi
 
 ## 10. 变更记录
 
-| 日期       | 变更                                                         | 依据          |
-| ---------- | ------------------------------------------------------------ | ------------- |
-| 2026-10-26 | 创建骨架 + 完成源码审计（Phase 0）                           | 看板 b9b15212 |
-| 2026-10-26 | Phase 5：实验台账 + 失败案例候选区与人工审核流（§8/§9 更新） | 看板 2f3c33be |
+| 日期       | 变更                                                                                                                  | 依据          |
+| ---------- | --------------------------------------------------------------------------------------------------------------------- | ------------- |
+| 2026-10-26 | 创建骨架 + 完成源码审计（Phase 0）                                                                                    | 看板 b9b15212 |
+| 2026-10-26 | Phase 5：实验台账 + 失败案例候选区与人工审核流（§8/§9 更新）                                                          | 看板 2f3c33be |
+| 2026-10-26 | 最终收口：§3–§7 骨架填充为落地实态；CI test job 补入引擎 vitest 套件（闭掉 Phase 0 审计的「engine 测试不进 CI」缺口） | 看板 f89bb391 |

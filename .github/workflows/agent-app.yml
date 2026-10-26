@@ -56,6 +56,12 @@ jobs:
         run: pnpm selftest
         working-directory: agent-app
 
+      # 引擎 vitest 套件（单元 + 集成，含 verification/telemetry/可靠性故障矩阵/
+      # 安全链路/门禁/实验台账套件）：全离线零 Secret，infra.* 套件无 Docker 自动跳过
+      - name: 引擎测试（vitest，全离线；infra 套件无 Docker 自动跳过）
+        run: pnpm --filter @agent-app/engine test
+        working-directory: agent-app
+
       - name: API 测试（vitest 单测 + e2e，引擎调用全部 mock）
         run: pnpm --filter @agent-app/api test
         working-directory: agent-app
