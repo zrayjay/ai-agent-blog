@@ -6,32 +6,14 @@
 
 ## 项目架构总览（基于当前代码）
 
-本仓库是**教程文档 + 可运行 Agent 工程**的双主线项目：`docs/` 通过 VitePress 组织学习内容；`agent-app/` 是 pnpm workspace Monorepo，提供 TypeScript Agent 引擎、Next.js Web、NestJS API、CLI 和可选的持久化基础设施。以下流程图描述仓库**已有能力及其接线**，不把路线图当作已上线功能。
+本仓库是**教程文档 + 可运行 Agent 工程**的双主线项目：`docs/` 通过 VitePress 组织学习内容；`agent-app/` 是 pnpm workspace Monorepo，提供 TypeScript Agent 引擎、Next.js Web、NestJS API、CLI 和可选的持久化基础设施。下方矢量架构图基于仓库**已有能力及其接线**制作，并保留分模块的文字说明与源码链接；不将演进路线误标为已上线功能。
 
-### 1. 整体技术架构
+### 1. 整体技术架构与功能流程图
 
-```mermaid
-flowchart TB
-    subgraph DOCS["教程文档"]
-        D["docs：guide / reference / products / archive"] --> VP["VitePress"] --> PAGE["GitHub Pages"]
-    end
-    subgraph APP["agent-app：Monorepo"]
-        WEB["Next.js Web：对话 / 知识库 / 客服"] --> API["NestJS BFF：HTTP / SSE"]
-        CLI["CLI：chat / kb / service / team / eval"] --> ENGINE["@agent-app/engine"]
-        API --> ENGINE
-        SHARED["@agent-app/shared：共享类型契约"] -.-> API
-        SHARED -.-> WEB
-        ENGINE --> LOOP["Tool Loop"]
-        ENGINE --> ORCH["多 Agent Orchestrator"]
-        ENGINE --> MODULES["RAG / Memory / Tools / MCP / Skills"]
-        ENGINE --> QUALITY["Guardrails / Verification / Telemetry / Evals"]
-        ORCH --> LOOP
-        LOOP --> MODEL["LLM 网关"]
-        MODULES --> MODEL
-        MODULES --> STORAGE["Memory / JSON / Redis / PostgreSQL + pgvector"]
-    end
-    D -. "教程与实现对照" .-> ENGINE
-```
+[![AI Agent 全栈工程师项目架构与流程总览](./docs/public/images/ai-agent-architecture-overview.svg)](./docs/public/images/ai-agent-architecture-overview.svg)
+
+> 点击图片可查看放大的矢量架构图；图片包含仓库双主线、运行时分层架构、Chat / RAG / 客服 / 多 Agent 流程、MCP / Skills、安全机制、质量工程闭环和 CI 发布流程。详细模块说明与源码链接见下文。
+
 
 | 目录 | 核心职责 | 深入阅读 |
 | --- | --- | --- |
@@ -46,32 +28,11 @@ flowchart TB
 
 ### 2. 教程文档的构建与发布
 
-```mermaid
-flowchart LR
-    A["编写 guide / reference / products / archive"] --> B["更新 VitePress 导航"]
-    B --> C["本地 docs:dev 预览"]
-    C --> D["提交 main"] --> E["GitHub Actions deploy.yml"]
-    E --> F["pnpm docs:build"] --> G["上传 Pages Artifact"] --> H["deploy-pages 发布"]
-```
 
 文档配置位于 `docs/.vitepress/config.mts`。站点工作流和 Agent 项目质量工作流相互独立。
 
 ### 3. Chat 对话：会话与 SSE 流式响应
 
-```mermaid
-flowchart TD
-    U["Web 用户"] --> REQUEST["GET /api/chat/stream"]
-    REQUEST --> SESSION["生成或复用 sessionId，并发送 session 事件"]
-    SESSION --> HISTORY["写入用户消息，读取会话窗口"]
-    HISTORY --> TOOLSET["装配工具：可选审批壳 + 幂等壳"]
-    TOOLSET --> LOOP["runToolLoop"]
-    LOOP --> STEP["工具完成时发送 step 事件"]
-    STEP --> LOOP
-    LOOP --> TEXT["streamText 生成最终流式答案"]
-    TEXT --> TOKEN["发送 token 片段"] --> SAVE["回写助手消息"] --> DONE["发送 done，关闭 SSE"]
-    LOOP -. "异常" .-> ERR["发送 error 并收尾"]
-    TEXT -. "异常" .-> ERR
-```
 
 - Web 端用 `fetch + ReadableStream` 消费事件；`step` 描述工具步骤，`token` 描述最终回复片段。
 - API 的非流式 `POST /api/chat` 不提供挂起式审批；如果 `AGENT_CONFIRM_TOOLS` 配置了需要确认的工具，应使用 SSE 流式入口。
@@ -79,162 +40,46 @@ flowchart TD
 
 ### 4. Agent 核心：手写 Tool Loop
 
-```mermaid
-flowchart TD
-    START["system / messages / Tools Schema"] --> MODEL["generateText 请求 LLM"]
-    MODEL --> CALL{"模型请求工具？"}
-    CALL -- "否" --> FINISH["直接返回文本和运行结果"]
-    CALL -- "是" --> SAVE["记录工具调用意图"] --> VALID{"工具和参数有效？"}
-    VALID -- "否" --> FAILED["生成 error-json"]
-    VALID -- "是" --> EXEC["由引擎执行工具"] --> RESULT["生成 json 或 error-json"]
-    FAILED --> BACK["把 tool-result 回灌消息历史"]
-    RESULT --> BACK
-    BACK --> LIMIT{"达到 maxSteps？"}
-    LIMIT -- "否" --> MODEL
-    LIMIT -- "是" --> EXHAUST["抛出步数耗尽错误"]
-```
 
 模型只收到去掉 `execute` 的工具 Schema，**模型点名，代码执行**。执行阶段可以通过外层组合工具适配器、审批、幂等与安全包装；`onStep` 和 `onEvent` 用于追踪。参考：[agent-loop.ts](./agent-app/packages/engine/src/agent-loop.ts)。
 
 ### 5. 知识库 RAG：入库与检索问答
 
-```mermaid
-flowchart TD
-    subgraph INGEST["文档入库"]
-        FILE["上传或读取 txt / md / pdf"] --> PARSE["解析和切块"] --> EMB["批量 Embedding"] --> STORE["RagStore upsert"]
-    end
-    subgraph QUERY["基于证据的问答"]
-        QUESTION["用户提问"] --> QEMB["问题向量化"] --> SEARCH["Top-K 语义检索"] --> HIT{"有相关资料？"}
-        HIT -- "否" --> EMPTY["明确告知资料不足"]
-        HIT -- "是" --> CONTEXT["片段上下文和编号引用"] --> LLM["LLM 生成回答"] --> CITATIONS["返回答案和来源"]
-        LLM -. "模型不可用" .-> FALLBACK["回退为检索原文和出处"]
-    end
-    STORE -. "检索已入库数据" .-> SEARCH
-```
 
 RAG 存储接口支持内存/JSON 快照和 PostgreSQL + pgvector 切换；引用编号由后端检索结果生成，而不是交给模型虚构。参考：[RAG README](./agent-app/packages/engine/src/rag/README.md)。
 
 ### 6. 智能客服：Supervisor 分诊和 Handoff
 
-```mermaid
-flowchart TD
-    USER["用户消息 + 会话历史"] --> COUNT["更新连续未解决计数"] --> RULE{"硬规则命中？"}
-    RULE -- "人工请求 / 高风险 / 连续未解决" --> HUMAN["转人工"]
-    RULE -- "否" --> CLASSIFY["LLM 分为 order / refund / knowledge"] --> ROUTE{"业务分类"}
-    ROUTE -- "order" --> ORDER["订单 Worker / getOrderStatus"] --> REPLY["回复并写回会话"]
-    ROUTE -- "refund" --> REFUND["售后 Worker / createTicket"] --> REPLY
-    ROUTE -- "knowledge" --> KB["知识 Worker / searchKnowledgeBase"] --> REPLY
-    CLASSIFY -. "模型路由失败" .-> HUMAN
-    ORDER -. "执行失败" .-> HUMAN
-    REFUND -. "执行失败" .-> HUMAN
-    KB -. "执行失败" .-> HUMAN
-    HUMAN --> PACK["整理原因、最近对话、用户摘要"] --> TICKET["创建工单 / HandoffPack"] --> NOTICE["告知工单号和转接结果"]
-```
 
 硬规则优先于 LLM 分类，业务 Worker 使用最小工具权限。转人工的 `createTicket` 是 demo mock，不意味着对接了真实工单系统。客服还提供 `/api/service/stream` 推送 `route / step / token / handoff / done` 等事件。参考：[Service README](./agent-app/packages/engine/src/service/README.md)。
 
 ### 7. 多 Agent：任务拆分、DAG 调度和验收
 
-```mermaid
-flowchart TD
-    GOAL["输入目标、编排 ID 和预算"] --> SNAP{"存在任务快照？"}
-    SNAP -- "否" --> PLAN["Planner 拆解 TaskSpec 和依赖"] --> DAG["计算可执行 DAG 波次"]
-    SNAP -- "是" --> REUSE["恢复任务单并跳过已完成任务"] --> DAG
-    DAG --> PARALLEL["同波次任务并行"] --> EXEC["Executor：调用 Tool Loop"] --> CRITIC["Critic 对子任务验收"] --> PASS{"验收通过？"}
-    PASS -- "否" --> POLICY["retry / degrade / compensate / escalate"] --> CONTINUE{"可继续？"}
-    CONTINUE -- "否" --> FAIL["状态落盘为 failed / escalated"]
-    CONTINUE -- "是" --> MORE{"还有未完成任务？"}
-    PASS -- "是" --> MORE
-    MORE -- "是" --> DAG
-    MORE -- "否" --> REVIEW["编排级终审"]
-    REVIEW -- "通过" --> DONE["落盘 done"]
-    REVIEW -- "失败或要求人工" --> FAIL
-```
 
 支持状态机、依赖并行、验收闭环、失败策略和同 ID 续跑。**默认 `MemoryStateStore` 只在当前进程内存中保留状态**，跨进程恢复需要持久化实现。提供 CLI `pnpm team` 和 `GET /api/team/stream`；当前 Web 仅有对话、KB、客服三个页面，并无独立 Team 页。参考：[Orchestrator README](./agent-app/packages/engine/src/orchestrator/README.md)。
 
 ### 8. 三层记忆：会话、偏好和情景
 
-```mermaid
-flowchart LR
-    ASK["新消息"] --> SESSION["SessionStore：会话窗口 / 超限压缩"] --> CONTEXT["组装模型上下文"] --> MODEL["LLM"]
-    PREF["PreferenceStore：用户偏好"] -. "按接线读取" .-> CONTEXT
-    EPISODE["EpisodicStore：历史摘要的向量召回"] -. "按接线检索" .-> CONTEXT
-    MODEL --> WRITE["回写会话和适用的记忆"] --> SESSION
-    SESSION -.-> STORAGE["默认 Memory；可选 Redis / PG / pgvector"]
-    PREF -.-> STORAGE
-    EPISODE -.-> STORAGE
-```
 
 这是**引擎支持的三类存储能力**，并不是说每个 API 端点都自动召回三层记忆。工厂配置通过 `SESSION_STORE`、`PREFERENCE_STORE`、`EPISODIC_STORE` 选择后端。参考：[Memory README](./agent-app/packages/engine/src/memory/README.md)。
 
 ### 9. MCP 和 Skills：工具能力与领域操作知识
 
-```mermaid
-flowchart TD
-    subgraph IN["MCP Client：接入外部能力"]
-        REMOTE["外部 MCP Server"] --> CLIENT["连接、listTools"] --> ADAPT["转换为 AgentTool"] --> MERGE["合并 CLI Chat 工具表"]
-    end
-    subgraph OUT["MCP Server：导出本地能力"]
-        LOCAL["引擎工具和知识库资源"] --> SERVER["MCP Server 注册"] --> CONSUMER["外部 MCP Client"]
-    end
-    subgraph SKILL["Skills：提示词知识"]
-        FILES[".agent-skills/*/SKILL.md"] --> LOADER["路径 / 大小 / Frontmatter 校验"] --> PROMPT["技能描述与使用步骤"]
-    end
-    MERGE --> LOOP["runToolLoop"]
-    PROMPT --> LOOP
-```
 
 **MCP 提供可调用的能力，Skills 提供使用能力的流程知识**。外部 MCP 工具和本地 Skills 目前主要在 CLI Chat 中装配，MCP Server 可通过独立命令启动，并非自动注册到每个 API。参考：[MCP README](./agent-app/packages/engine/src/mcp/README.md)、[Skills README](./agent-app/packages/engine/src/skills/README.md)。
 
 ### 10. 安全：Guardrails、审批与幂等
 
-```mermaid
-flowchart TB
-    subgraph MCPGUARD["CLI 外部 MCP 工具的可选护栏"]
-        T["工具调用"] --> ALLOW{"工具白名单允许？"}
-        ALLOW -- "否" --> DENY["返回 denied 数据"]
-        ALLOW -- "是" --> CHECK{"参数与 Prompt 注入扫描通过？"}
-        CHECK -- "否" --> DENY
-        CHECK -- "是" --> CONFIRM{"配置了确认闸且用户同意？"}
-        CONFIRM -- "否" --> DENY
-        CONFIRM -- "是 / 无需确认" --> EXEC["执行工具"] --> MASK["可选 PII 输出脱敏"]
-    end
-    subgraph CHATAPPROVAL["API Chat SSE 的独立高危审批链"]
-        CALL["命中 AGENT_CONFIRM_TOOLS"] --> EVENT["推送 approval，挂起调用"] --> POST["POST /api/chat/approve"] --> GRANT{"批准且未超时？"}
-        GRANT -- "是" --> IDEM["进入幂等壳并执行工具"]
-        GRANT -- "否" --> REJECT["返回结构化拒绝"]
-    end
-```
 
 **不要把两条安全链路理解成所有入口默认统一执行的护栏**：`guardrails/gate.ts` 主要用于 CLI 外部 MCP 工具；API Chat 通过审批事件、登记簿和 HTTP 裁决挂起高危调用。API 的审批壳在幂等壳外面，拒绝不写入幂等缓存。参考：[Guardrails README](./agent-app/packages/engine/src/guardrails/README.md)、[Chat 工具装配](./agent-app/apps/api/src/chat/tool-assembly.ts)。
 
 ### 11. Agent 质量工程：验收、追踪、评测及门禁
 
-```mermaid
-flowchart TD
-    CHANGE["模型 / Prompt / 工具变更"] --> RUN["执行 Agent"]
-    RUN --> EVENT["onStep / onEvent"] --> RECORDER["Telemetry：采集、关联、去重、脱敏"]
-    RUN --> VERIFY["可选 runWithVerification"] --> VERIFIERS["Schema / ToolExecution / Artifact"] --> OUTCOME["Run 产出与 Verification 结论分别记录"]
-    RECORDER --> EVAL["Evals：轨迹 / 路由 / 检索 / LLM Judge / 效率"]
-    OUTCOME --> EVAL
-    GOLD["Golden Dataset / 关键用例"] --> EVAL --> REPORT["报告 + 基线对比"] --> GATE{"Quality Gate"}
-    GATE -- "passed" --> ACCEPT["检查通过"]
-    GATE -- "failed / inconclusive" --> STOP["失败原因 / 未决项"] --> CASES["失败案例与实验候选"] -. "反馈迭代" .-> CHANGE
-```
 
 `runWithVerification` 是**可选包装器**，不能理解成现有 API 已全面自动验收。运行成功与验收通过是两类不同结果。`pnpm eval` 和 `pnpm quality-gate` 以数据集、报告与策略检查质量；CI 必跑的是**离线 Tier 1** 门禁，不能误写成需要真实模型密钥的评测都已强制纳入 CI。参考：[质量工程实施文档](./agent-app/docs/AGENT-QUALITY-ENGINEERING.md)、[Evals README](./agent-app/packages/engine/src/evals/README.md)。
 
 ### 12. CI：站点发布与 Agent 工程测试
 
-```mermaid
-flowchart TB
-    PUSH["Push / Pull Request / 手动触发"] --> DOCS{"命中站点发布触发？"}
-    PUSH --> APP{"agent-app 路径命中？"}
-    DOCS -- "main 或 workflow_dispatch" --> SITE["docs:build"] --> PAGES["部署 GitHub Pages"]
-    APP -- "main Push / PR" --> BUILD["Build / Typecheck / lint:deps / Selftest"] --> TESTS["Engine + API 测试"] --> STATUS["Actions 状态"]
-    APP -- "main Push / PR" --> EVALS["Evals Job：Tier 1 + CI Quality Gate"] --> STATUS
-```
 
 `.github/workflows/deploy.yml` 发布文档；`.github/workflows/agent-app.yml` 对应用触发构建、架构检查、离线测试和评测门禁。Agent CI 的 `test` 和 `evals` 是**两个独立 Job**。容器部署和基础设施启动参考 [agent-app README](./agent-app/README.md) 与 [docker-compose.yml](./agent-app/docker-compose.yml)。
 
