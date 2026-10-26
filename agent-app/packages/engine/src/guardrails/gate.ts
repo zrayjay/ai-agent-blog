@@ -29,6 +29,8 @@ import type { AgentTool } from "../types.js";
 import { auditLog } from "./audit.js";
 import { maskPii } from "./pii-mask.js";
 import { inspectTextInput, isToolAllowed } from "./validate.js";
+import type { AgentRunEvent } from "../telemetry/events.js";
+import { createRunEvent, UNASSIGNED_CORRELATION } from "../telemetry/events.js";
 
 /**
  * 人工确认回调（依赖倒置的接缝）：返回 true 放行本次执行，false 拒绝。
@@ -36,6 +38,14 @@ import { inspectTextInput, isToolAllowed } from "./validate.js";
  * 闸门只依赖这个函数形状，不依赖任何 I/O 设施。
  */
 export type ToolConfirmFn = (info: { toolName: string; input: unknown }) => Promise<boolean>;
+
+/**
+ * 可选结构化事件发射器（Phase 2 加参纪律，onStep/signal 同款）：闸门拒绝时
+ * 发射 guardrail.triggered。闸门不认识 Run 概念，事件关联键以空串占位——
+ * 消费方经 recorder.ingest 落账补挂。不传（缺省 undefined）时零行为差异：
+ * emitEvent?.(...) 是唯一新增语句，拒绝路径与旧版逐字节一致。
+ */
+export type GuardrailEventEmitter = (event: AgentRunEvent) => void;
 
 /** 闸门配置：name 必填（白名单匹配、拒绝话术、确认信息都用它），其余可选项全关 = 仅保留输入闸 */
 export interface ToolGateOptions {
@@ -47,6 +57,8 @@ export interface ToolGateOptions {
   confirm?: ToolConfirmFn;
   /** 是否对输出做 PII 脱敏（缺省 = 不脱敏） */
   maskOutput?: boolean;
+  /** 结构化事件发射器（缺省 = 不发射；传 recorder.ingest 即可接入事件流） */
+  emitEvent?: GuardrailEventEmitter;
 }
 
 /** 结构化拒绝：被拦工具的正常返回值（不是异常）。调用方用 denied === true 识别 */
@@ -80,10 +92,21 @@ function maskToolOutput(output: unknown): unknown {
 }
 
 /** 拒绝结果的构造与轨迹：三种拒绝共用（🛡 图标与轨迹系统的 ✗ 执行失败区分开） */
-function deny(name: string, reason: string): ToolGateDenial {
+function deny(name: string, reason: string, emitEvent?: GuardrailEventEmitter): ToolGateDenial {
   trace("🛡", `护栏拦截 → ${name} 不执行：${reason}`);
   // 审计（红队加固轮 H10）：闸门拒绝即安全事件，落 JSONL 留痕——fire-and-forget，不影响拒绝路径
   auditLog("gate.denied", { tool: name, reason });
+  // 结构化事件（Phase 2）：拒绝即安全事件，guardrail.triggered 与 audit.log 并行不互斥；
+  // 闸门无 Run 归属 → 关联键空串占位，消费方经 recorder.ingest 补挂
+  emitEvent?.(
+    createRunEvent(
+      "guardrail.triggered",
+      { runId: UNASSIGNED_CORRELATION, traceId: UNASSIGNED_CORRELATION },
+      {
+        attributes: { toolName: name, reason },
+      },
+    ),
+  );
   return { denied: true, reason: `工具 ${name} 被护栏拦截：${reason}` };
 }
 
@@ -96,7 +119,7 @@ function deny(name: string, reason: string): ToolGateDenial {
  * 没有可拦截的执行面。
  */
 export function wrapToolWithGate(tool: AgentTool, options: ToolGateOptions): AgentTool {
-  const { name, allowlist = null, confirm, maskOutput = false } = options;
+  const { name, allowlist = null, confirm, maskOutput = false, emitEvent } = options;
 
   const execute = tool.execute;
   if (execute === undefined) {
@@ -108,14 +131,18 @@ export function wrapToolWithGate(tool: AgentTool, options: ToolGateOptions): Age
     execute: async (input, executeOptions) => {
       // ① 白名单闸：不在名单 → 拒绝（未配置名单 = null = 放行）
       if (!isToolAllowed(name, allowlist)) {
-        return deny(name, "该工具不在允许清单中，禁止执行。");
+        return deny(name, "该工具不在允许清单中，禁止执行。", emitEvent);
       }
 
       // ② 输入闸：对入参的 JSON 序列化做注入扫描（字符串字段的内容会原样进入
       // 序列化文本，扫描面因此覆盖所有字段；无参工具扫 "{}" 恒通过）
       const inspection = inspectTextInput(JSON.stringify(input ?? {}));
       if (!inspection.ok) {
-        return deny(name, `输入命中提示注入黑名单（模式：${inspection.matchedPattern ?? "未知"}）。`);
+        return deny(
+          name,
+          `输入命中提示注入黑名单（模式：${inspection.matchedPattern ?? "未知"}）。`,
+          emitEvent,
+        );
       }
 
       // ③ 确认闸：回调返回 false / 抛异常都视为未确认（fail-closed）
@@ -130,7 +157,7 @@ export function wrapToolWithGate(tool: AgentTool, options: ToolGateOptions): Age
         // gate.denied 是两个维度（谁裁决了 vs 最终发生了什么），并存不算重复记账
         auditLog("gate.confirm", { tool: name, approved });
         if (approved !== true) {
-          return deny(name, "人工确认未通过（未应答或明确拒绝均视为不同意）。");
+          return deny(name, "人工确认未通过（未应答或明确拒绝均视为不同意）。", emitEvent);
         }
       }
 

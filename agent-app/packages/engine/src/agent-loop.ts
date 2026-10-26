@@ -17,6 +17,8 @@ import type { LanguageModel, ModelMessage, ToolSet } from "ai";
 import { EngineError } from "./errors.js";
 import { llmCallPolicy } from "./llm.js";
 import { preview, trace } from "./trace.js";
+import type { AgentRunEvent, RunEventType } from "./telemetry/events.js";
+import { createRunEvent, UNASSIGNED_CORRELATION } from "./telemetry/events.js";
 
 /** 步数上限的库级默认值：调用方（api / cli / workers）统一引用，magic number 不散落 */
 export const DEFAULT_MAX_STEPS = 5;
@@ -35,6 +37,15 @@ export interface RunToolLoopOptions {
    * 纯观察性钩子——不传时行为与旧版完全一致（既有调用方零改动）。
    */
   onStep?: (event: ToolLoopStepEvent) => void;
+  /**
+   * 可选结构化事件回调（Phase 2 统一事件模型的发射接缝，纯观察性）。
+   * 循环在模型请求（llm.request.*）与工具执行（tool.call.*）边界发射
+   * AgentRunEvent；不传（默认 undefined）时零行为差异——发射语句全是
+   * `onEvent?.(...)`，代码路径与旧版逐字节一致（onStep/signal 同款加参纪律）。
+   * 注意：循环不认识 Run 概念，事件的 runId/traceId 以空串占位——消费方应经
+   * recorder.ingest 落账（补挂真实关联键 + 恰好一次去重），不要直接消费占位键。
+   */
+  onEvent?: (event: AgentRunEvent) => void;
   /**
    * 可选中止信号（生产缺陷修复：SSE 客户端断开后停止烧 token）。
    * API 层把客户端断开（response close）接到 AbortController 上、signal 传进来：
@@ -114,11 +125,31 @@ function errorOutput(value: unknown) {
 }
 
 /**
+ * 结构化事件发射的本地装配：循环不认识 Run 概念，关联键以空串占位
+ * （消费方经 recorder.ingest 补挂真实 runId/traceId，见 telemetry/events.ts）。
+ * attempt = 当前步号（循环内的「尝试」就是第几步，与 run-contract 的 1 起口径一致）。
+ */
+function emitLoopEvent(
+  onEvent: ((event: AgentRunEvent) => void) | undefined,
+  type: RunEventType,
+  attempt: number,
+  details: { stepId?: string; durationMs?: number; attributes?: Record<string, unknown> } = {},
+): void {
+  onEvent?.(
+    createRunEvent(
+      type,
+      { runId: UNASSIGNED_CORRELATION, traceId: UNASSIGNED_CORRELATION },
+      { attempt, ...details },
+    ),
+  );
+}
+
+/**
  * 手写多步工具循环。不借助任何 Agent 框架：想给每步打日志、加审批、缓存中间结果，
  * 直接在本函数的对应行插入即可——这正是手写版存在的意义。
  */
 export async function runToolLoop(options: RunToolLoopOptions): Promise<ToolLoopResult> {
-  const { model, tools, system, maxSteps = DEFAULT_MAX_STEPS, onStep, signal } = options;
+  const { model, tools, system, maxSteps = DEFAULT_MAX_STEPS, onStep, onEvent, signal } = options;
   const schemaTools = toSchemaTools(tools);
   const messages: ModelMessage[] = [...options.messages]; // 复制一份，不动调用方的数组
 
@@ -133,13 +164,44 @@ export async function runToolLoop(options: RunToolLoopOptions): Promise<ToolLoop
       "▶",
       `思考 step ${step} → 调用模型（上下文 ${messages.length} 条消息，可用工具 ${Object.keys(tools).length} 个）`,
     );
-    // llmCallPolicy：传输层重试（maxRetries 指数退避）+ 单步超时，与用户 signal 合并
-    const result = await generateText({
-      model,
-      messages,
-      tools: schemaTools,
-      system,
-      ...llmCallPolicy(signal),
+    // 结构化事件（Phase 2）：模型请求边界，时长与 usage 只在 completed 上（缺数据政策）
+    emitLoopEvent(onEvent, "llm.request.started", step, {
+      attributes: { messageCount: messages.length, toolCount: Object.keys(tools).length },
+    });
+    const llmStartedAt = Date.now();
+    let result;
+    try {
+      // llmCallPolicy：传输层重试（maxRetries 指数退避）+ 单步超时，与用户 signal 合并
+      result = await generateText({
+        model,
+        messages,
+        tools: schemaTools,
+        system,
+        ...llmCallPolicy(signal),
+      });
+    } catch (err) {
+      // 中止（客户端断开/取消）不是模型失败——不发 llm.request.failed，失败率不掺水；
+      // 终止原因由 Run 边界落成 run.cancelled / run.timed_out（见 run-with-verification）
+      if (!signal?.aborted) {
+        emitLoopEvent(onEvent, "llm.request.failed", step, {
+          durationMs: Date.now() - llmStartedAt,
+          attributes: { errorMessage: err instanceof Error ? err.message : String(err) },
+        });
+      }
+      throw err;
+    }
+    emitLoopEvent(onEvent, "llm.request.completed", step, {
+      durationMs: Date.now() - llmStartedAt,
+      // usage 缺省（部分网关不回传）就不落键——绝不捏造 0 token（缺数据政策）
+      attributes: result.usage
+        ? {
+            usage: {
+              inputTokens: result.usage.inputTokens,
+              outputTokens: result.usage.outputTokens,
+              totalTokens: result.usage.totalTokens,
+            },
+          }
+        : undefined,
     });
 
     if (result.toolCalls.length === 0) {
@@ -165,6 +227,13 @@ export async function runToolLoop(options: RunToolLoopOptions): Promise<ToolLoop
       const tool = tools[call.toolName];
       let output;
       let failed = false;
+      // 结构化事件（Phase 2）：工具执行边界。未知工具也是一次「调了但没跑成」的
+      // 事实——started + failed 成对发射，工具失败率才有分母
+      emitLoopEvent(onEvent, "tool.call.started", step, {
+        stepId: call.toolCallId,
+        attributes: { toolName: call.toolName },
+      });
+      const toolStartedAt = Date.now();
       if (tool?.execute) {
         try {
           // ② 调度：execute 就是普通函数；call.input 已由 SDK 按 schema 解析好
@@ -202,6 +271,12 @@ export async function runToolLoop(options: RunToolLoopOptions): Promise<ToolLoop
         failed ? "✗" : "✓",
         `观察 step ${step} → ${call.toolName} ${failed ? "失败" : "返回"}：${preview(output.value)}`,
       );
+      // 结构化事件（Phase 2）：与 started 成对的终局（时长实测，不捏造）
+      emitLoopEvent(onEvent, failed ? "tool.call.failed" : "tool.call.completed", step, {
+        stepId: call.toolCallId,
+        durationMs: Date.now() - toolStartedAt,
+        attributes: { toolName: call.toolName },
+      });
 
       // 可选观察钩子：回灌落账后再广播，订阅方看到的一定是已提交的状态
       onStep?.({
