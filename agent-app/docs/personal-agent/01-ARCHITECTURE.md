@@ -45,6 +45,8 @@ flowchart TB
 
 **特别说明**：SSE 是观察通道不是 Run 的 owner；断线后 Run 继续，重新订阅按 event sequence 补偿。执行取消必须通过已鉴权的 API 显式发起。
 
+**队列与并发是架构组成部分**：上图 BullMQ 是投递基础设施，不等于业务调度器。Task/Wake/Approval/Tool/Trigger/Notification 六类逻辑 lane、同会话互斥、审批期间持久会话恢复权、租约 fencing 与事故恢复见 [03-QUEUE-SCHEDULING.md](./03-QUEUE-SCHEDULING.md)；[04-SCENARIO-MATRIX.md](./04-SCENARIO-MATRIX.md) 为覆盖创建、执行、消息介入、资源竞争、故障与恢复的 54 场景验收基线。
+
 ## 3. 代码复用清单
 
 | 现有路径（均位于 agent-app） | 当前职责 | 决策 | 主要改造 |
@@ -114,6 +116,8 @@ flowchart TD
 
 最小状态：Task `queued/running/waiting_approval/waiting_user/paused/succeeded/failed/cancelled`；Run `queued/claiming/running/waiting_approval/waiting_user/paused/succeeded/failed/cancelled/timed_out/unknown`。**RunStatus 不与现有 Effect 子任务状态强行合并**；提供映射。状态迁移使用 DB 乐观版本/CAS；`worker_id + lease_epoch` 防旧执行者覆盖。审批需绑定 `operationId + toolName + argumentsHash + agentVersionId + expiresAt`，拒绝后不得以旧批准重试；重启时 unknown 不自动再次发起支付、发信或外部写入。
 
+**运行互斥必须拆为三层**：跨 waiting_approval/paused 保留 conversation reservation、短时 run execution lease、具体浏览器/文件 resource lease。等待审批可以释放计算资源但不能让另一个 Run 偷偷续写同一会话，见 [场景矩阵 §A2](./04-SCENARIO-MATRIX.md#a2-三层所有权锁模型)。
+
 ## 6. 数据实体 / 数据库
 
 建议新增 Prisma 迁移，PostgreSQL 为事实源；现有 pgvector 表先兼容，避免无必要重建嵌入：
@@ -137,7 +141,7 @@ erDiagram
   Run ||--o{ Artifact : produces
 ```
 
-核心业务表：`users`, `agents`, `agent_versions`, `goals`, `triggers`, `tasks`, `runs`, `run_events`, `tool_operations`, `approvals`, `memories`, `knowledge_bases`, `credential_grants`, `artifacts`, `outbox_events`。索引必须覆盖 `(owner_id, id)`、`(run_id, seq)`、`(status, next_run_at)`，工具操作按可用外部幂等键做唯一约束。具体 Prisma DDL 在 P1/P2 PR 中实现并检验迁移与回滚，不能先宣称已经存在。
+核心业务表：`users`, `agents`, `agent_versions`, `goals`, `triggers`, `tasks`, `runs`, `run_events`, `tool_operations`, `approvals`, `memories`, `knowledge_bases`, `credential_grants`, `artifacts`, `outbox_events`。**队列增量表**：`conversations`, `conversation_inbox`, `run_attempts`, `execution_leases`, `resource_leases`, `trigger_occurrences`, `notification_deliveries`，用途与唯一约束详见场景矩阵。索引必须覆盖 `(owner_id, id)`、`(run_id, seq)`、`(status, next_run_at)`，工具操作按可用外部幂等键做唯一约束。具体 Prisma DDL 在 P1/P2 PR 中实现并检验迁移与回滚，不能先宣称已经存在。
 
 ## 7. 模块与目录增量规划
 
