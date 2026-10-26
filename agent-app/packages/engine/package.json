@@ -104,10 +104,6 @@
     "./mcp": {
       "types": "./dist/mcp/index.d.ts",
       "default": "./dist/mcp/index.js"
-    },
-    "./platform": {
-      "types": "./dist/platform/index.d.ts",
-      "default": "./dist/platform/index.js"
     }
   }
 }
