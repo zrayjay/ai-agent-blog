@@ -2,7 +2,7 @@
 
 > **状态：设计方案，尚未开始实施。最后重构：2026-10-26。**
 >
-> 代码基线：仓库 `agent-app` 当前实现；不是从零新建项目。对应 [产品入口](./README.md)、[目标架构与复用矩阵](./01-ARCHITECTURE.md)、[队列与调度规范](./03-QUEUE-SCHEDULING.md)、[54 个场景及不变量](./04-SCENARIO-MATRIX.md)。旧 `README/ARCHITECTURE/BACKLOG` 仍是教学项目现状记录；本文是 **Personal Agent 产品开发的唯一实施总计划**。
+> 代码基线：仓库 `agent-app` 当前实现；不是从零新建项目。对应 [产品入口](./README.md)、[目标架构与复用矩阵](./01-ARCHITECTURE.md)、[队列与调度规范](./03-QUEUE-SCHEDULING.md)、[54 个场景及不变量](./04-SCENARIO-MATRIX.md)、[评估架构与 Evaluator Agent](./05-EVALUATION-ARCHITECTURE.md)。旧 `README/ARCHITECTURE/BACKLOG` 仍是教学项目现状记录；本文是 **Personal Agent 产品开发的唯一实施总计划**。
 
 ## 0. 产品目标、关键决策与阶段出口
 
@@ -15,7 +15,7 @@
 ### 0.2 不可改变的复用决策
 
 - 保留 `apps/api` NestJS、`apps/web` Next.js、`apps/cli`、`packages/engine`、`packages/shared` 和 pnpm/Turborepo；不重复搭建一个 Vite 前端。
-- 优先复用 `agent-loop.ts`（AI SDK）、Effect `orchestrator`、Memory/RAG、MCP、Skills、Guardrails、Telemetry、Verification、Eval/Quality Gate。
+- 优先复用 `agent-loop.ts`（AI SDK）、Effect `orchestrator`、Memory/RAG、MCP、Skills、Guardrails、Telemetry、Verification、Eval/Quality Gate、**Experimentation 与 Failure Candidate 审核**；新增 Evaluator Agent 是独立评估/诊断角色，不拥有修改质量门禁或生产权限的能力。
 - 保留旧 `chat/kb/service/team` API/CLI 可用；把“请求断开即停止”的即时聊天与“Web 断线继续”的后台 Task/Run 拆开，**不互相偷偷改变原语义**。
 - 在现有 Runtime 外增加 RuntimeAdapter；LangGraph.js 是 **P7 按需验证再引入**的备选，而不是 P0–P2 的硬依赖。
 - **PostgreSQL 是业务事实源；BullMQ/Redis 是至少一次投递通道；AgentScheduler 是业务仲裁者。** 不为每个 Agent/用户建一个物理 Redis Queue。
@@ -75,7 +75,8 @@ flowchart LR
 - **P0.1 代码证据**：固定当前 main SHA、Node/pnpm/lockfile、工作区结构；逐项定位 `runToolLoop`、`Effect orchestrator`、`MemoryStateStore`、`Telemetry`、`Verification`、`Guardrails`、`MCP` 的调用链及状态存储位置。
 - **P0.2 回归测试**：实际记录 `pnpm build`、`typecheck`、`test:engine`、`test:api`、`selftest`、`eval`、`quality-gate`；真模型/数据库缺失造成 skipped 必须记为未验证，不能记成功。
 - **P0.3 契约与状态图**：冻结 Task、Run、RunAttempt、ConversationInbox、Approval、ToolOperation、TriggerOccurrence、NotificationDelivery 的 ownerId、状态和版本；区分现有 Effect 子任务状态与平台 RunStatus。
-- **P0.4 场景追踪**：54 个 SC 编号进入测试计划；建立故障注入 fixture 和每条需求到测试的追踪表；ADR 记录“何时需要 LangGraph”。
+- **P0.4 场景追踪**：54 个 SC 编号与评估 E01–E12 进入测试计划；建立故障注入 fixture 和每条需求到测试的追踪表；ADR 记录“何时需要 LangGraph”。
+- **P0.6 评估复用审计**：对照现有 `evals/`, `verification/`, `quality-gate`, `experiments`, `failure-cases` 已实现能力建立覆盖矩阵，记录 safety/reliability 正式评分套件、业务运行证据输入与发布门禁接线缺口；不要误以为需要从零造 Eval。
 - **P0.5 CI**：确保 engine/API/CLI 确定性测试被真正执行；已有质量门禁继续保留，不以跳过套件伪装通过。
 
 **建议 PR**：`docs/p0-baseline-and-adr`、`test/p0-regression-gates`。
@@ -91,6 +92,7 @@ flowchart LR
 - **P1.1 数据库**：新增 `packages/db`（Prisma + PostgreSQL migration）；核心表 `users/agents/agent_versions/conversations/conversation_inbox/tasks/runs/run_attempts/run_events/outbox_events/execution_leases/tool_operations/approvals`。Tool/Goal/通知专用表可在本期定义契约，P4/P6 迁移实施。
 - **P1.2 身份/资源权限**：NestJS Auth（安全密码哈希、登录会话）、ownerId + agentId 的 DB/service 层作用域校验，禁用仅靠 `s_`/`cs_` 前缀作为安全边界；单用户部署也不跳过 ACL。
 - **P1.3 状态机**：会话预约权与执行租约拆成独立实体；租约 `epoch` 单调、CAS/唯一 active scope；审批以 operationId + argsHash + actor + expiresAt 绑定。
+- **P1.6 Evaluation 契约**：定义 `EvaluationJob/EvaluationReport/ReviewDecision` 的 API DTO 与 owner/agentVersion/run 关联字段；独立评估逻辑 lane 可以沿用现有受控 Worker，不要求立即增加物理 Redis Queue。
 - **P1.4 API 契约**：`packages/shared` 添加版本化 Task/Run/Inbox/QueueEvent DTO，不改变既有 `ChatStreamEvent` 的线上形状；规范客户端 requestId 和幂等响应。
 - **P1.5 Web 壳**：在 Next.js 保留 chat/kb/service 页面，新增 Tasks/Runs/Agents/Approvals 导航及空状态；禁止页面直连 Redis 或展示密钥。
 
@@ -108,6 +110,7 @@ flowchart LR
 - **原子入口**：用户提交任务时 Task/Run/Outbox 在同一 PG transaction，commit 后返回 accepted；Redis 不可用时可保留 durable pending（或背压失败，行为明示）。
 - **原子 claim**：Scheduler 检查 owner 总并发、同 conversation active reservation、任务优先级/依赖/预算；执行租约 epoch + CAS，旧 Worker 不得覆写状态。
 - **Runtime 复用**：第一版 `LegacyLoopRuntimeAdapter` 使用现有 `runToolLoop`。执行上下文包含 owner、agent version、runId、cancelSignal、allowedCapabilities、budget。
+- **评估证据接线**：运行时写入受控 `ToolOperation` 回执、RunOutcome、VerificationResult、Trace；业务执行结束后以 Outbox 触发异步评估，不重新执行原任务外部工具。
 - **后台语义**：`POST /api/tasks` 创建后台 Run；`GET /api/runs/:id/events?after=<seq>` 按 RunEvent 回放。原 `GET /api/chat/stream` 断线中止行为不变，不能把此接口假装后台任务。
 - **预算**：达到 token/时间额度进入可解释终态或等待额度状态；任务必须有限重试和执行次数。
 
@@ -147,6 +150,7 @@ flowchart LR
 
 - **P3.1 AgentSpec 与模板**：Zod JSON Schema（purpose/systemPrompt/modelPolicy/tools/capabilities/memoryScope/evalSuite/budget/approvalPolicy/runtimeKind）；Research、Knowledge、General、Coding 模板；不允许未经审查的生成代码自动运行。
 - **P3.2 Factory 作为持久任务**：自然语言创建 → 分析能力 → 模板匹配 → 生成 Draft → schema/策略检查 → 沙箱测试 → Eval/Quality Gate → 用户发布；每个阶段保留事件和失败证据。
+- **P3.6 质量发布门禁**：复用现有 `quality-gate.ts` 和 `evals` + `verification` 数据，为每个 AgentVersion 建领域 Golden Dataset、rubric 与风险级关键用例；必查项缺席返回 inconclusive，不得默认发布。支持受限 Evaluator Agent V1 做问题归因/改进建议，用户审批后才发布。增加 E01–E03、E10–E12 场景验收。
 - **P3.3 Registry/Version**：`Agent` 和不可变 `AgentVersion`、published 指针、disable/rollback；**运行中的 Run 固定 version**，但凭据撤销和全局安全禁令必须实时生效。
 - **P3.4 Tool/Skill 授权**：用户显式选择已登记工具，按 agentVersion 生成 capability snapshot；不能通过 Prompt 或 Tool 名称自授予权限。
 - **P3.5 Factory UI**：草稿、权限审批、测试报告、发布、版本历史、Agent 任务历史；浏览器关闭 Factory Job 仍可继续或暂停。
@@ -159,6 +163,7 @@ flowchart LR
 
 **前置**：M2 的 AgentSpec/Capability 和 M1 的 ToolOperation/Approval。**目标**：Agent 在外部系统中**被授权地行动**。
 
+- **P4.7 真实操作评估**：新增 Tool/Browser 的外部回执、注入/越权和副作用 unknown 验证，接 Eval/Verification；覆盖 E04–E09 风险场景。
 - **P4.1 Gateway**：MCP 与原生工具统一 schema validation、能力许可、参数审查、审批、幂等尝试、审计和错误分层。旧 Registry 同名静默覆盖必须在产品层拒绝。
 - **P4.2 MCP 管理**：沿用已有 stdio 适配，增加受控 Streamable HTTP，连接凭据租户隔离；SSRFi/网络出口白名单/远端 schema 变化测试。不能把任意用户填的服务地址直接当可信工具。
 - **P4.3 Browser Worker**：独立 Playwright/Chromium、隔离 profile 与受限网络/文件系统；支持读取、导航、操作、截图、下载。
@@ -176,6 +181,7 @@ flowchart LR
 - Redis 24h session window 只负责短期上下文；用户可读的历史记录和记忆 provenance 单独持久化，跨会话检索需权控。
 - 记忆写入采取“候选、来源、纠错、删除、重建索引”的流程；不允许网页/文档嵌入的 Prompt Injection 成为系统记忆指令。
 - 知识库增加 owner ACL、source/文档版本、删除传播、增量导入失败恢复和敏感信息检测。
+- 为检索增加 groundedness、引用忠实性与跨 Agent 记忆隔离 Eval，不用 Recall@k 单项代替完整回答质量。
 - 验收跨 Agent 私有/共享记忆、删除后不能再召回、跨用户访问拒绝；Eval 要有正反案例。
 
 **场景验收**：SC51，外加附件/授权/删除专项测试；不能将“模型记住了”当持久化测试证据。
@@ -190,6 +196,7 @@ flowchart LR
 - Notification 逻辑 lane：各发送渠道 `NotificationDelivery` / attempts / receipt，和业务 Run 彻底解耦；通知失败不重新执行任务。
 - 长期目标 UI：计划、触发记录、跳过原因、下一次运行时间、审批待办、执行摘要和费用。
 - **默认安全策略**：主动轮询/通知遵从频率、预算、撤权、敏感性限制；订阅源不可信指令只当外部数据。
+- **持续质量评估**：Goal 触发记录、实际成果和通知回执关联 EvaluationJob，区分“按时触发”“任务完成”和“真正达到用户目标”。
 
 **场景验收**：SC41–SC47。重启/多副本 cron 去重、停机错过多次后的限量补跑、DST、通知 unknown 与渠道失败测试。
 
@@ -202,6 +209,7 @@ flowchart LR
 - 子 Agent 继承权限交集，父任务预算和并发总账，支持取消传播、子任务部分成功和失败解释；同会话与共享资源仍遵守 Scheduler 锁规则。
 - 仅在证明现有 Effect/Loop 的中断、复杂子图需求确实不够时，以 RuntimeAdapter 验证 LangGraph.js；不得让一次 Run 同时受双 Agent Loop 主控。
 - 加固：按 owner 公平性与负载背压、Provider rate-limit、模型 fallback 策略、安全红队、恢复演练、备份恢复、Secrets 轮换、OpenTelemetry/Trace/成本、Eval 基线门禁。
+- **评估运营平台**：复用 `experiments.ts` 的配置对照、重复实验与失败候选；按 AgentVersion 长期跟踪质量回归、Judge 误判校准和成本；验证不可信网页/用户数据不会自动修改 Golden Dataset 或基线。在线评估异步采样，绝不让它拥有业务工具执行权。
 - Beta 运营指标：成功/失败/需要人工分布、P50/P95 延迟、队列 oldest pending、unknown 工具操作、pending approvals、通知送达、成本以及用户纠错率；没有真实数据的维度标 unknown。
 
 **场景验收**：SC19、SC52–SC53 + 场景矩阵的跨 Agent/拥塞/越权专项；多 Agent 协同过程部分失败仍可解释，运行成本和所有副作用可追踪。
@@ -226,7 +234,11 @@ flowchart LR
 
 场景矩阵额外的文件/附件、凭据撤销、Agent 删除、隐私删除、队列饥饿五项专题，按对应模块阶段实施并记录测试编号。
 
-## 11. OpenCode 工作约定：按门禁拆 PR
+## 11. Agent Evaluation 跨阶段验收门禁
+
+[05-EVALUATION-ARCHITECTURE.md](./05-EVALUATION-ARCHITECTURE.md) 为规范性文件。**E01–E12** 作为独立评估场景编号，不能拿 SC01–SC54 的任务/队列测试代替。P3 Agent 发布必须具备可解释的 EvaluationReport、评估数据集版本、关键用例一票否决、人工审核、发布审批；运行中的评估必须以实际证据为准，`Run succeeded` 不直接等于 `Objective accepted`。P7 完成跨 Agent 的质量/成本和样本偏差回归。
+
+## 12. OpenCode 工作约定：按门禁拆 PR
 
 每个小 PR 采用相同交付结构，确保可审查和可回滚：
 
@@ -236,12 +248,12 @@ flowchart LR
 4. **测试**：单元 + 真实 PG/Redis 集成（适用时）+ 故障注入 + 权限/安全案例；避免只使用成功路径 mock。
 5. **迁移与回滚**：schema backward compatibility、配置安全默认值、数据修复脚本、失败兜底。
 6. **证据**：明确通过/失败/skipped，关联 PR SHA、测试命令、样例日志及性能/费用变化。
-7. **文档**：更新对应场景 SC 的状态（planned/implemented/tested/external-unverified），更新 README 和 API。
+7. **文档**：更新对应场景 SC 与 E 的状态（planned/implemented/tested/external-unverified），更新 README 和 API。
 8. **门禁**：CI 若跳过关键质量测试，不得标记阶段完成；相同内容避免重复在五份文档维护。
 
 建议将执行情况记录到 **`05-IMPLEMENTATION-STATUS.md`（待 P0 创建）**，与本 Roadmap 分离：Roadmap 负责计划，Status 只记录真实 PR/CI/验收证据。
 
-## 12. 开发起点与禁止事项
+## 13. 开发起点与禁止事项
 
 **第一批给 OpenCode 的具体执行范围只有 P0**：固定基线、保留旧功能、测试门禁、冻结数据与队列契约；完成 P0 后才按 P1 → P2-A → P2-B → P2-C 推进。没有 M1 的队列/恢复验收，不要开始对外承诺“多 Agent 自主运行”。
 
