@@ -187,7 +187,13 @@ agent-app/
 - **存储**：session Redis TTL 不是可审计历史存储，必要会话、成果和 Run 事件在 PostgreSQL/对象文件存储中持久化。
 - **多用户**：所有 DB 查询、工具调用、MCP 凭据必须按 userId/agentId 授权，不能只靠会话 ID 前缀隔离。
 
-## 10. ADR（待决策，不阻塞 P0）
+## 10. Agent 质量评估作为平台基础架构
+
+Personal Agent 复用原有 `evals/` 四类评测套件、`verification/`、`quality-gate.ts`、`experiments.ts`、`failure-cases.ts` 和安全/可靠性测试，**同时新增受限 Evaluator Agent 用于证据分析和受控建议**，不可另造一套互相冲突的质量门禁。评估必须覆盖 Agent 发布前、运行时的确定性风险控制、执行后 Outcome、周期回归四个时机。评估作业走受并发/预算限制的逻辑 Evaluation Lane，不在实时聊天的每一步强制使用 LLM-as-Judge。
+
+完整的复用矩阵、发布/运行闭环、E01–E12 测试场景与阶段边界见 [05-EVALUATION-ARCHITECTURE.md](./05-EVALUATION-ARCHITECTURE.md)。**注意现有 CI Tier1 通过不等于发布前全部领域评估通过**，缺失必跑证据不得默认为 passed。
+
+## 11. ADR（待决策，不阻塞 P0）
 
 | 编号 | 决议 | 后续复议条件 |
 | --- | --- | --- |
