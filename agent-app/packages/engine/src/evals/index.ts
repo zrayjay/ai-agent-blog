@@ -15,5 +15,6 @@ export * from "./runner.js";
 export * from "./report.js";
 export * from "./baseline.js";
 export * from "./quality-gate.js";
+export * from "./verified-run-gate.js";
 export * from "./experiments.js";
 export * from "./failure-cases.js";
