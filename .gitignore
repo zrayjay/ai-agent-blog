@@ -5,9 +5,10 @@ docs/.vitepress/dist/
 *.log
 .DS_Store
 
-# OMC 本地运行状态
+# OMC 锟斤拷锟斤拷锟斤拷锟斤拷状态
 .omc/
+.omo/
 
-# 自动化工具本地产物（Playwright 快照 / 临时脚本）
+# 锟皆讹拷锟斤拷锟斤拷锟竭憋拷锟截诧拷锟斤（Playwright 锟斤拷锟斤拷 / 锟斤拷时锟脚憋拷锟斤拷
 .playwright-mcp/
 .temp/
