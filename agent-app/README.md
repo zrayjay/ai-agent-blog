@@ -1,5 +1,7 @@
 # agent-app · 教程 TS 主线项目（引擎骨架 + 两条产品线：知识库问答 / 智能客服）
 
+> **Personal Agent 新产品规划**：在保留现有教学项目代码的前提下，新增 [Personal Agent 平台方案入口](./docs/personal-agent/README.md)、[目标架构与代码复用矩阵](./docs/personal-agent/01-ARCHITECTURE.md)、[P0–P7 阶段实施计划](./docs/personal-agent/02-ROADMAP.md)。本 README 继续说明**已实现的教学工程**，新方案中尚未开发的模块不得视为现有功能。
+
 博客教程（`docs/`）"TypeScript 主线"的配套可运行项目。第 1 阶段交付引擎核心，第 2 阶段组装两条产品线：
 
 - **手写多步工具循环**：`generateText` → 入账 → 调度 → 回灌，不依赖任何 Agent 框架

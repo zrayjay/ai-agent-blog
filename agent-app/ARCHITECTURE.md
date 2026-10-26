@@ -1,5 +1,7 @@
 # agent-app 架构与实现详解
 
+> **文档边界**：本文介绍目前已实现的 agent-app 教学项目。未来 Personal Agent 平台的设计请查看 [目标架构及复用矩阵](./docs/personal-agent/01-ARCHITECTURE.md)，不要将计划中的 Factory/Worker/Goal 视为当前代码已支持。
+
 > 面向学习的实现文档：讲清每个模块**是什么、为什么这么写、踩过什么坑**。
 > 配合源码读，效果最好。快速上手（怎么跑）看 [README.md](./README.md)，本文讲"为什么"。
 
