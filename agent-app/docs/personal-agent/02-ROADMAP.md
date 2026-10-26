@@ -2,7 +2,7 @@
 
 > **状态：设计方案，尚未开始实施。最后重构：2026-10-26。**
 >
-> 代码基线：仓库 \`agent-app\` 当前实现；不是从零新建项目。对应 [产品入口](./README.md)、[目标架构与复用矩阵](./01-ARCHITECTURE.md)、[队列与调度规范](./03-QUEUE-SCHEDULING.md)、[54 个场景及不变量](./04-SCENARIO-MATRIX.md)。旧 \`README/ARCHITECTURE/BACKLOG\` 仍是教学项目现状记录；本文是 **Personal Agent 产品开发的唯一实施总计划**。
+> 代码基线：仓库 `agent-app` 当前实现；不是从零新建项目。对应 [产品入口](./README.md)、[目标架构与复用矩阵](./01-ARCHITECTURE.md)、[队列与调度规范](./03-QUEUE-SCHEDULING.md)、[54 个场景及不变量](./04-SCENARIO-MATRIX.md)。旧 `README/ARCHITECTURE/BACKLOG` 仍是教学项目现状记录；本文是 **Personal Agent 产品开发的唯一实施总计划**。
 
 ## 0. 产品目标、关键决策与阶段出口
 
@@ -14,9 +14,9 @@
 
 ### 0.2 不可改变的复用决策
 
-- 保留 \`apps/api\` NestJS、\`apps/web\` Next.js、\`apps/cli\`、\`packages/engine\`、\`packages/shared\` 和 pnpm/Turborepo；不重复搭建一个 Vite 前端。
-- 优先复用 \`agent-loop.ts\`（AI SDK）、Effect \`orchestrator\`、Memory/RAG、MCP、Skills、Guardrails、Telemetry、Verification、Eval/Quality Gate。
-- 保留旧 \`chat/kb/service/team\` API/CLI 可用；把“请求断开即停止”的即时聊天与“Web 断线继续”的后台 Task/Run 拆开，**不互相偷偷改变原语义**。
+- 保留 `apps/api` NestJS、`apps/web` Next.js、`apps/cli`、`packages/engine`、`packages/shared` 和 pnpm/Turborepo；不重复搭建一个 Vite 前端。
+- 优先复用 `agent-loop.ts`（AI SDK）、Effect `orchestrator`、Memory/RAG、MCP、Skills、Guardrails、Telemetry、Verification、Eval/Quality Gate。
+- 保留旧 `chat/kb/service/team` API/CLI 可用；把“请求断开即停止”的即时聊天与“Web 断线继续”的后台 Task/Run 拆开，**不互相偷偷改变原语义**。
 - 在现有 Runtime 外增加 RuntimeAdapter；LangGraph.js 是 **P7 按需验证再引入**的备选，而不是 P0–P2 的硬依赖。
 - **PostgreSQL 是业务事实源；BullMQ/Redis 是至少一次投递通道；AgentScheduler 是业务仲裁者。** 不为每个 Agent/用户建一个物理 Redis Queue。
 - Agent Factory 首版生成**受控的 AgentSpec 和不可变 AgentVersion**，不直接执行模型生成的任意 TypeScript 代码。
@@ -24,7 +24,7 @@
 
 ### 0.3 阶段依赖与发布里程碑
 
-\`\`\`mermaid
+```mermaid
 flowchart LR
   P0["P0 现状审计/回归基线"] --> P1["P1 身份/持久化契约"]
   P1 --> P2A["P2-A Task/Worker"]
@@ -39,7 +39,7 @@ flowchart LR
   M3 --> P6["P6 Goals/Triggers/Notifications"]
   P6 --> P7["P7 多 Agent/长期可靠性"]
   P7 --> M4(["M4 Personal Agent Beta"])
-\`\`\`
+```
 
 | 里程碑 | 包含 | 对用户的真实交付 | 不应宣称 |
 | --- | --- | --- | --- |
@@ -64,7 +64,7 @@ flowchart LR
 | **Trigger Queue** | **P6** | Goal/TriggerOccurrence | cron/webhook 触发去重、重叠与错过触发策略 |
 | **Notification Queue** | **P6**（P2 先留出事件出口） | NotificationDelivery | 通知失败单独重试，不重跑 Task |
 
-**三重所有权，不得混淆**：\`conversation reservation\`（等待审批时保留续写权）、\`run execution lease\`（Worker 短期执行权）、\`resource lease\`（浏览器/文件资源独占权）。相同 conversation 串行，**不等于**整个用户所有 Agent 都串行。
+**三重所有权，不得混淆**：`conversation reservation`（等待审批时保留续写权）、`run execution lease`（Worker 短期执行权）、`resource lease`（浏览器/文件资源独占权）。相同 conversation 串行，**不等于**整个用户所有 Agent 都串行。
 
 ## 2. P0 — 审计、契约和不可破坏的回归基线
 
@@ -72,13 +72,13 @@ flowchart LR
 
 ### 开发批次
 
-- **P0.1 代码证据**：固定当前 main SHA、Node/pnpm/lockfile、工作区结构；逐项定位 \`runToolLoop\`、\`Effect orchestrator\`、\`MemoryStateStore\`、\`Telemetry\`、\`Verification\`、\`Guardrails\`、\`MCP\` 的调用链及状态存储位置。
-- **P0.2 回归测试**：实际记录 \`pnpm build\`、\`typecheck\`、\`test:engine\`、\`test:api\`、\`selftest\`、\`eval\`、\`quality-gate\`；真模型/数据库缺失造成 skipped 必须记为未验证，不能记成功。
+- **P0.1 代码证据**：固定当前 main SHA、Node/pnpm/lockfile、工作区结构；逐项定位 `runToolLoop`、`Effect orchestrator`、`MemoryStateStore`、`Telemetry`、`Verification`、`Guardrails`、`MCP` 的调用链及状态存储位置。
+- **P0.2 回归测试**：实际记录 `pnpm build`、`typecheck`、`test:engine`、`test:api`、`selftest`、`eval`、`quality-gate`；真模型/数据库缺失造成 skipped 必须记为未验证，不能记成功。
 - **P0.3 契约与状态图**：冻结 Task、Run、RunAttempt、ConversationInbox、Approval、ToolOperation、TriggerOccurrence、NotificationDelivery 的 ownerId、状态和版本；区分现有 Effect 子任务状态与平台 RunStatus。
 - **P0.4 场景追踪**：54 个 SC 编号进入测试计划；建立故障注入 fixture 和每条需求到测试的追踪表；ADR 记录“何时需要 LangGraph”。
 - **P0.5 CI**：确保 engine/API/CLI 确定性测试被真正执行；已有质量门禁继续保留，不以跳过套件伪装通过。
 
-**建议 PR**：\`docs/p0-baseline-and-adr\`、\`test/p0-regression-gates\`。
+**建议 PR**：`docs/p0-baseline-and-adr`、`test/p0-regression-gates`。
 
 **退出门禁**：旧 chat/kb/service/team/CLI 无行为回归；有真实测试报告、依赖/风险清单、P1 迁移计划。**此阶段不改 Agent 算法，不新建 Agent Factory。**
 
@@ -88,13 +88,13 @@ flowchart LR
 
 ### 开发批次
 
-- **P1.1 数据库**：新增 \`packages/db\`（Prisma + PostgreSQL migration）；核心表 \`users/agents/agent_versions/conversations/conversation_inbox/tasks/runs/run_attempts/run_events/outbox_events/execution_leases/tool_operations/approvals\`。Tool/Goal/通知专用表可在本期定义契约，P4/P6 迁移实施。
-- **P1.2 身份/资源权限**：NestJS Auth（安全密码哈希、登录会话）、ownerId + agentId 的 DB/service 层作用域校验，禁用仅靠 \`s_\`/\`cs_\` 前缀作为安全边界；单用户部署也不跳过 ACL。
-- **P1.3 状态机**：会话预约权与执行租约拆成独立实体；租约 \`epoch\` 单调、CAS/唯一 active scope；审批以 operationId + argsHash + actor + expiresAt 绑定。
-- **P1.4 API 契约**：\`packages/shared\` 添加版本化 Task/Run/Inbox/QueueEvent DTO，不改变既有 \`ChatStreamEvent\` 的线上形状；规范客户端 requestId 和幂等响应。
+- **P1.1 数据库**：新增 `packages/db`（Prisma + PostgreSQL migration）；核心表 `users/agents/agent_versions/conversations/conversation_inbox/tasks/runs/run_attempts/run_events/outbox_events/execution_leases/tool_operations/approvals`。Tool/Goal/通知专用表可在本期定义契约，P4/P6 迁移实施。
+- **P1.2 身份/资源权限**：NestJS Auth（安全密码哈希、登录会话）、ownerId + agentId 的 DB/service 层作用域校验，禁用仅靠 `s_`/`cs_` 前缀作为安全边界；单用户部署也不跳过 ACL。
+- **P1.3 状态机**：会话预约权与执行租约拆成独立实体；租约 `epoch` 单调、CAS/唯一 active scope；审批以 operationId + argsHash + actor + expiresAt 绑定。
+- **P1.4 API 契约**：`packages/shared` 添加版本化 Task/Run/Inbox/QueueEvent DTO，不改变既有 `ChatStreamEvent` 的线上形状；规范客户端 requestId 和幂等响应。
 - **P1.5 Web 壳**：在 Next.js 保留 chat/kb/service 页面，新增 Tasks/Runs/Agents/Approvals 导航及空状态；禁止页面直连 Redis 或展示密钥。
 
-**建议 PR**：\`feat/p1-db-contracts\`、\`feat/p1-auth-acl\`、\`feat/p1-platform-web-shell\`、\`test/p1-migrations-and-permissions\`。
+**建议 PR**：`feat/p1-db-contracts`、`feat/p1-auth-acl`、`feat/p1-platform-web-shell`、`test/p1-migrations-and-permissions`。
 
 **退出门禁**：迁移及回滚通过；两身份越权访问、并发 claim/epoch 竞争有确定性及 PG 集成测试；旧接口仍可用。**已有表是 schema，不代表已有持久后台执行。**
 
@@ -104,20 +104,20 @@ flowchart LR
 
 ### P2-A：Task Queue / Worker / Outbox
 
-- 建 \`apps/worker\`，BullMQ 只承载有限数量的物理队列，如 \`agent-runs\`；用 \`TaskService\`、\`RunService\`、\`AgentScheduler\`、\`OutboxRelay\` 调度任务。
+- 建 `apps/worker`，BullMQ 只承载有限数量的物理队列，如 `agent-runs`；用 `TaskService`、`RunService`、`AgentScheduler`、`OutboxRelay` 调度任务。
 - **原子入口**：用户提交任务时 Task/Run/Outbox 在同一 PG transaction，commit 后返回 accepted；Redis 不可用时可保留 durable pending（或背压失败，行为明示）。
 - **原子 claim**：Scheduler 检查 owner 总并发、同 conversation active reservation、任务优先级/依赖/预算；执行租约 epoch + CAS，旧 Worker 不得覆写状态。
-- **Runtime 复用**：第一版 \`LegacyLoopRuntimeAdapter\` 使用现有 \`runToolLoop\`。执行上下文包含 owner、agent version、runId、cancelSignal、allowedCapabilities、budget。
-- **后台语义**：\`POST /api/tasks\` 创建后台 Run；\`GET /api/runs/:id/events?after=<seq>\` 按 RunEvent 回放。原 \`GET /api/chat/stream\` 断线中止行为不变，不能把此接口假装后台任务。
+- **Runtime 复用**：第一版 `LegacyLoopRuntimeAdapter` 使用现有 `runToolLoop`。执行上下文包含 owner、agent version、runId、cancelSignal、allowedCapabilities、budget。
+- **后台语义**：`POST /api/tasks` 创建后台 Run；`GET /api/runs/:id/events?after=<seq>` 按 RunEvent 回放。原 `GET /api/chat/stream` 断线中止行为不变，不能把此接口假装后台任务。
 - **预算**：达到 token/时间额度进入可解释终态或等待额度状态；任务必须有限重试和执行次数。
 
 **此批验收**：SC01、SC04、SC09–SC18、SC35、SC37–SC40、SC54（不涉及第三方真实副作用的部分）。必须至少有真实 PG+Redis+双 Worker 的并发/重复派发/kill 后恢复测试。
 
 ### P2-B：Wake Queue / Approval Queue / Cancellation
 
-- **WakeInbox**：每条用户输入（含原始内容/附件引用）单独持久化、会话递增 seq；可合并 wake signal，**绝不合并丢弃输入**。不要求 \`@agent\` 唤醒前缀。
+- **WakeInbox**：每条用户输入（含原始内容/附件引用）单独持久化、会话递增 seq；可合并 wake signal，**绝不合并丢弃输入**。不要求 `@agent` 唤醒前缀。
 - **Busy 语义**：同会话已运行则 Inbox=pending/deferred；仅现有 Runtime 有安全边界和确认 ACK 时允许 steering，否则当前 Run 结束后 continuation。**不要为了“即时响应”启动第二个同会话 Run**。
-- **审批**：持久化 \`Approval\`、\`ToolOperation\`。waiting_approval 时释放计算执行租约、保留 conversation reservation；approve/deny/expire 经 PostgreSQL CAS，恢复时复核授权、工具与参数。
+- **审批**：持久化 `Approval`、`ToolOperation`。waiting_approval 时释放计算执行租约、保留 conversation reservation；approve/deny/expire 经 PostgreSQL CAS，恢复时复核授权、工具与参数。
 - **取消/暂停**：写入持久 intent，AbortSignal 传播到模型/工具安全边界；取消与完成竞争以 CAS 和工具真实回执收敛；取消不能撤销已生效的支付/邮件。
 - **会话改变**：新输入修改待执行外部动作时，使受影响的旧 Approval 失效并要求重新审查。
 - **长期等待**：审批、需要用户补信息和人工核对均不持有 Worker 执行槽；Run 保存恢复信息或标注 requires_review，不能假装精确 checkpoint。
@@ -137,7 +137,7 @@ flowchart LR
 
 **M1 发布门禁（缺一不可）**：关闭浏览器仍执行；重新连接事件按 seq 回放；同会话只一个续写者；两个无资源冲突 Agent 可以按配额并发；20 条输入完整不乱序；审批等待不占 Worker 但保留会话预约权；重复 Bull job 无重复业务执行；非幂等外部操作 unknown 不自动重放；DB/Redis 重启有可靠恢复或明确人工待处理结果。
 
-建议 PR 顺序：\`feat/p2-outbox-task-queue\` → \`feat/p2-worker-run-leases\` → \`feat/p2-wake-inbox\` → \`feat/p2-approval-resume\` → \`feat/p2-sse-queue-dashboard\` → \`test/p2-failure-matrix\`。
+建议 PR 顺序：`feat/p2-outbox-task-queue` → `feat/p2-worker-run-leases` → `feat/p2-wake-inbox` → `feat/p2-approval-resume` → `feat/p2-sse-queue-dashboard` → `test/p2-failure-matrix`。
 
 ## 5. P3 — Agent Factory：用户自己创建自己的 Agent（M2）
 
@@ -147,13 +147,13 @@ flowchart LR
 
 - **P3.1 AgentSpec 与模板**：Zod JSON Schema（purpose/systemPrompt/modelPolicy/tools/capabilities/memoryScope/evalSuite/budget/approvalPolicy/runtimeKind）；Research、Knowledge、General、Coding 模板；不允许未经审查的生成代码自动运行。
 - **P3.2 Factory 作为持久任务**：自然语言创建 → 分析能力 → 模板匹配 → 生成 Draft → schema/策略检查 → 沙箱测试 → Eval/Quality Gate → 用户发布；每个阶段保留事件和失败证据。
-- **P3.3 Registry/Version**：\`Agent\` 和不可变 \`AgentVersion\`、published 指针、disable/rollback；**运行中的 Run 固定 version**，但凭据撤销和全局安全禁令必须实时生效。
+- **P3.3 Registry/Version**：`Agent` 和不可变 `AgentVersion`、published 指针、disable/rollback；**运行中的 Run 固定 version**，但凭据撤销和全局安全禁令必须实时生效。
 - **P3.4 Tool/Skill 授权**：用户显式选择已登记工具，按 agentVersion 生成 capability snapshot；不能通过 Prompt 或 Tool 名称自授予权限。
 - **P3.5 Factory UI**：草稿、权限审批、测试报告、发布、版本历史、Agent 任务历史；浏览器关闭 Factory Job 仍可继续或暂停。
 
 **场景验收**：SC48–SC50。两个 Agent 并发创建无覆盖；失败 Agent 不自动发布；模型生成 Spec 不可越权；已有 Run 不因版本切换而偷偷改变行为。
 
-**建议 PR**：\`feat/p3-agent-spec-registry\`、\`feat/p3-factory-pipeline\`、\`feat/p3-factory-evals\`、\`feat/p3-agent-ui\`、\`test/p3-factory-scenarios\`。
+**建议 PR**：`feat/p3-agent-spec-registry`、`feat/p3-factory-pipeline`、`feat/p3-factory-evals`、`feat/p3-agent-ui`、`test/p3-factory-scenarios`。
 
 ## 6. P4 — Tool Gateway、MCP 与 Browser Resource Queue
 
@@ -172,7 +172,7 @@ flowchart LR
 
 **前置**：P1 ACL、P3 AgentVersion；可和 P4 的非冲突模块并行。
 
-- 复用 Session/Preference/Episodic + pgvector/RAG，但明确 \`user / agent / goal / conversation\` 四级 scope 与共享授权。
+- 复用 Session/Preference/Episodic + pgvector/RAG，但明确 `user / agent / goal / conversation` 四级 scope 与共享授权。
 - Redis 24h session window 只负责短期上下文；用户可读的历史记录和记忆 provenance 单独持久化，跨会话检索需权控。
 - 记忆写入采取“候选、来源、纠错、删除、重建索引”的流程；不允许网页/文档嵌入的 Prompt Injection 成为系统记忆指令。
 - 知识库增加 owner ACL、source/文档版本、删除传播、增量导入失败恢复和敏感信息检测。
@@ -186,8 +186,8 @@ flowchart LR
 
 - Goal/Plan/Trigger/TriggerOccurrence/nextRunAt，存 IANA timezone，定义 DST 与错过执行（misfire）策略。
 - Planner/Replanner 生成结构化可追踪计划；Plan 不等于直接执行，外部写操作依旧经过 ToolGateway/Approval。
-- Trigger 逻辑 lane：cron、间隔、外部 webhook/event 都先去重再创建 Task/Run；同 Goal 重叠策略 \`QUEUE/SKIP/COALESCE/REPLACE\` 必须可配置。
-- Notification 逻辑 lane：各发送渠道 \`NotificationDelivery\` / attempts / receipt，和业务 Run 彻底解耦；通知失败不重新执行任务。
+- Trigger 逻辑 lane：cron、间隔、外部 webhook/event 都先去重再创建 Task/Run；同 Goal 重叠策略 `QUEUE/SKIP/COALESCE/REPLACE` 必须可配置。
+- Notification 逻辑 lane：各发送渠道 `NotificationDelivery` / attempts / receipt，和业务 Run 彻底解耦；通知失败不重新执行任务。
 - 长期目标 UI：计划、触发记录、跳过原因、下一次运行时间、审批待办、执行摘要和费用。
 - **默认安全策略**：主动轮询/通知遵从频率、预算、撤权、敏感性限制；订阅源不可信指令只当外部数据。
 
@@ -197,7 +197,7 @@ flowchart LR
 
 **前置**：M1–M3，Goal 可与此阶段局部并行。
 
-- 先复用现有 Effect Orchestrator 的 DAG、子任务验收、失败重试/降级/补偿/升级人工；将 \`MemoryStateStore\` 换为持久 StateStore 并增加父子 Run 关系。
+- 先复用现有 Effect Orchestrator 的 DAG、子任务验收、失败重试/降级/补偿/升级人工；将 `MemoryStateStore` 换为持久 StateStore 并增加父子 Run 关系。
 - Supervisor 基于 Agent Registry 的 capability 匹配选择子 Agent，**不是把全部用户创建的 Agent 逐个唤醒**。
 - 子 Agent 继承权限交集，父任务预算和并发总账，支持取消传播、子任务部分成功和失败解释；同会话与共享资源仍遵守 Scheduler 锁规则。
 - 仅在证明现有 Effect/Loop 的中断、复杂子图需求确实不够时，以 RuntimeAdapter 验证 LangGraph.js；不得让一次 Run 同时受双 Agent Loop 主控。
@@ -239,7 +239,7 @@ flowchart LR
 7. **文档**：更新对应场景 SC 的状态（planned/implemented/tested/external-unverified），更新 README 和 API。
 8. **门禁**：CI 若跳过关键质量测试，不得标记阶段完成；相同内容避免重复在五份文档维护。
 
-建议将执行情况记录到 **\`05-IMPLEMENTATION-STATUS.md\`（待 P0 创建）**，与本 Roadmap 分离：Roadmap 负责计划，Status 只记录真实 PR/CI/验收证据。
+建议将执行情况记录到 **`05-IMPLEMENTATION-STATUS.md`（待 P0 创建）**，与本 Roadmap 分离：Roadmap 负责计划，Status 只记录真实 PR/CI/验收证据。
 
 ## 12. 开发起点与禁止事项
 
