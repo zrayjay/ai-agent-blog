@@ -5,6 +5,10 @@ allowBuilds:
 overrides:
   # 依赖审计 high 修复线：source-map-js 事件循环 DoS（GHSA-68fv-2mgg-jv7q），patch 级安全升
   source-map-js: "^1.2.2"
+  # 依赖审计 high 修复线：vite launch-editor Windows 绕过（GHSA-587h-7wmj-h5pm，修补版 >=6.4.4）。
+  # vitepress 1.6.4 的 vite 范围本身含 6.x（CI 审计此前即解析到 6.4.3），故同大版本升补丁即可，
+  # 无需等 vitepress 2.x；docs:build 已随本改动验证（见收口提交）。
+  vite: "^6.4.4"
 auditConfig:
   ignoreGhsas:
     # 以下全部是 vitepress 1.6.3 + vite 5 锁死链上的 dev/build 时依赖（vite 不进生产运行时——
