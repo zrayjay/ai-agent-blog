@@ -11,8 +11,11 @@ import type { z } from "zod";
  * - execute 可缺省：不写 execute，SDK 认为调度方自己执行（手写循环的教程用法）
  * - OUTPUT 默认 any 与 ai 官方 Tool 的默认一致：toModelOutput 对 OUTPUT 逆变，
  *   收窄成 unknown 会让具体工具塞不进注册表
+ * - INPUT 省略时同样以 z.ZodType<any> 承载异构工具集合的默认泛型，
+ *   避免 Zod 4 默认 unknown 导致 Tool<具体输入> 无法赋给 Tool<unknown>。
+ *   显式 AgentTool<typeof schema> 仍会保留准确的输入类型。
  */
-export type AgentTool<INPUT extends z.ZodType = z.ZodType, OUTPUT = any> = Tool<
+export type AgentTool<INPUT extends z.ZodType = z.ZodType<any>, OUTPUT = any> = Tool<
   z.output<INPUT>,
   OUTPUT
 >;
