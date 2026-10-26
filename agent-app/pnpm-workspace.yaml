@@ -8,13 +8,19 @@ allowBuilds:
 minimumReleaseAgeExclude:
   - "@nestjs/testing@12.1.1"
 # 依赖安全审计（CI audit.yml）抓到的传递依赖修复线，overrides 强制升级：
-# - undici 5→6：ai SDK（@ai-sdk/provider-utils）的 fetch 层——三条 high 全在 WebSocket
-#   client，本项目只用 HTTP fetch；6.x 对齐 WHATWG 标准，provider-utils 用的核心 API 兼容
+# - undici 6.x：安全修复包含 HTTP 内容编码处理中的拒绝服务漏洞，保持 6.x API 兼容
 # - postcss 8.4→8.5：web 构建链（8.x 内 API 稳定，任意文件读/路径穿越两条 high 的修复线）
 # - source-map-js 1.2.1→1.2.2：事件循环 DoS 修复线（patch 级）
 # - @fastify/busboy 2→3：MCP SDK 链路的 DoS 修复线（3.x API 兼容原 busboy）
 overrides:
-  undici: "^6.27.0"
+  undici: "^6.29.1"
+  # MCP / AI SDK 使用 Zod 4，同时保留需用 v3 语义时可显式 import zod/v3。
+  zod: "^4.6.6"
+  # Vitest 的传递依赖 Vite；修复 Windows launch-editor 相关安全问题。
+  vite: "^8.3.3"
+  # Express / NestJS 传递依赖 DoS 修复版本，保持原有主版本。
+  body-parser: "^2.4.0"
+  multer: "^2.5.0"
   postcss: "^8.5.28"
   source-map-js: "^1.2.2"
   "@fastify/busboy": "^3.2.1"
