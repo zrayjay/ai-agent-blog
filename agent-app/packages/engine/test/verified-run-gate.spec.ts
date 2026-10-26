@@ -87,7 +87,7 @@ describe("Personal Agent 真实验收证据 → Quality Gate", () => {
   });
 
   it("某个必查验证器未出证据，即使顶层写 passed 也为 inconclusive", () => {
-    expect(assess(verification({ checks: [verification().checks[0]!] })).toMatchObject({
+    expect(assess(verification({ checks: [verification().checks[0]!] }))).toMatchObject({
       status: "inconclusive",
     });
   });
