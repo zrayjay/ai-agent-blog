@@ -10,6 +10,7 @@
 | [02-ROADMAP.md](./02-ROADMAP.md) | **实施总计划 V3**：P0–P7 阶段重排、P2-A/B/C 队列门禁、M0–M4 交付、54 场景追踪与 OpenCode PR 拆分 |
 | [03-QUEUE-SCHEDULING.md](./03-QUEUE-SCHEDULING.md) | 六类逻辑队列、Agent 唤醒、并发隔离、调度和恢复协议 |
 | [04-SCENARIO-MATRIX.md](./04-SCENARIO-MATRIX.md) | 54 个核心场景、系统不变量、场景分级与测试验收 |
+| [05-EVALUATION-ARCHITECTURE.md](./05-EVALUATION-ARCHITECTURE.md) | **新增：Agent Quality Engineering / Evaluator Agent**，已有实现复用、评估时机、工作流、E01–E12 场景及阶段映射 |
 
 ## 产品定义
 
@@ -20,7 +21,7 @@
 ## 不可破坏的现状
 
 - 工程：pnpm + Turborepo，`apps/api` 为 NestJS、`apps/web` 为 Next.js、`apps/cli`、`packages/engine` 和 `packages/shared`。
-- 已有引擎能力：手写 `agent-loop.ts`、Effect `orchestrator`、Memory / RAG、MCP / Skills、Guardrails、Telemetry、Verification、Evals、Quality Gate。
+- 已有引擎能力：手写 `agent-loop.ts`、Effect `orchestrator`、Memory / RAG、MCP / Skills、Guardrails、Telemetry、Verification、Evals、Quality Gate，**以及新落地的 Experiments / Failure Candidates / 人工审核反馈闭环**。其中 Evals 的 safety/reliability 维度与统一质量门禁的自动证据汇聚仍有缺口（见评估架构）。
 - 已有原始产品线：chat、kb、service，以及相应 CLI/API/页面，必须作为回归兼容面保留。
 - 代码目前**不是**持久化后台个人 Agent：chat stream 在客户端断开时中止；`MemoryStateStore` 是内存版；现有编排状态、任务 Run、会话和用户生命周期尚未统一。
 - [质量工程实施记录](../AGENT-QUALITY-ENGINEERING.md) 比历史 [审计快照](../AGENT-QUALITY-ENGINEERING-AUDIT.md) 更新；不可从旧审计报告直接断言 Verification / Telemetry / Quality Gate 至今不存在。
@@ -41,5 +42,5 @@
 ## 计划与实际实施状态
 
 - [02-ROADMAP.md](./02-ROADMAP.md) 是**唯一开发总计划**：先完成基线/身份，再交付 Task/Wake/Approval 三类可靠队列与故障恢复，M1 验收后才开始 Agent Factory；后续扩展 Tool/Memory/Trigger/Notification/Multi-Agent。
-- [03-QUEUE-SCHEDULING.md](./03-QUEUE-SCHEDULING.md) 是队列和调度协议；[04-SCENARIO-MATRIX.md](./04-SCENARIO-MATRIX.md) 以 SC01–SC54 定义必须通过的可靠性场景。
+- [05-EVALUATION-ARCHITECTURE.md](./05-EVALUATION-ARCHITECTURE.md) 是评估及 Evaluator Agent 体系，区别现有完成项与待集成项；[03-QUEUE-SCHEDULING.md](./03-QUEUE-SCHEDULING.md) 是队列和调度协议；[04-SCENARIO-MATRIX.md](./04-SCENARIO-MATRIX.md) 以 SC01–SC54 定义必须通过的可靠性场景。
 - 目前这些文档**均为规划**，未将未来模块当成已实现代码。P0 启动后创建独立实现进度表，记录每个阶段的 PR、CI 和验收证据。
