@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@agent-app/shared": "workspace:*",
-    "next": "^15.5.26",
+    "next": "^15.5.28",
     "react": "^19.3.0",
     "react-dom": "^19.3.0"
   },
