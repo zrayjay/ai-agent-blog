@@ -1,4 +1,4 @@
-# Personal Agent 平台改造方案（V2，2026-10-26）
+# Personal Agent 平台改造方案（V3，2026-10-26）
 
 > **定位**：在现有 `agent-app` 代码上增量建设自托管 Personal Agent，不以重写项目为前提。此目录是 **Personal Agent 新产品规划的单一入口**；[旧 ARCHITECTURE](../../ARCHITECTURE.md) 和 [旧 BACKLOG](../../BACKLOG.md) 继续记录现有教学项目的实现与遗留，不能把未来计划误写成已完成代码。
 
@@ -7,7 +7,7 @@
 | 文档 | 职责 |
 | --- | --- |
 | [01-ARCHITECTURE.md](./01-ARCHITECTURE.md) | 目标架构、复用决策、运行模型、数据与安全契约 |
-| [02-ROADMAP.md](./02-ROADMAP.md) | P0–P7 阶段顺序、依赖、验收、实施 PR 切片 |
+| [02-ROADMAP.md](./02-ROADMAP.md) | **实施总计划 V3**：P0–P7 阶段重排、P2-A/B/C 队列门禁、M0–M4 交付、54 场景追踪与 OpenCode PR 拆分 |
 | [03-QUEUE-SCHEDULING.md](./03-QUEUE-SCHEDULING.md) | 六类逻辑队列、Agent 唤醒、并发隔离、调度和恢复协议 |
 | [04-SCENARIO-MATRIX.md](./04-SCENARIO-MATRIX.md) | 54 个核心场景、系统不变量、场景分级与测试验收 |
 
@@ -37,3 +37,9 @@
 ## 全局完成定义（DoD）
 
 每阶段必须提交架构决策更新、API 契约、迁移与回滚、确定性单测、NestJS 集成测试、关键端到端用例、失败/取消/重试案例、**场景矩阵对应的 SC 编号与执行证据**、文档及 CI 结果。未获第三方账号实测的连接器只能显示“已实现适配/待授权”，不得写“已接通”。变更应由 OpenCode 按 [Roadmap](./02-ROADMAP.md) 顺序提交 PR，不在同一 PR 混入无关重构。
+
+## 计划与实际实施状态
+
+- [02-ROADMAP.md](./02-ROADMAP.md) 是**唯一开发总计划**：先完成基线/身份，再交付 Task/Wake/Approval 三类可靠队列与故障恢复，M1 验收后才开始 Agent Factory；后续扩展 Tool/Memory/Trigger/Notification/Multi-Agent。
+- [03-QUEUE-SCHEDULING.md](./03-QUEUE-SCHEDULING.md) 是队列和调度协议；[04-SCENARIO-MATRIX.md](./04-SCENARIO-MATRIX.md) 以 SC01–SC54 定义必须通过的可靠性场景。
+- 目前这些文档**均为规划**，未将未来模块当成已实现代码。P0 启动后创建独立实现进度表，记录每个阶段的 PR、CI 和验收证据。
