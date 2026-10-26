@@ -8,6 +8,8 @@
 | --- | --- |
 | [01-ARCHITECTURE.md](./01-ARCHITECTURE.md) | 目标架构、复用决策、运行模型、数据与安全契约 |
 | [02-ROADMAP.md](./02-ROADMAP.md) | P0–P7 阶段顺序、依赖、验收、实施 PR 切片 |
+| [03-QUEUE-SCHEDULING.md](./03-QUEUE-SCHEDULING.md) | 六类逻辑队列、Agent 唤醒、并发隔离、调度和恢复协议 |
+| [04-SCENARIO-MATRIX.md](./04-SCENARIO-MATRIX.md) | 54 个核心场景、系统不变量、场景分级与测试验收 |
 
 ## 产品定义
 
@@ -27,11 +29,11 @@
 
 1. **保留现有仓库并渐进演进**，禁止为“架构一致”直接抛弃可用模块。若以后要独立产品仓库，再按稳定 package/API 边界迁移。
 2. **首选现有 Agent Loop + Effect Orchestrator**。定义 RuntimeAdapter 后，LangGraph.js 才作为复杂 DAG / interrupt / checkpoint 场景的**可选后续实现**；不让 Pi、LangGraph、现有 Loop 同时拥有一次 Run 的工具执行主控权。
-3. 新增 **Durable Worker + BullMQ + PostgreSQL 业务主存储**；Redis 是投递与缓存基础设施，不是业务事实源。
+3. 新增 **Durable Worker + BullMQ + PostgreSQL 业务主存储**；Redis 是投递与缓存基础设施，不是业务事实源。**以 [队列规范](./03-QUEUE-SCHEDULING.md) 与 [54 场景矩阵](./04-SCENARIO-MATRIX.md) 为强制设计依据**：首期完成 Task/Wake/Approval，后续补 Tool/Trigger/Notification。
 4. **安全默认拒绝**：外部写入、付费、账号变更、跨信任边界的工具执行经过服务端权限校验，必要时人工批准；提示词不能代替权限控制。
 5. 首版 **Web + NestJS + Worker + PostgreSQL/pgvector + Redis**，Browser Worker 独立隔离；不在 P0 即实现浏览器自动化或多 Agent 平台。
 6. **先持久化任务，再开放用户创建 Agent**；必须实现网页关闭后运行不取消，且服务重启不自动重放不确定的外部动作。
 
 ## 全局完成定义（DoD）
 
-每阶段必须提交架构决策更新、API 契约、迁移与回滚、确定性单测、NestJS 集成测试、关键端到端用例、失败/取消/重试案例、文档及 CI 结果。未获第三方账号实测的连接器只能显示“已实现适配/待授权”，不得写“已接通”。变更应由 OpenCode 按 [Roadmap](./02-ROADMAP.md) 顺序提交 PR，不在同一 PR 混入无关重构。
+每阶段必须提交架构决策更新、API 契约、迁移与回滚、确定性单测、NestJS 集成测试、关键端到端用例、失败/取消/重试案例、**场景矩阵对应的 SC 编号与执行证据**、文档及 CI 结果。未获第三方账号实测的连接器只能显示“已实现适配/待授权”，不得写“已接通”。变更应由 OpenCode 按 [Roadmap](./02-ROADMAP.md) 顺序提交 PR，不在同一 PR 混入无关重构。
