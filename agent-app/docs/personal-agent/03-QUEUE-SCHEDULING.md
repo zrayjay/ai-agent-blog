@@ -2,6 +2,8 @@
 
 > 状态：**待实施设计**；本文件为 `01-ARCHITECTURE` 和 `02-ROADMAP` 的规范性补充，2026-10-26。当前 `agent-app` 有 Effect 编排器与内存 `StateStore`，**尚未具备这里的持久 Task/Wake/Trigger 队列和跨重启调度能力**。实现必须分阶段推进，不能据此标记已完成。
 >
+> **场景与事故验收**：[04-SCENARIO-MATRIX.md](./04-SCENARIO-MATRIX.md) 固定了 54 个核心场景与 12 条不变量，作为本队列规范的强制补充。尤其区分等待审批时可释放的执行租约与不得被其他 Run 抢占的会话恢复权。
+>
 > **目标**：单用户自托管可用，数据模型预留多用户隔离；支持用户自建多个 Agent、后台任务、持续目标、消息介入、审批、资源互斥与断电恢复。设计遵循**DB 保存事实，队列负责通知与调度，Runtime 负责具体执行**。
 
 ## 1. 为什么 BullMQ 不等于完整的队列架构
@@ -22,6 +24,8 @@ BullMQ 能传递 job、延时与有限次重试，但无法自动处理 Agent �
 | **Notification Queue** | 任务完成/审批提醒/主动反馈 | 与业务 Run 独立发送与重试；通知失败不重跑 Run | P6；P2 建事件出口 |
 
 可选择 BullMQ 物理队列：`agent-runs`、`tool-operations`、`notifications`；定时触发可使用 scheduler + `triggers` 表扫描，审批用 DB 持久状态 + 唤醒 job，Wake 用 DB inbox + 调度器信号。**逻辑六类不等于六个 Redis queue 实例**。
+
+**所有权补充**：持久 `conversation reservation` 归属于等待中的 Run；短期 `execution lease` 只持有 Worker 执行权；`resource lease` 管 Browser Profile/文件等受限资源。这三层绝不可混成一个锁。审批等待释放执行槽，不等于允许新 Run 并行修改同一会话。
 
 ## 3. 总体数据流
 
@@ -204,3 +208,10 @@ P2 **完成定义**：Q01–Q07/Q10/Q11/Q13/Q14 至少完成确定性与容器�
 - `test/queue-recovery-matrix`：Q01–Q14 中 P2 必需故障矩阵、重复投递/断电和 CI 门禁。
 
 每个 PR 附数据迁移策略、旧 chat 回归结果、故障注入证据及明确未完成项。
+
+## 12. 架构风险与官方组件语义
+
+- BullMQ 官方采用 **at least once** 工作语义：lock 丢失/stalled 时 job 可能重复处理。因此所有副作用重试必须通过 PostgreSQL `ToolOperation` + 幂等/回执核对。
+- BullMQ 的 job dedup 可以压缩“调度提示”，但 `keepLastIfActive` 会仅保留最新后续载荷，**不得用于用户消息正文**；所有消息存入 Inbox 按 seq 消费。
+- BullMQ Pro Groups 属于商业扩展，**不作为开源免费版的前置依赖**；公平性、owner 限额由 Scheduler 自建。
+- 54 场景测试用例与安全门禁以 [04-SCENARIO-MATRIX.md](./04-SCENARIO-MATRIX.md) 为主索引。实现中若出现冲突，以场景文档的不变量优先，提交 ADR 后统一修改两份文档。
