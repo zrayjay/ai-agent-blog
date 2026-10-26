@@ -16,7 +16,7 @@
   "dependencies": {
     "@ai-sdk/openai": "^2.0.130",
     "@ai-sdk/provider": "^2.0.5",
-    "@modelcontextprotocol/sdk": "^1.31.0",
+    "@modelcontextprotocol/sdk": "^1.32.0",
     "ai": "^5.0.266",
     "effect": "^4.0.2",
     "ioredis": "^5.11.1",
@@ -24,7 +24,7 @@
     "pdf-parse": "^1.1.1",
     "pino": "^10.4.0",
     "postgres": "^3.4.9",
-    "zod": "^3.25.76"
+    "zod": "^4.6.6"
   },
   "devDependencies": {
     "@agent-app/shared": "workspace:*",
