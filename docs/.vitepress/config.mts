@@ -8,7 +8,7 @@ export default defineConfig({
   description:
     '以 TypeScript 为主线的 AI Agent 工程教程：从模型调用、工具循环、记忆与 RAG，到安全、评估、多 Agent 编排与全栈交付。',
 
-  head: [['link', { rel: 'icon', type: 'image/svg+xml', href: '/logo.svg' }]],
+  head: [['link', { rel: 'icon', type: 'image/png', href: '/logo.png' }]],
 
   markdown: {
     lineNumbers: true,
@@ -22,7 +22,7 @@ export default defineConfig({
   ignoreDeadLinks: [/^https?:\/\/localhost/],
 
   themeConfig: {
-    logo: '/logo.svg',
+    logo: '/logo.png',
 
     nav: [
       { text: '首页', link: '/' },

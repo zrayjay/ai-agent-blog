@@ -1,5 +1,9 @@
 # AI Agent 全栈工程师 · 23 周通关教程（博客项目）
 
+<p align="center">
+  <img src="./docs/public/logo.png" alt="AI Agent 全栈项目标志" width="140" />
+</p>
+
 配套《企业级 AI Agent 全栈工程师 · 23 周每日执行手册》的 VitePress 博客教程。
 
 手册负责"每天做什么"，本博客负责"怎么学会"——每天一篇保姆级教程：概念讲解 + 可运行代码 + 踩坑实录 + 自测题。
