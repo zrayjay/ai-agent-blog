@@ -179,6 +179,16 @@ body::after {
     background-color 0.3s ease;
 }
 
+/* VitePress 1.6.x 在带侧边栏的桌面页面为 .content 设置右内边距：
+   >=960px 为 32px，>=1440px 则增加居中布局补偿。
+   这会让内部 .content-body 无法贴齐视口右侧；仅清除父容器右内边距，
+   保留 padding-left 的侧边栏避让和移动端原有布局。 */
+@media (min-width: 960px) {
+  .VPNavBar.has-sidebar .container > .content {
+    padding-right: 0 !important;
+  }
+}
+
 /* —— 保留修复 ①：导航栏标题 logo 与文字同行 + 省略号截断 —— */
 .VPNavBar .title,
 .VPNavBarTitle .title {
