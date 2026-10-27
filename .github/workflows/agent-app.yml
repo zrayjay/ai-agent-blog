@@ -103,3 +103,43 @@ jobs:
       - name: 质量门禁（ci 策略：Tier 1 全绿 + 无关键用例失败）
         run: pnpm quality-gate --gate-policy ci
         working-directory: agent-app
+
+  # Personal Agent P1/P2-A：真实 PG 合约集成，不使用 mock 假装事务可靠性通过。
+  platform-store:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: agent
+          POSTGRES_PASSWORD: agent
+          POSTGRES_DB: agent
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U agent -d agent"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          working-directory: agent-app
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: agent-app/pnpm-lock.yaml
+      - name: 安装依赖
+        run: pnpm install --frozen-lockfile
+        working-directory: agent-app
+      - name: 构建引擎
+        run: pnpm --filter @agent-app/engine^... build && pnpm --filter @agent-app/engine build
+        working-directory: agent-app
+      - name: 真实 PostgreSQL 事务、幂等、会话锁、租约测试
+        run: pnpm --filter @agent-app/engine exec vitest run test/platform-store.infra.spec.ts
+        working-directory: agent-app
+        env:
+          RUN_PLATFORM_PG_TESTS: "1"
+          PG_CONNECTION_STRING: postgres://agent:agent@localhost:5433/agent
