@@ -1391,6 +1391,15 @@ body {
   backdrop-filter: blur(18px) saturate(145%);
   border-bottom: 1px solid var(--vp-c-gutter);
 }
+
+/* 首页保持透明导航，不让桌面端滚动状态恢复背景、边线或毛玻璃。
+   其它页面仍沿用上述玻璃导航样式。 */
+.VPNavBar.home .content-body {
+  background: none !important;
+  border-bottom: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
 .VPNavBarTitle .logo {
   width: 32px;
   height: 32px;
