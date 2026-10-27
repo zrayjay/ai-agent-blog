@@ -1,126 +1,161 @@
-﻿<template>
-  <section class="jsec jsec-stages">
+<script setup lang="ts">
+import { withBase } from 'vitepress'
+import { learningStages } from './home-content'
+</script>
+
+<template>
+  <section id="learning-path" class="jsec jsec-stages" aria-labelledby="path-title">
     <header class="jsec-head">
-      <p class="jsec-kicker">ROADMAP · 训练路线</p>
-      <h2 class="jsec-title">五段式通关路线</h2>
+      <p class="jsec-kicker">LEARNING PATH · 能力主线</p>
+      <h2 id="path-title" class="jsec-title">沿着一套引擎，逐步补齐工程能力</h2>
+      <p class="path-intro">按顺序学习，按阶段验证。章节沿用 01–13 编号，09b 单列多 Agent 编排专题。</p>
     </header>
-
-    <!-- 23 周进度条 -->
-    <div class="jst-prog">
-      <div class="jst-cells">
-        <span
-          v-for="w in 23"
-          :key="w"
-          class="jst-cell"
-          :class="{ done: true, mile: [4, 8, 13, 19, 23].includes(w) }"
-          :title="'第 ' + w + ' 周' + ([4, 8, 13, 19, 23].includes(w) ? ' · 里程碑' : '')"
-        >
-          <i aria-hidden="true">✓</i>
-        </span>
-      </div>
-      <div class="jst-meta">
-        <span class="jst-meta-item"><b>23</b> / 23 周</span>
-        <span class="jst-legend">
-          <span><i class="l-done"></i>已完成</span>
-          <span><i class="l-mile"></i>里程碑</span>
-          <span><i class="l-todo"></i>待解锁</span>
-        </span>
-        <span class="jst-meta-item"><b>161</b> / 161 篇</span>
-      </div>
+    <div class="path-stages">
+      <article v-for="stage in learningStages" :key="stage.no" class="path-stage">
+        <div class="path-overview">
+          <span class="path-number" aria-hidden="true">{{ stage.no }}</span>
+          <h3 class="path-title">{{ stage.title }}</h3>
+          <p class="path-description">{{ stage.description }}</p>
+          <p class="path-outcome">{{ stage.outcome }}</p>
+        </div>
+        <ol class="path-lessons">
+          <li v-for="lesson in stage.lessons" :key="lesson.no">
+            <a class="path-lesson" :href="withBase(lesson.href)">
+              <span class="lesson-number">{{ lesson.no }}</span>
+              <div class="lesson-body">
+                <span class="lesson-title">{{ lesson.title }}</span>
+                <span class="lesson-summary">{{ lesson.summary }}</span>
+                <span v-if="lesson.note" class="lesson-note">{{ lesson.note }}</span>
+              </div>
+              <span class="lesson-arrow" aria-hidden="true">↗</span>
+            </a>
+          </li>
+        </ol>
+      </article>
     </div>
-
-    <!-- 5 阶段卡 -->
-    <div class="jst-grid">
-      <a
-        v-for="s in stages"
-        :key="s.no"
-        class="jst-stage"
-        :class="{ live: s.live }"
-        :href="base + s.to"
-      >
-        <div class="jst-top">
-          <span class="jst-no">{{ s.no }}</span>
-          <span class="jst-status">{{ s.live ? '✓ 教程已完结' : '✓ 已完结' }}</span>
-        </div>
-        <div class="jst-weeks">{{ s.weeks }}</div>
-        <h3 class="jst-title">{{ s.title }}</h3>
-        <div class="jst-tags">
-          <span v-for="t in s.tags" :key="t">{{ t }}</span>
-        </div>
-        <div class="jst-mile">
-          <svg
-            viewBox="0 0 24 24"
-            width="12"
-            height="12"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2.2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            aria-hidden="true"
-          >
-            <path d="M4 22V4" />
-            <path d="M4 4c3-2 6 2 10 0v9c-4 2-7-2-10 0" />
-          </svg>
-          <span>{{ s.mile }}</span>
-        </div>
-      </a>
-    </div>
+    <p class="path-footnote">
+      第 01 章正在整理正文，可先读
+      <a :href="withBase('/archive/weeks/week11/day1')">LLM API 原始教程</a>；
+      其余章节按主线阅读，遇到实现细节再查模块参考。
+    </p>
   </section>
 </template>
 
-<script setup lang="ts">
-import { useData } from 'vitepress'
-
-// to 为相对路径（不带开头斜杠），渲染时拼接 site.base，
-// 以兼容部署在子路径（GitHub Pages /ai-agent-blog/）的情况
-const base = useData().site.value.base
-
-const stages = [
-  {
-    no: 'S1',
-    weeks: 'W01–04',
-    title: '前端 + Node 底座',
-    tags: ['TypeScript', 'Monorepo', 'Next.js', 'NestJS', 'Prisma'],
-    mile: '里程碑 v1 · 全栈 CRUD',
-    live: true,
-    to: 'week01/'
-  },
-  {
-    no: 'S2',
-    weeks: 'W05–08',
-    title: '工程化 + 数据 + 部署',
-    tags: ['认证授权', 'Redis', 'Docker', 'CI/CD', '云部署'],
-    mile: '里程碑 v2 · 上线 + 监控',
-    live: false,
-    to: 'roadmap'
-  },
-  {
-    no: 'S3',
-    weeks: 'W09–13',
-    title: 'Python + Agent 核心',
-    tags: ['Python', 'FastAPI', 'LLM API', 'LangGraph', 'ReAct'],
-    mile: '里程碑 v3 · 多 Agent 平台',
-    live: false,
-    to: 'roadmap'
-  },
-  {
-    no: 'S4',
-    weeks: 'W14–19',
-    title: 'RAG + 评估 + MCP + 安全',
-    tags: ['RAG', '评估工程', '记忆', 'MCP', 'A2A'],
-    mile: '里程碑 v4 · 安全加固全链路',
-    live: false,
-    to: 'roadmap'
-  },
-  {
-    no: 'S5',
-    weeks: 'W20–23',
-    title: '整合 + 生产化 + 面试',
-    tags: ['平台整合', '可观测性', '简历', '面试冲刺'],
-    mile: '终点 · 拿下 Offer',
-    live: false,
-    to: 'roadmap'
+<style scoped>
+.jsec-stages {
+  scroll-margin-top: 96px;
+}
+.path-intro,
+.path-description,
+.path-footnote {
+  color: var(--vp-c-text-2);
+  font-size: 14px;
+  line-height: 1.9;
+}
+.path-intro {
+  margin-top: 16px;
+}
+.path-stage {
+  display: grid;
+  grid-template-columns: 1fr 1.65fr;
+  gap: 48px;
+  padding: 32px 0;
+  border-top: 1px solid var(--vp-c-divider);
+}
+.path-number {
+  font-family: var(--vp-font-family-mono);
+  font-size: 13px;
+  color: var(--vp-c-brand-1);
+}
+.path-title {
+  margin: 12px 0;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.5;
+}
+.path-outcome {
+  margin-top: 22px;
+  padding-left: 14px;
+  border-left: 2px solid var(--vp-c-brand-1);
+  color: var(--vp-c-text-1);
+  font-size: 13px;
+  line-height: 1.9;
+}
+.path-lessons {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.path-lesson {
+  display: grid;
+  grid-template-columns: 36px 1fr 20px;
+  gap: 16px;
+  padding: 16px;
+  border-radius: 8px;
+  transition: background-color 0.2s;
+}
+.path-lesson:hover,
+.path-lesson:focus-visible {
+  background: var(--vp-c-bg-soft);
+}
+.path-lesson:focus-visible {
+  outline: 2px solid var(--vp-c-brand-1);
+  outline-offset: 2px;
+}
+.path-lessons li + li {
+  border-top: 1px solid var(--vp-c-gutter);
+}
+.lesson-number {
+  padding-top: 1px;
+  font-family: var(--vp-font-family-mono);
+  font-size: 13px;
+  color: var(--vp-c-brand-1);
+}
+.lesson-title {
+  display: block;
+  font-size: 16px;
+  font-weight: 600;
+}
+.lesson-summary {
+  display: block;
+  margin-top: 4px;
+  color: var(--vp-c-text-2);
+  font-size: 13px;
+  line-height: 1.8;
+}
+.lesson-note {
+  display: inline-block;
+  margin-top: 6px;
+  color: var(--vp-c-text-2);
+  font-size: 11px;
+  padding: 0 7px;
+  background: var(--vp-c-brand-soft);
+  border-radius: 4px;
+}
+.lesson-arrow {
+  color: var(--vp-c-brand-1);
+}
+.path-footnote {
+  padding-top: 18px;
+  border-top: 1px solid var(--vp-c-divider);
+  font-size: 13px;
+}
+.path-footnote a {
+  color: var(--vp-c-brand-1);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+@media (max-width: 700px) {
+  .path-stage {
+    grid-template-columns: 1fr;
+    gap: 18px;
   }
-]
-</script>
+  .path-outcome {
+    margin-top: 14px;
+  }
+  .path-lesson {
+    padding: 14px 4px;
+    gap: 10px;
+  }
+}
+</style>

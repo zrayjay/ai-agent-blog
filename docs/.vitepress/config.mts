@@ -6,7 +6,7 @@ export default defineConfig({
   base: '/',
   title: 'AI Agent 全栈工程师',
   description:
-    '从 0 基础到落地到精通的 AI Agent 全栈教程：Node + TS 主线，覆盖 LLM API → Agent 循环 → RAG → MCP → 三大产品落地',
+    '以 TypeScript 为主线的 AI Agent 工程教程：从模型调用、工具循环、记忆与 RAG，到安全、评估、多 Agent 编排与全栈交付。',
 
   head: [['link', { rel: 'icon', type: 'image/svg+xml', href: '/logo.svg' }]],
 
@@ -26,9 +26,9 @@ export default defineConfig({
 
     nav: [
       { text: '首页', link: '/' },
-      { text: '学习总纲', link: '/guide/' },
-      { text: '路线图', link: '/roadmap' },
-      { text: '使用指南', link: '/guide/' }
+      { text: '学习路线', link: '/#learning-path' },
+      { text: '模块参考', link: '/reference/README' },
+      { text: '扩展指南', link: '/how-to/EXTENDING' }
     ],
 
     outline: { level: [2, 3], label: '本页目录' },
@@ -64,8 +64,8 @@ export default defineConfig({
         collapsed: false,
         items: [
           { text: '前言 · 开始之前', link: '/preface' },
-          { text: '学习总纲 · 双轨路径', link: '/guide/' },
-          { text: '路线图 · 阶段与里程碑', link: '/roadmap' }
+          { text: '学习指南 · 旧版双轨路径', link: '/guide/' },
+          { text: '旧版路线图 · 23 周', link: '/roadmap' }
         ]
       },
       {

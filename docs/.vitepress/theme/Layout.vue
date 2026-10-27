@@ -3,10 +3,12 @@ import DefaultTheme from 'vitepress/theme'
 import { useRoute } from 'vitepress'
 import { nextTick, watch } from 'vue'
 import HomeHeroInfo from './components/HomeHeroInfo.vue'
-import HomeTerminal from './components/HomeTerminal.vue'
+import HomeAgentLoop from './components/HomeAgentLoop.vue'
 import HomeStats from './components/HomeStats.vue'
 import HomePillars from './components/HomePillars.vue'
 import HomeStages from './components/HomeStages.vue'
+import HomeProducts from './components/HomeProducts.vue'
+import HomeResources from './components/HomeResources.vue'
 import HomeCta from './components/HomeCta.vue'
 
 const { Layout } = DefaultTheme
@@ -22,9 +24,7 @@ watch(
     await nextTick()
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
-        document
-          .querySelector('.VPSidebarItem.is-active')
-          ?.scrollIntoView({ block: 'nearest' })
+        document.querySelector('.VPSidebarItem.is-active')?.scrollIntoView({ block: 'nearest' })
       })
     })
   },
@@ -39,7 +39,7 @@ watch(
     </template>
 
     <template #home-hero-image>
-      <HomeTerminal />
+      <HomeAgentLoop />
     </template>
 
     <template #home-hero-after>
@@ -49,6 +49,8 @@ watch(
     <template #home-features-before>
       <HomePillars />
       <HomeStages />
+      <HomeProducts />
+      <HomeResources />
       <HomeCta />
     </template>
   </Layout>
