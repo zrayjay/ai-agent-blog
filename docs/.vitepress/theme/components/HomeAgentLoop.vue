@@ -41,17 +41,17 @@ const steps = [
   max-width: 440px;
   padding: 26px;
   text-align: left;
-  background: #17271e;
-  color: #e5eee5;
-  border: 1px solid #405b48;
+  background: linear-gradient(152deg, #102653 0%, #111e40 60%, #251947 100%);
+  color: #ecf5ff;
+  border: 1px solid #37538a;
   border-radius: 14px;
-  box-shadow: 0 24px 60px -30px #16351f70;
+  box-shadow: 0 24px 60px -30px rgba(33, 80, 179, 0.42);
 }
 .loop-bar {
   display: flex;
   justify-content: space-between;
   gap: 10px;
-  color: #a4c1ab;
+  color: #a5cafa;
   font-family: var(--vp-font-family-mono);
   font-size: 11px;
   letter-spacing: 0.04em;
@@ -83,17 +83,17 @@ const steps = [
   bottom: 3px;
   left: 20px;
   width: 1px;
-  background: #476951;
+  background: #385a92;
 }
 .loop-tag {
   flex: none;
   align-self: flex-start;
   padding: 3px 7px;
-  border: 1px solid #587961;
+  border: 1px solid #4e74ad;
   border-radius: 4px;
   font-size: 12px;
   line-height: 20px;
-  color: #b9d5bd;
+  color: #b4eaf7;
 }
 .loop-title {
   display: block;
@@ -103,14 +103,14 @@ const steps = [
 }
 .loop-detail {
   display: block;
-  color: #a8bdad;
+  color: #adc7e7;
   font-size: 12px;
   line-height: 1.8;
 }
 .loop-return {
   padding: 12px 0;
-  border-top: 1px dashed #476951;
-  color: #b9d5bd;
+  border-top: 1px dashed #385a92;
+  color: #b4eaf7;
   font-size: 12px;
   line-height: 1.8;
 }
@@ -118,7 +118,7 @@ const steps = [
   display: flex;
   justify-content: space-between;
   margin-top: 8px;
-  color: #cbe6c9;
+  color: #b1effa;
   font-size: 13px;
 }
 .loop-link:hover {
@@ -126,7 +126,7 @@ const steps = [
   text-underline-offset: 4px;
 }
 .loop-link:focus-visible {
-  outline: 2px solid #cbe6c9;
+  outline: 2px solid #b1effa;
   outline-offset: 5px;
 }
 @media (max-width: 480px) {

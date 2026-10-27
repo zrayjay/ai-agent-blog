@@ -1,65 +1,74 @@
 /* ==========================================================================
-   Jerry's Workshop · 设计系统
-   概念：豆沙绿手账 × 工程工坊 —— 从模型调用到 Agent 工程
-   语言：等宽章节编号（01–13 / 09b / §01）+ 苔绿 / 竹青 / 豆沙纸
-   护眼调校：豆沙绿画布 + 墨绿灰正文（对比 ~10:1，弃纯黑纯白），
-             块级背景统一降饱和融入画布，暗色夜绿提亮降眩光
+   Logo 色彩系统 · Blue / Cyan / Violet
+   概念：电光蓝智能核心 × 青色信息流 × 紫色知识网络
+   语言：深蓝中性文字 + 冷白画布 + 蓝青紫分层强调
+   调校：浅色舒适阅读 / 深色海军蓝低眩光；令牌用于整站组件
    ========================================================================== */
 
 /* --------------------------------------------------------------------------
    1. 设计令牌 · 亮色
    -------------------------------------------------------------------------- */
 :root {
-  /* —— 品牌色（Jerry：苔绿 + 竹青，护眼绿系）—— */
-  --vp-c-brand: #3f6e4e;
-  --vp-c-brand-1: #3f6e4e;
-  --vp-c-brand-2: #365f44;
-  --vp-c-brand-3: #2d5039;
-  --vp-c-brand-light: #5d8f6e;
-  --vp-c-brand-lighter: #82ac91;
-  --vp-c-brand-dark: #365f44;
-  --vp-c-brand-darker: #2d5039;
-  --vp-c-brand-soft: rgba(74, 124, 89, 0.1);
-  --vp-code-bg: #e4ecdd;
 
-  /* —— 画布（豆沙绿护眼纸）—— */
-  --vp-c-bg: #eef3ea;
-  --vp-c-bg-alt: #e6eee0;
-  --vp-c-bg-soft: #dfe9d7;
-  --vp-c-bg-elv: #f7faf3;
+  /* Logo 原色系的语义化扩展：电光蓝 / 青蓝 / 紫罗兰 */
+  --agent-electric: #1769e7;
+  --agent-cyan: #069fbf;
+  --agent-violet: #7857e7;
+  --agent-navy: #142441;
+  --agent-glow-a: rgba(24, 126, 241, 0.11);
+  --agent-glow-b: rgba(115, 77, 228, 0.08);
+  --agent-gradient: linear-gradient(115deg, #1769e7 8%, #208cea 50%, #7857e7 100%);
 
-  /* —— 文字（墨绿灰正文，对比 ~10:1；辅助层次递减）—— */
-  --vp-c-text-1: #2f3b2f;
-  --vp-c-text-2: #4d5c4d;
-  --vp-c-text-3: #6f7f6f;
+  /* —— 品牌色（匹配机器人 / 书本 Logo 的电光蓝主色）—— */
+  --vp-c-brand: #1769e7;
+  --vp-c-brand-1: #1769e7;
+  --vp-c-brand-2: #155dcc;
+  --vp-c-brand-3: #103e98;
+  --vp-c-brand-light: #208cea;
+  --vp-c-brand-lighter: #68d6ef;
+  --vp-c-brand-dark: #155dcc;
+  --vp-c-brand-darker: #103e98;
+  --vp-c-brand-soft: rgba(31, 110, 226, 0.1);
+  --vp-code-bg: #eaf2ff;
+
+  /* —— 画布（冰蓝白纸面）—— */
+  --vp-c-bg: #f6f9ff;
+  --vp-c-bg-alt: #eef4ff;
+  --vp-c-bg-soft: #e5efff;
+  --vp-c-bg-elv: #ffffff;
+
+  /* —— 文字（深海军蓝；正文与链接达到可读对比度）—— */
+  --vp-c-text-1: #1b2b49;
+  --vp-c-text-2: #445873;
+  --vp-c-text-3: #657b98;
 
   /* —— 线 —— */
-  --vp-c-divider: rgba(74, 124, 89, 0.16);
-  --vp-c-gutter: rgba(74, 124, 89, 0.12);
-  --vp-c-border: rgba(74, 124, 89, 0.22);
+  --vp-c-divider: rgba(31, 110, 226, 0.16);
+  --vp-c-gutter: rgba(31, 110, 226, 0.12);
+  --vp-c-border: rgba(31, 110, 226, 0.22);
 
-  /* —— Jerry 扩展令牌 —— */
-  --jerry-ink: #26332a;
-  --jerry-amber: #7ba987;
-  --jerry-honey: #8fbf9d;
-  --jerry-caramel: #3f6e4e;
-  --jerry-cocoa: #365f44;
-  --jerry-success: #5f8f4e;
-  --jerry-wash: rgba(74, 124, 89, 0.05);
-  --jerry-grid: rgba(74, 124, 89, 0.07);
-  --jerry-ring: rgba(63, 110, 78, 0.22);
+  /* —— 自定义组件兼容令牌 —— */
+  --jerry-ink: #142441;
+  --jerry-amber: #7857e7;
+  --jerry-honey: #83bfff;
+  --jerry-caramel: #1769e7;
+  --jerry-cocoa: #155dcc;
+  --jerry-success: #11aa84;
+  --jerry-wash: rgba(31, 110, 226, 0.05);
+  --jerry-grid: rgba(31, 110, 226, 0.07);
+  --jerry-ring: rgba(23, 105, 231, 0.22);
   --jerry-noise-o: 0.045;
-  --jerry-shadow-s: 0 1px 2px rgba(42, 62, 48, 0.06);
-  --jerry-shadow-m: 0 2px 6px rgba(42, 62, 48, 0.05), 0 14px 34px rgba(42, 62, 48, 0.09);
-  --jerry-shadow-l: 0 4px 14px rgba(42, 62, 48, 0.1), 0 28px 64px rgba(35, 60, 45, 0.18);
+  --jerry-shadow-s: 0 1px 2px rgba(29, 61, 114, 0.06);
+  --jerry-shadow-m: 0 2px 6px rgba(29, 61, 114, 0.05), 0 14px 34px rgba(29, 61, 114, 0.09);
+  --jerry-shadow-l: 0 4px 14px rgba(29, 61, 114, 0.1), 0 28px 64px rgba(31, 61, 124, 0.18);
   --jerry-r-s: 8px;
   --jerry-r-m: 12px;
   --jerry-r-l: 18px;
 
   /* —— 导航 / 侧边栏（毛玻璃）—— */
-  --vp-nav-bg-color: rgba(247, 250, 243, 0.82);
-  --vp-nav-screen-bg-color: rgba(247, 250, 243, 0.96);
-  --vp-sidebar-bg-color: rgba(247, 250, 243, 0.55);
+  --vp-nav-bg-color: rgba(255, 255, 255, 0.82);
+  --vp-nav-screen-bg-color: rgba(255, 255, 255, 0.96);
+  --vp-sidebar-bg-color: rgba(255, 255, 255, 0.55);
 
   /* —— 字体（不引 webfont：西文 Inter 栈 + 中文 PingFang/雅黑/Noto）—— */
   --vp-font-family-base:
@@ -71,49 +80,58 @@
 }
 
 /* --------------------------------------------------------------------------
-   1b. 设计令牌 · 暗色（夜绿，不是灰黑）
+   1b. 设计令牌 · 暗色（海军蓝夜间主题）
    -------------------------------------------------------------------------- */
 .dark {
-  --vp-c-brand: #8fbf9d;
-  --vp-c-brand-1: #8fbf9d;
-  --vp-c-brand-2: #79aa88;
-  --vp-c-brand-3: #a5cfae;
-  --vp-c-brand-light: #79aa88;
-  --vp-c-brand-lighter: #6f9f7f;
-  --vp-c-brand-dark: #a5cfae;
-  --vp-c-brand-darker: #c4e0c8;
-  --vp-c-brand-soft: rgba(143, 191, 157, 0.14);
+  --agent-electric: #83bfff;
+  --agent-cyan: #54dbeb;
+  --agent-violet: #bba7ff;
+  --agent-navy: #eef4ff;
+  --agent-glow-a: rgba(56, 123, 246, 0.15);
+  --agent-glow-b: rgba(131, 94, 255, 0.12);
+  --agent-gradient: linear-gradient(115deg, #83bfff 2%, #54dbeb 49%, #bba7ff 99%);
+  --vp-code-bg: #162744;
 
-  --vp-c-bg: #1b231c;
-  --vp-c-bg-alt: #202a21;
-  --vp-c-bg-soft: #273227;
-  --vp-c-bg-elv: #232e23;
+  --vp-c-brand: #83bfff;
+  --vp-c-brand-1: #83bfff;
+  --vp-c-brand-2: #7db6ff;
+  --vp-c-brand-3: #a7daff;
+  --vp-c-brand-light: #7db6ff;
+  --vp-c-brand-lighter: #5da5f5;
+  --vp-c-brand-dark: #a7daff;
+  --vp-c-brand-darker: #d7e8ff;
+  --vp-c-brand-soft: rgba(109, 173, 244, 0.14);
 
-  --vp-c-text-1: #dde8da;
-  --vp-c-text-2: #a9b9a7;
-  --vp-c-text-3: #7f917e;
+  --vp-c-bg: #0b1326;
+  --vp-c-bg-alt: #111d33;
+  --vp-c-bg-soft: #192847;
+  --vp-c-bg-elv: #172541;
 
-  --vp-c-divider: rgba(143, 191, 157, 0.16);
-  --vp-c-gutter: rgba(143, 191, 157, 0.09);
-  --vp-c-border: rgba(143, 191, 157, 0.22);
+  --vp-c-text-1: #eef4ff;
+  --vp-c-text-2: #b7c9e5;
+  --vp-c-text-3: #91a7c9;
 
-  --jerry-ink: #e3edde;
-  --jerry-success: #8fb87e;
-  --jerry-wash: rgba(143, 191, 157, 0.05);
-  --jerry-grid: rgba(143, 191, 157, 0.055);
-  --jerry-ring: rgba(143, 191, 157, 0.24);
+  --vp-c-divider: rgba(109, 173, 244, 0.16);
+  --vp-c-gutter: rgba(109, 173, 244, 0.09);
+  --vp-c-border: rgba(109, 173, 244, 0.22);
+
+  --jerry-ink: #eaf3ff;
+  --jerry-success: #31d4bf;
+  --jerry-wash: rgba(109, 173, 244, 0.05);
+  --jerry-grid: rgba(109, 173, 244, 0.055);
+  --jerry-ring: rgba(109, 173, 244, 0.24);
   --jerry-noise-o: 0.06;
   --jerry-shadow-s: 0 1px 2px rgba(0, 0, 0, 0.3);
   --jerry-shadow-m: 0 2px 6px rgba(0, 0, 0, 0.25), 0 14px 34px rgba(0, 0, 0, 0.35);
   --jerry-shadow-l: 0 4px 14px rgba(0, 0, 0, 0.35), 0 28px 64px rgba(0, 0, 0, 0.5);
 
-  --vp-nav-bg-color: rgba(21, 28, 22, 0.82);
-  --vp-nav-screen-bg-color: rgba(21, 28, 22, 0.96);
-  --vp-sidebar-bg-color: rgba(21, 28, 22, 0.55);
+  --vp-nav-bg-color: rgba(12, 22, 43, 0.82);
+  --vp-nav-screen-bg-color: rgba(12, 22, 43, 0.96);
+  --vp-sidebar-bg-color: rgba(12, 22, 43, 0.55);
 }
 
 /* --------------------------------------------------------------------------
-   2. 画布：暖色渐洗 + 噪点（零图片，全 CSS）
+   2. 画布：清冷蓝青渐洗 + 低干扰网格
    -------------------------------------------------------------------------- */
 body {
   background-color: var(--vp-c-bg);
@@ -121,7 +139,7 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-/* 顶部暖色渐洗（固定层，位于画布之上、内容之下） */
+/* 顶部品牌蓝青渐洗（纯 CSS，避免额外图片请求） */
 body::before {
   content: '';
   position: fixed;
@@ -255,14 +273,14 @@ body::after {
 }
 
 /* --------------------------------------------------------------------------
-   5. 首页 Hero：网格纸背景 + 同心圆雷达底纹
+   5. 首页 Hero：蓝青品牌网格 + 紫色光晕
    -------------------------------------------------------------------------- */
 .VPHero {
   position: relative;
   overflow: hidden;
 }
 
-/* 手账网格纸（只出现在 hero 区，向下渐隐，保证正文区干净） */
+/* 微光网格（仅 Hero，向下渐隐保证正文阅读） */
 .VPHero::before {
   content: '';
   position: absolute;
@@ -353,7 +371,7 @@ body::after {
   height: 7px;
   flex: none;
   transform: rotate(45deg);
-  background: linear-gradient(135deg, #3f6e4e, #8fbf9d);
+  background: linear-gradient(135deg, #1769e7, #83bfff);
 }
 
 .jhi-title {
@@ -366,7 +384,7 @@ body::after {
 }
 
 .jhi-grad {
-  background: linear-gradient(115deg, #2d5039 8%, #5d8f6e 46%, #8fbf9d 92%);
+  background: linear-gradient(115deg, #103e98 8%, #208cea 46%, #83bfff 92%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -374,7 +392,7 @@ body::after {
 }
 
 .dark .jhi-grad {
-  background: linear-gradient(115deg, #8fbf9d 10%, #a5cfae 55%, #c4e0c8 95%);
+  background: linear-gradient(115deg, #83bfff 10%, #a7daff 55%, #d7e8ff 95%);
   -webkit-background-clip: text;
   background-clip: text;
 }
@@ -416,27 +434,27 @@ body::after {
 }
 
 .jbtn-primary {
-  color: #f4faf4;
-  background: linear-gradient(135deg, #3f6e4e, #365f44);
+  color: #ffffff;
+  background: linear-gradient(135deg, #1769e7, #155dcc);
   box-shadow:
-    0 1px 0 rgba(230, 250, 235, 0.25) inset,
+    0 1px 0 rgba(224, 246, 255, 0.25) inset,
     var(--jerry-shadow-m);
 }
 
 .jbtn-primary:hover {
   transform: translateY(-2px);
   box-shadow:
-    0 1px 0 rgba(230, 250, 235, 0.3) inset,
-    0 8px 22px rgba(45, 80, 57, 0.4);
+    0 1px 0 rgba(224, 246, 255, 0.3) inset,
+    0 8px 22px rgba(34, 91, 187, 0.4);
 }
 
 .dark .jbtn-primary {
-  color: #14261a;
-  background: linear-gradient(135deg, #a3cfad, #8fbf9d);
+  color: #092046;
+  background: linear-gradient(135deg, #b6e9ff, #83bfff);
 }
 
 .dark .jbtn-primary:hover {
-  box-shadow: 0 8px 22px rgba(143, 191, 157, 0.35);
+  box-shadow: 0 8px 22px rgba(109, 173, 244, 0.35);
 }
 
 .jbtn-ghost {
@@ -475,10 +493,10 @@ body::after {
 @keyframes jerry-pulse {
   0%,
   100% {
-    box-shadow: 0 0 0 0 rgba(122, 167, 84, 0.45);
+    box-shadow: 0 0 0 0 rgba(16, 177, 144, 0.45);
   }
   55% {
-    box-shadow: 0 0 0 6px rgba(122, 167, 84, 0);
+    box-shadow: 0 0 0 6px rgba(16, 177, 144, 0);
   }
 }
 
@@ -641,7 +659,7 @@ body::after {
 }
 
 .jp-item:hover {
-  background: linear-gradient(to right, rgba(74, 124, 89, 0.05), transparent 70%);
+  background: linear-gradient(to right, rgba(31, 110, 226, 0.05), transparent 70%);
 }
 
 .jp-no {
@@ -649,12 +667,12 @@ body::after {
   font-size: 40px;
   font-weight: 700;
   line-height: 1;
-  color: rgba(63, 110, 78, 0.28);
+  color: rgba(23, 105, 231, 0.28);
   transition: color 0.25s ease;
 }
 
 .dark .jp-no {
-  color: rgba(143, 191, 157, 0.3);
+  color: rgba(109, 173, 244, 0.3);
 }
 
 .jp-item:hover .jp-no {
@@ -708,7 +726,7 @@ body::after {
   align-items: center;
   justify-content: space-between;
   gap: 28px;
-  background: linear-gradient(115deg, #2d5039 0%, #3f6e4e 38%, #5d8f6e 72%, #8fbf9d 100%);
+  background: linear-gradient(115deg, #103e98 0%, #1769e7 38%, #208cea 72%, #83bfff 100%);
   box-shadow: 0 26px 60px -18px rgba(35, 70, 48, 0.5);
 }
 
@@ -718,8 +736,8 @@ body::after {
   position: absolute;
   inset: 0;
   background-image:
-    linear-gradient(to right, rgba(240, 250, 242, 0.09) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(240, 250, 242, 0.09) 1px, transparent 1px);
+    linear-gradient(to right, rgba(231, 247, 255, 0.09) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(231, 247, 255, 0.09) 1px, transparent 1px);
   background-size: 30px 30px;
   -webkit-mask-image: radial-gradient(120% 130% at 100% 0%, #000 30%, transparent 75%);
   mask-image: radial-gradient(120% 130% at 100% 0%, #000 30%, transparent 75%);
@@ -735,7 +753,7 @@ body::after {
   font-family: var(--vp-font-family-mono);
   font-size: 12px;
   letter-spacing: 0.14em;
-  color: rgba(238, 248, 240, 0.8);
+  color: rgba(225, 246, 255, 0.8);
 }
 
 .jc-title {
@@ -743,7 +761,7 @@ body::after {
   font-size: clamp(22px, 2.8vw, 30px);
   font-weight: 800;
   letter-spacing: -0.01em;
-  color: #f4faf4;
+  color: #ffffff;
 }
 
 .jc-sub {
@@ -765,9 +783,9 @@ body::after {
   gap: 12px;
   padding: 14px 22px;
   border-radius: 13px;
-  background: #16241a;
-  border: 1px solid rgba(220, 245, 228, 0.28);
-  box-shadow: 0 10px 26px -8px rgba(15, 30, 20, 0.6);
+  background: #101b3d;
+  border: 1px solid rgba(208, 235, 255, 0.28);
+  box-shadow: 0 10px 26px -8px rgba(6, 18, 46, 0.6);
   text-decoration: none;
   transition:
     transform 0.22s ease,
@@ -776,23 +794,23 @@ body::after {
 
 .jc-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 14px 32px -8px rgba(15, 30, 20, 0.7);
+  box-shadow: 0 14px 32px -8px rgba(6, 18, 46, 0.7);
 }
 
 .jc-btn-cmd {
   font-family: var(--vp-font-family-mono);
   font-size: 14px;
   font-weight: 600;
-  color: #cfe4d2;
+  color: #e0f7ff;
 }
 
 .jc-btn-cmd::before {
   content: '$ ';
-  color: rgba(212, 240, 220, 0.6);
+  color: rgba(216, 246, 255, 0.6);
 }
 
 .jc-btn-arr {
-  color: #cfe4d2;
+  color: #e0f7ff;
   font-size: 15px;
 }
 
@@ -800,7 +818,7 @@ body::after {
   margin: 10px 2px 0;
   font-family: var(--vp-font-family-mono);
   font-size: 11.5px;
-  color: rgba(235, 248, 238, 0.75);
+  color: rgba(230, 247, 255, 0.75);
 }
 
 @media (max-width: 768px) {
@@ -894,7 +912,7 @@ body::after {
   height: 15px;
   margin-right: 9px;
   border-radius: 2px;
-  background: linear-gradient(to bottom, #5d8f6e, #8fbf9d);
+  background: linear-gradient(to bottom, #208cea, #83bfff);
   vertical-align: -1px;
 }
 
@@ -923,7 +941,7 @@ body::after {
   border: 1px solid var(--vp-c-gutter);
   border-left: 3px solid var(--vp-c-brand);
   border-radius: 0 12px 12px 0;
-  background: linear-gradient(to right, rgba(74, 124, 89, 0.06), transparent 72%);
+  background: linear-gradient(to right, rgba(31, 110, 226, 0.06), transparent 72%);
   color: var(--vp-c-text-2);
   line-height: 1.8;
 }
@@ -993,8 +1011,8 @@ body::after {
 }
 
 .dark .vp-doc div[class*='language-'] {
-  background: #1f2a20;
-  border-color: rgba(143, 191, 157, 0.13);
+  background: #101b32;
+  border-color: rgba(109, 173, 244, 0.13);
 }
 
 .vp-doc .line-numbers-mode .line-numbers {
@@ -1009,7 +1027,7 @@ body::after {
 }
 
 .vp-doc .has-highlight-lines .line-highlight {
-  background-color: rgba(74, 124, 89, 0.1);
+  background-color: rgba(31, 110, 226, 0.1);
 }
 
 .vp-doc :not(pre) > code {
@@ -1052,15 +1070,15 @@ body::after {
 }
 
 .vp-custom-block.tip {
-  background: rgba(74, 124, 89, 0.07);
-  border-color: rgba(74, 124, 89, 0.18);
-  border-left-color: #5d8f6e;
+  background: rgba(31, 110, 226, 0.07);
+  border-color: rgba(31, 110, 226, 0.18);
+  border-left-color: #208cea;
 }
 
 .dark .vp-custom-block.tip {
-  background: rgba(143, 191, 157, 0.09);
-  border-color: rgba(143, 191, 157, 0.2);
-  border-left-color: #a3cfad;
+  background: rgba(109, 173, 244, 0.09);
+  border-color: rgba(109, 173, 244, 0.2);
+  border-left-color: #b6e9ff;
 }
 
 .vp-custom-block.warning {
@@ -1129,21 +1147,21 @@ body::after {
    17. 细节：::selection / 滚动条 / 焦点
    -------------------------------------------------------------------------- */
 ::selection {
-  background: rgba(143, 191, 157, 0.42);
+  background: rgba(109, 173, 244, 0.42);
   color: inherit;
 }
 
 .dark ::selection {
-  background: rgba(143, 191, 157, 0.3);
+  background: rgba(109, 173, 244, 0.3);
 }
 
 * {
   scrollbar-width: thin;
-  scrollbar-color: rgba(63, 110, 78, 0.32) transparent;
+  scrollbar-color: rgba(23, 105, 231, 0.32) transparent;
 }
 
 .dark * {
-  scrollbar-color: rgba(143, 191, 157, 0.3) transparent;
+  scrollbar-color: rgba(109, 173, 244, 0.3) transparent;
 }
 
 ::-webkit-scrollbar {
@@ -1152,24 +1170,24 @@ body::after {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(63, 110, 78, 0.28);
+  background: rgba(23, 105, 231, 0.28);
   border-radius: 6px;
   border: 2px solid transparent;
   background-clip: content-box;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(63, 110, 78, 0.45);
+  background: rgba(23, 105, 231, 0.45);
   background-clip: content-box;
 }
 
 .dark ::-webkit-scrollbar-thumb {
-  background: rgba(143, 191, 157, 0.26);
+  background: rgba(109, 173, 244, 0.26);
   background-clip: content-box;
 }
 
 .dark ::-webkit-scrollbar-thumb:hover {
-  background: rgba(143, 191, 157, 0.44);
+  background: rgba(109, 173, 244, 0.44);
   background-clip: content-box;
 }
 
@@ -1341,5 +1359,152 @@ body::after {
   .jbtn {
     padding: 10px 16px;
     font-size: 14px;
+  }
+}
+
+
+/* ==========================================================================
+   23. Logo 协调版：蓝 × 青 × 紫的整体视觉统一
+   结构与移动端网格沿用已有布局；装饰尽量避免改变元素几何尺寸。
+   ========================================================================== */
+
+/* 在阅读画布上分离轻量蓝青紫光晕，不压低正文对比度 */
+body {
+  background:
+    radial-gradient(ellipse 68% 34% at 9% 0%, var(--agent-glow-a), transparent 74%),
+    radial-gradient(ellipse 48% 28% at 92% 2%, var(--agent-glow-b), transparent 78%),
+    var(--vp-c-bg);
+}
+.VPNavBar .content-body {
+  background: var(--vp-nav-bg-color);
+  -webkit-backdrop-filter: blur(18px) saturate(145%);
+  backdrop-filter: blur(18px) saturate(145%);
+  border-bottom: 1px solid var(--vp-c-gutter);
+}
+.VPNavBarTitle .logo {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+.VPNavBarMenuLink.active,
+.VPNavBarMenuLink:hover {
+  color: var(--vp-c-brand-1);
+}
+.VPNavBarMenuLink.active::after {
+  background: var(--agent-gradient);
+}
+.VPSidebar .link.active {
+  background: linear-gradient(90deg, var(--vp-c-brand-soft), transparent 98%);
+}
+.VPHero::after {
+  content: '';
+  position: absolute;
+  width: min(45vw, 550px);
+  aspect-ratio: 1;
+  right: -8%;
+  top: -15%;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--agent-glow-b), transparent 71%);
+  pointer-events: none;
+}
+.VPHero .container {
+  position: relative;
+  z-index: 1;
+}
+.jhi-eyebrow {
+  border-color: var(--vp-c-border);
+  background: var(--vp-c-bg-elv);
+}
+.jhi-eyebrow-dot {
+  background: linear-gradient(135deg, var(--agent-cyan), var(--agent-violet));
+}
+.jhi-grad {
+  background: var(--agent-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+.dark .jhi-grad {
+  background: var(--agent-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+.jbtn-primary {
+  color: #fff;
+  background: linear-gradient(120deg, #1769e7, #235be4 65%, #6947d7);
+  box-shadow: 0 10px 26px -12px rgba(23, 105, 231, 0.53);
+}
+.jbtn-primary:hover {
+  box-shadow: 0 14px 32px -12px rgba(80, 75, 212, 0.58);
+}
+.dark .jbtn-primary {
+  color: #091632;
+  background: linear-gradient(120deg, #83bfff, #54dbeb 74%, #bba7ff);
+}
+.jstats {
+  box-shadow: 0 2px 18px rgba(31, 81, 147, 0.055);
+}
+.jstats-n,
+.jsec-kicker,
+.jp-no {
+  color: var(--vp-c-brand-1);
+}
+.jp-item:hover {
+  background: linear-gradient(90deg, var(--vp-c-brand-soft), transparent 76%);
+}
+.jc-band {
+  background: linear-gradient(112deg, #102f79 0%, #1769e7 34%, #218fef 66%, #6947d7 100%);
+  box-shadow: 0 24px 58px -24px rgba(29, 75, 175, 0.48);
+}
+.jc-btn {
+  background: #0c1f4e;
+  border-color: rgba(210, 239, 255, 0.25);
+  box-shadow: 0 8px 28px -10px rgba(4, 20, 54, 0.55);
+}
+.jc-btn:hover {
+  box-shadow: 0 12px 32px -10px rgba(4, 20, 54, 0.62);
+}
+.jc-btn-cmd,
+.jc-btn-arr {
+  color: #e5f6ff;
+}
+.vp-doc h3::before {
+  background: linear-gradient(180deg, var(--agent-cyan), var(--agent-violet));
+}
+.vp-doc blockquote {
+  background: linear-gradient(90deg, var(--vp-c-brand-soft), transparent 76%);
+}
+.vp-doc div[class*='language-'] {
+  border-color: var(--vp-c-border);
+}
+.dark .vp-doc div[class*='language-'] {
+  background: #101b32;
+}
+.vp-doc .has-highlight-lines .line-highlight {
+  background: var(--vp-c-brand-soft);
+}
+.vp-custom-block.tip {
+  border-left-color: var(--agent-cyan);
+}
+.dark .vp-custom-block.tip {
+  border-left-color: var(--agent-cyan);
+}
+.vp-custom-block.info {
+  border-left-color: var(--agent-violet);
+}
+.VPLocalSearchBox .result.selected {
+  background: var(--vp-c-brand-soft);
+}
+::selection {
+  background: rgba(67, 147, 255, 0.30);
+}
+.dark ::selection {
+  background: rgba(103, 156, 255, 0.4);
+}
+@media (max-width: 959px) {
+  .VPHero::after {
+    right: -22%;
+    top: 4%;
+    width: 66vw;
+    opacity: 0.7;
   }
 }
