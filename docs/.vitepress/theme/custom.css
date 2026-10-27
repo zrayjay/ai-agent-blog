@@ -231,6 +231,37 @@ body::after {
   border-radius: 10px;
 }
 
+/* 顶部 GitHub 仓库入口。
+   VitePress 默认要到 1280px 才显示 VPNavBarSocialLinks；这里提前到 768px，
+   确保首页和教学详情页在常见桌面 / 平板横屏宽度都能直接进入仓库。
+   <768px 继续使用默认汉堡菜单里的 Social Links，避免顶栏过挤。 */
+@media (min-width: 768px) {
+  .VPNavBar .VPNavBarSocialLinks {
+    display: flex !important;
+    align-items: center;
+    margin-left: 8px;
+  }
+
+  .VPNavBar .VPNavBarSocialLinks a {
+    color: var(--vp-c-text-2);
+    transition:
+      color 0.18s ease,
+      transform 0.18s ease;
+  }
+
+  .VPNavBar .VPNavBarSocialLinks a:hover {
+    color: var(--vp-c-brand-1);
+    transform: translateY(-1px);
+  }
+}
+
+/* 960px 以下 appearance 被收进菜单，去掉它原本给 social-links 留下的分隔线。 */
+@media (min-width: 768px) and (max-width: 959px) {
+  .VPNavBar .VPNavBarSocialLinks::before {
+    display: none !important;
+  }
+}
+
 /* --------------------------------------------------------------------------
    4. 侧边栏：分组层次 + 选中态强调
    -------------------------------------------------------------------------- */

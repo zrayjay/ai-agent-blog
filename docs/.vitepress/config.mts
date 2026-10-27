@@ -31,6 +31,15 @@ export default defineConfig({
       { text: '扩展指南', link: '/how-to/EXTENDING' }
     ],
 
+    // 顶部 GitHub 仓库入口：默认主题会同时渲染桌面顶栏图标与移动端菜单入口。
+    socialLinks: [
+      {
+        icon: 'github',
+        link: 'https://github.com/zrayjay/ai-agent-blog',
+        ariaLabel: 'GitHub 仓库'
+      }
+    ],
+
     outline: { level: [2, 3], label: '本页目录' },
 
     docFooter: { prev: '上一篇', next: '下一篇' },
