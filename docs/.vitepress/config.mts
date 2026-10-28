@@ -72,16 +72,19 @@ export default defineConfig({
         text: '开始',
         collapsed: false,
         items: [
-          { text: '前言 · 开始之前', link: '/preface' },
-          { text: '学习指南 · 旧版双轨路径', link: '/guide/' },
-          { text: '旧版路线图 · 23 周', link: '/roadmap' }
+          { text: '从这里开始', link: '/start/' },
+          { text: '学习路线图 · 唯一正式路线', link: '/start/roadmap' },
+          { text: '运行环境 · 版本与排错', link: '/start/environment' },
+          { text: '旧版前言（历史）', link: '/preface' },
+          { text: '学习指南 · 旧版双轨路径（历史）', link: '/guide/' },
+          { text: '旧版路线图 · 23 周（历史）', link: '/roadmap' }
         ]
       },
       {
         text: '🚀 主线 · 从 0 到生产',
         collapsed: false,
         items: [
-          { text: '学习路线图（从这里开始）', link: '/' },
+          { text: '总览（首页）', link: '/' },
           { text: '01 · LLM API 与结构化输出', link: '/guide/01-llm-basics' },
           { text: '02 · 手写工具循环（Agent 核心）', link: '/guide/02-agent-loop' },
           { text: '03 · 记忆与上下文压缩', link: '/guide/03-memory' },
