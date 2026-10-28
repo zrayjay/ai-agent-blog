@@ -96,7 +96,7 @@ pnpm examples:minimal  # 38 行最小 Agent：模型自己决定查几次天气
 
 - **「求模型输出 JSON」当唯一方案**——弱模型静默跑偏，必须 `extractJson` + 校验重试兜底，或直接用 function calling
 - **把 Key 写进代码/日志**——Key 只进 `.env`（已 gitignore），报错信息里也不该出现
-- **默认模型当万能**——`OPENAI_MODEL` 可被 `createModel(modelId)` 按场景覆盖（[09 站路由](/guide/09-product)用到）
+- **默认模型当万能**——`OPENAI_MODEL` 可被 `createModel(modelId)` 按场景覆盖（[09 站路由](/learn/07-applications/service-product-line)用到）
 
 ## 素材与延伸
 

@@ -69,7 +69,7 @@ const WORKER_TOOLS: Record<WorkerName, AgentToolSet> = {
 };
 ```
 
-**order 工人建不了工单——不是提示词求它别建，是它手里根本没有 `createTicket`**。误伤面从工具表上就掐掉，比任何「请不要…」都可靠，也最便宜（这套裁剪的完整产品背景见[09 站](/guide/09-product)客服系统）。
+**order 工人建不了工单——不是提示词求它别建，是它手里根本没有 `createTicket`**。误伤面从工具表上就掐掉，比任何「请不要…」都可靠，也最便宜（这套裁剪的完整产品背景见[09 站](/learn/07-applications/service-product-line)客服系统）。
 
 ### 2.3 壳：加固的统一落点
 

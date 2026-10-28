@@ -148,7 +148,7 @@ suite 汇总：trajectory 10/10 · routing 8/8 · retrieval skipped · judge ski
 ## 延伸
 
 - 上一课：[07 · MCP 标准插口](/learn/03-capabilities/mcp-integration)
-- 下一课：[09 · 产品线组装：客服系统](/guide/09-product) —— 零件全部验完货，总装开始
+- 下一课：[09 · 产品线组装：客服系统](/learn/07-applications/service-product-line) —— 零件全部验完货，总装开始
 - [参考库 · 评估框架深读](/reference/08-evals) —— 评分器口径、judge 校准、基线三态的逐文件走读
 - 归档周教程：[week16 · Agent 评估工程](/archive/weeks/week16/) · [week16 · 评估 TS 版](/archive/weeks/week16/evals-ts)
 

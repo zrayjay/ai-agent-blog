@@ -2,7 +2,7 @@
 
 > **这一模块解决「多 Agent 从概念到落地」**：任务拆分、编排模式、失败策略、预算控制、状态机——每个生产级关注点都有显式接口与可配策略。它是 [09 站客服系统](/reference/09-service)的 Supervisor 模式的**泛化**：不再绑死「三工人」，而是「N 个可插拔角色 + 显式状态机 + 可配失败策略」。
 
-**前置**：[02 · 工具循环](/learn/02-runtime/agent-loop)（executor 的底层引擎）· [09 · 产品线](/guide/09-product)（星型编排的单机版实战）
+**前置**：[02 · 工具循环](/learn/02-runtime/agent-loop)（executor 的底层引擎）· [09 · 产品线](/learn/07-applications/service-product-line)（星型编排的单机版实战）
 **代码位置**：`packages/engine/src/orchestrator/`（8 文件 ~985 行，Effect 范式）
 **测试**：`test/orchestrator.spec.ts`（30 用例：状态机守护 / 验收闭环 / 失败四分支 / 预算超支 / 失败终态落盘 / 断点续跑 / DAG 顺序 / 事件断言 / TestClock 虚拟时钟）
 

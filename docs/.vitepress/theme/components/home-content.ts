@@ -75,7 +75,7 @@ export const learningStages: LearningStage[] = [
       {
         no: '09',
         title: '产品线组装：客服系统',
-        href: '/guide/09-product',
+        href: '/learn/07-applications/service-product-line',
         summary: '硬规则路由、业务 Worker 与转人工'
       },
       {
@@ -87,7 +87,7 @@ export const learningStages: LearningStage[] = [
       {
         no: '10',
         title: 'Web 前端与 SSE 流式',
-        href: '/guide/10-frontend',
+        href: '/learn/06-fullstack/web-sse-frontend',
         summary: 'Next.js 页面、事件契约与对话状态'
       }
     ]
@@ -101,7 +101,7 @@ export const learningStages: LearningStage[] = [
       {
         no: '11',
         title: '生产化与成熟度',
-        href: '/guide/11-production',
+        href: '/learn/05-quality/production-maturity',
         summary: '持久化、容器部署与能力边界'
       },
       {
