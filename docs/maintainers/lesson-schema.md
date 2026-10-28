@@ -36,11 +36,11 @@ lastVerifiedCommit: 2aed7bf # 已验证时的短 SHA
 
 ## 状态语义与证据规则
 
-| status        | 含义                                 | 强制约束                                                                |
-| ------------- | ------------------------------------ | ----------------------------------------------------------------------- |
-| `implemented` | 本课交付的能力已实现且有离线测试证据 | `source` 与 `tests` 非空；`lastVerifiedCommit` 必填；正文可含可运行命令 |
-| `partial`     | 能力部分实现，或正文仍在迁移填充     | 必须在正文首屏说明缺什么；不得声称「生产可用」                          |
-| `planned`     | 仅有设计/规划，代码不存在或未接入    | 不得给出暗示可运行的命令；须链接设计文档                                |
+| status        | 含义                                                                | 强制约束                                                                                       |
+| ------------- | ------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `implemented` | 本课交付的能力已实现且有离线测试证据                                | `source` 与 `tests` 非空；`lastVerifiedCommit` 必填；正文可含可运行命令                        |
+| `partial`     | 能力部分实现，或正文仍在迁移填充                                    | 必须在正文首屏说明缺什么；不得声称「生产可用」                                                 |
+| `planned`     | 本课尚不可学：代码不存在/未接入，**或能力已实现但教程正文尚未撰写** | 不得给出暗示可运行的命令；须说明缺口在代码还是正文（如「代码已实现，教程待写」并链接模块源码） |
 
 **红线**：`planned` 页面出现「跑起来」「已实现」表述 = 校验失败；`implemented` 缺证据路径 = 校验失败。
 
@@ -48,22 +48,24 @@ lastVerifiedCommit: 2aed7bf # 已验证时的短 SHA
 
 以 `route-migration.csv`（P0-02 审查版）为准：
 
-| 站    | lessonId                    | stage             | status 基线（源自 capability-matrix.md） |
-| ----- | --------------------------- | ----------------- | ---------------------------------------- |
-| 01    | `llm-structured-output`     | 01-foundations    | partial（正文迁移填充中；能力已实现）    |
-| 02    | `agent-loop`                | 02-runtime        | implemented                              |
-| 03    | `memory-context`            | 03-capabilities   | implemented                              |
-| 04    | `rag-knowledge-base`        | 03-capabilities   | implemented                              |
-| 05    | `tools-hardening`           | 03-capabilities   | implemented                              |
-| 06    | `guardrails-safety`         | 05-quality        | implemented                              |
-| 07    | `mcp-integration`           | 03-capabilities   | implemented                              |
-| 08    | `evals-quality-gate`        | 05-quality        | implemented                              |
-| 09    | `service-product-line`      | 07-applications   | implemented                              |
-| 09b   | `multi-agent-orchestration` | 04-orchestration  | implemented                              |
-| 10    | `web-sse-frontend`          | 06-fullstack      | implemented                              |
-| 11    | `production-maturity`       | 05-quality        | implemented                              |
-| —     | （skills 专题）             | 03-capabilities   | planned（代码已有，教程待写）            |
-| 12/13 | 不进入 learn                | advanced（P1-05） | —                                        |
+| 站    | lessonId                    | stage             | status 基线（源自 capability-matrix.md）                                          |
+| ----- | --------------------------- | ----------------- | --------------------------------------------------------------------------------- |
+| 01    | `llm-structured-output`     | 01-foundations    | partial（正文迁移填充中；能力已实现）                                             |
+| 02    | `agent-loop`                | 02-runtime        | implemented                                                                       |
+| 03    | `memory-context`            | 03-capabilities   | implemented                                                                       |
+| 04    | `rag-knowledge-base`        | 03-capabilities   | implemented                                                                       |
+| 05    | `tools-hardening`           | 03-capabilities   | implemented                                                                       |
+| 06    | `guardrails-safety`         | 05-quality        | implemented                                                                       |
+| 07    | `mcp-integration`           | 03-capabilities   | implemented                                                                       |
+| 08    | `evals-quality-gate`        | 05-quality        | implemented                                                                       |
+| 09    | `service-product-line`      | 07-applications   | implemented                                                                       |
+| 09b   | `multi-agent-orchestration` | 04-orchestration  | implemented                                                                       |
+| 10    | `web-sse-frontend`          | 06-fullstack      | implemented                                                                       |
+| 11    | `production-maturity`       | 05-quality        | implemented                                                                       |
+| —     | （skills 专题）             | 03-capabilities   | planned（代码已实现：`engine/src/skills/` + `test/skills.spec.ts`；教程正文待写） |
+| 12/13 | 不进入 learn                | advanced（P1-05） | —                                                                                 |
+
+**案例行（非 lesson）**：阶段 07 索引中的知识库问答（`products/kb`，P1-05 迁为 cases）同样成立——kb 产品线有源码与 API e2e 测试背书（capability-matrix D 节）。文档智能（`products/docintel`）**不设 status**：其正文为 Python 教学叙事，`agent-app`（TS）无对应实现，矩阵亦无背书行；该案例行只给链接、不标状态，待 P1-05 归位 cases 时按实际能力重估。
 
 `order` 取站号 ×10（09b 用 95）；后续新增课取相邻空档，不重排既有编号。
 
