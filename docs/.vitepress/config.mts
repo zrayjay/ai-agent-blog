@@ -107,10 +107,10 @@ export default defineConfig({
           { text: '06 · 护栏与安全红队', link: '/learn/05-quality/guardrails-safety' },
           { text: '07 · MCP 标准插口', link: '/learn/03-capabilities/mcp-integration' },
           { text: '08 · 评估框架：跑分说话', link: '/learn/05-quality/evals-quality-gate' },
-          { text: '09 · 产品线组装：客服系统', link: '/guide/09-product' },
+          { text: '09 · 产品线组装：客服系统', link: '/learn/07-applications/service-product-line' },
           { text: '09b · 多 Agent 编排（已迁至阶段 04）', link: '/learn/04-orchestration/multi-agent-orchestration' },
-          { text: '10 · Web 前端与 SSE 流式', link: '/guide/10-frontend' },
-          { text: '11 · 生产化与成熟度', link: '/guide/11-production' },
+          { text: '10 · Web 前端与 SSE 流式', link: '/learn/06-fullstack/web-sse-frontend' },
+          { text: '11 · 生产化与成熟度', link: '/learn/05-quality/production-maturity' },
           { text: '12 · 学完之后：演进方向', link: '/guide/12-roadmap' },
           { text: '13 · 面试实战：带着问题通关', link: '/guide/13-interview' }
         ]

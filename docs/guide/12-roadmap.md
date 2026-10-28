@@ -3,7 +3,7 @@
 > **这一站是毕业典礼**：主线十三站走完，你已经从「会调 API」走到「能组装生产级 Agent 系统」——循环手写过、防御真撞过、评估跑过分、全栈部署过。这一章不教新零件，做两件事：给你一张「已具备能力」的验收清单，和一张「接下来往哪走」的演进地图。
 
 **前置**：01–11 全部（本章逐站点名，缺哪站回头补哪站）
-**配套读**：[agent-app/BACKLOG.md](https://github.com/1648298170/ai-agent-blog/blob/main/agent-app/BACKLOG.md)（演进方向的真实挂账——本章第二节的每一项都能在里面找到触发条件与设计稿）
+**配套读**：[agent-app/BACKLOG.md](https://github.com/zrayjay/ai-agent-blog/blob/main/agent-app/BACKLOG.md)（演进方向的真实挂账——本章第二节的每一项都能在里面找到触发条件与设计稿）
 **深读**：[how-to · MATURITY](/how-to/MATURITY)（生产前置清单——演进方向的另一半）
 
 ---
@@ -30,7 +30,7 @@
 
 ## 二、演进方向：从 BACKLOG 里挑真实条目
 
-[BACKLOG.md](https://github.com/1648298170/ai-agent-blog/blob/main/agent-app/BACKLOG.md) 的纪律是「挂账不遗忘，到触发条件再开工」——以下按主题归组，每项都有真实设计稿：
+[BACKLOG.md](https://github.com/zrayjay/ai-agent-blog/blob/main/agent-app/BACKLOG.md) 的纪律是「挂账不遗忘，到触发条件再开工」——以下按主题归组，每项都有真实设计稿：
 
 **① 多 Agent 协作（编排器已实现）**。编排的全生命周期就是三个字——**拆**（大任务变小任务）、**派**（小任务分配给谁执行）、**跑**（多个执行者协作不打架）。每个字对应编排器的一个阶段，也是面试的一条主线：
 
@@ -135,7 +135,7 @@ Agent 这个领域还在高速变化，但你在 02 站握住的那台发动机�
 
 ## 延伸
 
-- [agent-app/BACKLOG.md（GitHub）](https://github.com/1648298170/ai-agent-blog/blob/main/agent-app/BACKLOG.md)
+- [agent-app/BACKLOG.md（GitHub）](https://github.com/zrayjay/ai-agent-blog/blob/main/agent-app/BACKLOG.md)
 - 下一站：[13 · 面试实战：带着问题通关](/guide/13-interview) —— 用十七道高频面试题反向验收十三站 —— 演进方向的真实挂账：每项带触发条件与设计稿
 - [how-to · MATURITY](/how-to/MATURITY) —— 生产前置清单；[扩展指南](/how-to/EXTENDING) —— 加工具 / 加存储 / 换网关的最小步骤
 - 归档周教程：[week21 · 可观测与成本](/archive/weeks/week21/) · [week22 · 系统设计与简历](/archive/weeks/week22/) · [week23 · 面试冲刺](/archive/weeks/week23/)

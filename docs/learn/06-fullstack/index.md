@@ -12,9 +12,9 @@ title: 阶段 06 · 全栈交付
 
 ## 课程
 
-| order | 课程                                   | 当前正文                       | status      |
-| ----- | -------------------------------------- | ------------------------------ | ----------- |
-| 100   | web-sse-frontend · Web 前端与 SSE 流式 | [guide/10](/guide/10-frontend) | implemented |
+| order | 课程                                   | 当前正文                                                    | status      |
+| ----- | -------------------------------------- | ----------------------------------------------------------- | ----------- |
+| 100   | web-sse-frontend · Web 前端与 SSE 流式 | [learn/10 · Web 前端](/learn/06-fullstack/web-sse-frontend) | implemented |
 
 **源码**：`agent-app/apps/web/`（Next.js：聊天/kb/客服三页 + 审批/Handoff/步骤组件）、`agent-app/apps/api/`（NestJS：12 组端点）
 

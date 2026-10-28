@@ -8,7 +8,7 @@ title: 阶段 04 · 编排
 
 > 阶段目标：单 Agent 不够用时，把「拆 · 派 · 跑」工程化。**阶段交付**：可运行的多任务编排实验——LLM 拆单 → DAG 波次并行派发 → 逐任务验收，失败四分支退路，全程预算受控。
 
-**前置**：[阶段 02](/learn/02-runtime/)（循环与两个「壳」）；理解 Supervisor 形态建议先读 [guide/09](/guide/09-product)。
+**前置**：[阶段 02](/learn/02-runtime/)（循环与两个「壳」）；理解 Supervisor 形态建议先读 [guide/09](/learn/07-applications/service-product-line)。
 
 ## 课程
 

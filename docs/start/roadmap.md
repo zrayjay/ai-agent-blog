@@ -30,10 +30,10 @@
 | [06](/learn/05-quality/guardrails-safety)                | 护栏与安全红队              | S5       |
 | [07](/learn/03-capabilities/mcp-integration)             | MCP 标准插口                | S3       |
 | [08](/learn/05-quality/evals-quality-gate)               | 评估框架：跑分说话          | S5       |
-| [09](/guide/09-product)                                  | 产品线组装：客服系统        | S7       |
+| [09](/learn/07-applications/service-product-line)        | 产品线组装：客服系统        | S7       |
 | [09b](/learn/04-orchestration/multi-agent-orchestration) | 多 Agent 编排：拆 · 派 · 跑 | S4       |
-| [10](/guide/10-frontend)                                 | Web 前端与 SSE 流式         | S6       |
-| [11](/guide/11-production)                               | 生产化与成熟度              | S5/S6    |
+| [10](/learn/06-fullstack/web-sse-frontend)               | Web 前端与 SSE 流式         | S6       |
+| [11](/learn/05-quality/production-maturity)              | 生产化与成熟度              | S5/S6    |
 | [12](/guide/12-roadmap)                                  | 学完之后：演进方向          | 毕业站   |
 | [13](/guide/13-interview)                                | 面试实战：带着问题通关      | 求职专题 |
 
