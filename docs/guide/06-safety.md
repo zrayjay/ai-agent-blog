@@ -2,7 +2,7 @@
 
 > **这一站解决「怎么知道你的防线真的存在」**：不是抄一份安全清单，而是先当攻击者把自己的系统打一遍，再按弹孔补墙。学完你将掌握：一套三原则红队方法论（先挨打后加固 / FAIL 记 FAIL / 载荷入回归）、四件套护栏（脱敏、注入扫描、审批闸、审计账本——每道都对应 week19 八个实验里真实发现的洞），以及「默认应该是部署形态的属性，不是安全属性」的灰度哲学。
 
-**前置**：[05 · 工具层加固与幂等](/guide/05-tools-hardening)（API 审批壳已在那里深讲——本章看它在护栏体系里的位置；E3 头条打的正是 [04 站](/guide/04-rag)建的知识库）
+**前置**：[05 · 工具层加固与幂等](/guide/05-tools-hardening)（API 审批壳已在那里深讲——本章看它在护栏体系里的位置；E3 头条打的正是 [04 站](/learn/03-capabilities/rag-knowledge-base)建的知识库）
 **配套跑起来**：`pnpm kb:ingest .\samples\red-team\poisoned-note.md`（投毒入库实测被拒）+ 打开 `agent-app\.data\audit.log` 对账
 **深读**：[参考库 · 护栏](/reference/06-guardrails)（四个零件的字典式深讲）· [SECURITY.md 完整红队报告](https://github.com/1648298170/ai-agent-blog/blob/main/agent-app/SECURITY.md)
 
@@ -43,7 +43,7 @@ E8 资源边界      PARTIAL    maxSteps 保险丝真实熔断；50KB 消息全�
 
 ```ts
 // src/guardrails/validate.ts —— 黑名单第 2 条（节选）：i↔1、o↔0、e↔3 各自容忍
-/[i1]gn[o0]r[e3]\s+(?:\w+\s+){0,3}?(?:pr[e3]v[i1][o0]us|ab[o0]v[e3]|pr[i1][o0]r|ear[i1][e3]r|f[o0]r[e3]g[o0][i1]ng)\s+…/
+/[i1]gn[o0]r[e3]\s+(?:\w+\s+){0,3}?(?:pr[e3]v[i1][o0]us|ab[o0]v[e3]|pr[i1][o0]r|ear[i1][e3]r|f[o0]r[e3]g[o0][i1]ng)\s+…/;
 ```
 
 实测 `ign0re prev1ous` 类混淆变体全部 `ok:false`。诚实的边界也要说：只拦「明示型」注入，语义级改写超出字符串匹配能力，靠提示词分层与最小权限工具表兜底——**纵深防御的一层，不是银弹**。
@@ -62,9 +62,14 @@ export function auditLog(event: string, details: Record<string, unknown>): void 
   try {
     const target = process.env.AGENT_AUDIT_LOG ?? join(process.cwd(), ".data", "audit.log");
     mkdirSync(dirname(target), { recursive: true });
-    appendFileSync(target,
-      JSON.stringify({ ...details, event, time: new Date().toISOString() }) + "\n", "utf8");
-  } catch { /* 静默失败：审计绝不能反过来阻断它记录的安全路径 */ }
+    appendFileSync(
+      target,
+      JSON.stringify({ ...details, event, time: new Date().toISOString() }) + "\n",
+      "utf8",
+    );
+  } catch {
+    /* 静默失败：审计绝不能反过来阻断它记录的安全路径 */
+  }
 }
 ```
 
@@ -95,8 +100,12 @@ pnpm service        # REPL 里说「转人工」——硬规则命中，不问�
 for (let i = 0; i < pieces.length; i++) {
   const inspection = inspectTextInput(pieces[i]);
   if (!inspection.ok) {
-    auditLog("ingest.rejected", { fileName, docId, chunkIndex: i,
-      matchedPattern: inspection.matchedPattern ?? null });
+    auditLog("ingest.rejected", {
+      fileName,
+      docId,
+      chunkIndex: i,
+      matchedPattern: inspection.matchedPattern ?? null,
+    });
     throw new Error(`入库拒收：《${title}》第 ${i + 1} 块命中疑似提示注入……整篇文档未入库。`);
   }
 }
@@ -120,7 +129,7 @@ const vectors = await embed(pieces); // 被拒收的文档不花向量化调用
 if (isInputGuardEnabled()) {
   const inspection = inspectTextInput(input.message);
   if (!inspection.ok) {
-    auditLog("input.user_rejected", { surface: "api.chatStream", sessionId, /* … */ });
+    auditLog("input.user_rejected", { surface: "api.chatStream", sessionId /* … */ });
     throw new Error(`输入闸拦截：消息命中提示注入黑名单（模式：…），已拒绝处理，不调用模型。`);
   }
 }

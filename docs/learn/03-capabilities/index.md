@@ -14,8 +14,8 @@ title: 阶段 03 · Agent 能力层
 
 | order | 课程                                  | 当前正文                                                             | status      |
 | ----- | ------------------------------------- | -------------------------------------------------------------------- | ----------- |
-| 30    | memory-context · 记忆与上下文压缩     | [guide/03](/guide/03-memory)                                         | implemented |
-| 40    | rag-knowledge-base · RAG 知识库与检索 | [guide/04](/guide/04-rag)                                            | implemented |
+| 30    | memory-context · 记忆与上下文压缩     | [learn/03 · 记忆](/learn/03-capabilities/memory-context)             | implemented |
+| 40    | rag-knowledge-base · RAG 知识库与检索 | [learn/04 · RAG](/learn/03-capabilities/rag-knowledge-base)          | implemented |
 | 50    | tools-hardening · 工具层加固与幂等    | [guide/05](/guide/05-tools-hardening)                                | implemented |
 | 70    | mcp-integration · MCP 标准插口        | [guide/07](/guide/07-mcp)                                            | implemented |
 | —     | skills 专题                           | 暂无（代码已实现：`engine/src/skills/`，测试 `test/skills.spec.ts`） | planned     |

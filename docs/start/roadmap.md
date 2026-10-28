@@ -22,10 +22,10 @@
 
 | 站                                                       | 标题                        | 所属阶段 |
 | -------------------------------------------------------- | --------------------------- | -------- |
-| [01](/guide/01-llm-basics)                               | LLM API 与结构化输出        | S1       |
-| [02](/guide/02-agent-loop)                               | 手写工具循环（Agent 核心）  | S2       |
-| [03](/guide/03-memory)                                   | 记忆与上下文压缩            | S3       |
-| [04](/guide/04-rag)                                      | RAG 知识库与检索            | S3       |
+| [01](/learn/01-foundations/llm-structured-output)        | LLM API 与结构化输出        | S1       |
+| [02](/learn/02-runtime/agent-loop)                       | 手写工具循环（Agent 核心）  | S2       |
+| [03](/learn/03-capabilities/memory-context)              | 记忆与上下文压缩            | S3       |
+| [04](/learn/03-capabilities/rag-knowledge-base)          | RAG 知识库与检索            | S3       |
 | [05](/guide/05-tools-hardening)                          | 工具层加固与幂等            | S2/S3    |
 | [06](/guide/06-safety)                                   | 护栏与安全红队              | S5       |
 | [07](/guide/07-mcp)                                      | MCP 标准插口                | S3       |
@@ -61,4 +61,4 @@
 
 - 环境没搭？[运行环境](/start/environment)
 - 术语不熟？第 01 站开篇有最小概念集，遇到再查
-- 直接开始：[第 01 站 · LLM API 与结构化输出](/guide/01-llm-basics)
+- 直接开始：[第 01 站 · LLM API 与结构化输出](/learn/01-foundations/llm-structured-output)

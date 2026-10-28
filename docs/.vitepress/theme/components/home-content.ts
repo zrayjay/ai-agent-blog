@@ -25,23 +25,23 @@ export const learningStages: LearningStage[] = [
       {
         no: '01',
         title: 'LLM API 与结构化输出',
-        href: '/guide/01-llm-basics',
+        href: '/learn/01-foundations/llm-structured-output',
         summary: '原生调用、流式响应与工具调用',
         note: '正文整理中 · 附原始教程'
       },
       {
         no: '02',
         title: '手写工具循环',
-        href: '/guide/02-agent-loop',
+        href: '/learn/02-runtime/agent-loop',
         summary: '模型决策 → 执行工具 → 结果回填'
       },
       {
         no: '03',
         title: '记忆与上下文压缩',
-        href: '/guide/03-memory',
+        href: '/learn/03-capabilities/memory-context',
         summary: '会话、偏好、情景记忆与滚动摘要'
       },
-      { no: '04', title: 'RAG 知识库与检索', href: '/guide/04-rag', summary: '切块、向量化、检索与引用溯源' }
+      { no: '04', title: 'RAG 知识库与检索', href: '/learn/03-capabilities/rag-knowledge-base', summary: '切块、向量化、检索与引用溯源' }
     ]
   },
   {

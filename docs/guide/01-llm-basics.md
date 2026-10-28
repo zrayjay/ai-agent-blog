@@ -1,24 +1,10 @@
-# 01 · LLM API 与结构化输出
+# LLM API 与结构化输出（已迁移）
 
-> 把模型当成「会接龙的文本函数」来用：原生 API 调用、流式、提示词工程、function calling 与 JSON 模式的可靠性差异、多网关切换。学完你能徒手调通任何 OpenAI 兼容网关。
+> 本课已迁移至 **[LLM API 与结构化输出](/learn/01-foundations/llm-structured-output)**（`learn/01-foundations/`，课程 ID `llm-structured-output`）。旧链接保留兼容。
 
-**状态：迁移填充中** —— 本站刚完成「按周」到「能力主线」的信息架构重构，本章正文将把对应周的成熟内容重新组织为连贯叙述后落位于此。在那之前，请通过下方素材链接直接阅读原始周教程（内容完整可用）。
+| 你想找               | 现在的位置                                                          |
+| -------------------- | ------------------------------------------------------------------- |
+| 课程正文（全部内容） | [LLM API 与结构化输出](/learn/01-foundations/llm-structured-output) |
+| 阶段索引             | [阶段 01 · 基础与模型交互](/learn/01-foundations/)                  |
 
-## 核心结论先行（本章最重要的三句话）
-
-1. **让模型输出结构化数据有两条路，可靠性天差地别**：JSON 文本指令（`response_format` / `generateObject`）是「提示词的劝」，弱模型会静默无视（实测 glm-4-flash 输出散文导致解析炸）；工具调用（function calling）是训练出来的「肌肉记忆」，一旦调用结构必对。
-2. **可靠性排序**：function calling ＞ JSON 指令 + 宽松抽取 + 校验重试（工程兜底）＞ 裸 JSON 指令（赌人品）。能走前者绝不走后者。
-3. **换网关 = 换三行环境变量**：OpenAI 兼容协议是选型核心（GLM / DeepSeek / Qwen 全兼容）——但注意 DeepSeek 无 embeddings 接口。
-
-## 本章素材（原始周教程，内容完整）
-
-- [week01 · 原始教程](/archive/weeks/week01/)
-- [week11 · 原始教程](/archive/weeks/week11/)
-
-## 配套深读
-
-（暂无，主线正文即深读）
-
----
-
-有疑问随时问 AI 老师（本项目的开发助手）。其他章节：[学习路线图](/)
+主线结构说明见[学习路线图](/start/roadmap)。

@@ -2,7 +2,7 @@
 
 > **这一站解决「工具会伤人」的三件事**：写操作被重复执行（上游一次超时补偿重发，工单就翻倍）、高危操作拍板太快（没人点头就建单）、锤子发得太多（职责外的能力也在模型手里）。学完你将拥有：一张按职责裁剪的工具表、一层带三条纪律的幂等壳、一道先问人的审批壳，以及一份「清单顺序即拦截顺序」的壳组合器——循环本体一行不改。
 
-**前置**：[02 · 手写工具循环](/guide/02-agent-loop)（防御 3/4 已预告幂等与审批两道壳——本章把它们拆开讲透）
+**前置**：[02 · 手写工具循环](/learn/02-runtime/agent-loop)（防御 3/4 已预告幂等与审批两道壳——本章把它们拆开讲透）
 **配套跑起来**：[examples/custom-tool.ts](https://github.com/1648298170/ai-agent-blog/blob/main/agent-app/packages/engine/examples/custom-tool.ts)（三件套最小示例）+ `pnpm api` 起后在 web `/` 页触发审批卡 + `pnpm test:engine`
 **深读**：[参考库 · 工具箱](/reference/03-tools)（注册表 / 幂等层 / 壳组合器的字典式深讲）
 
@@ -46,8 +46,8 @@ const addTodo = tool({
 ```ts
 // src/service/workers.ts —— 各工人的最小工具表
 const WORKER_TOOLS: Record<WorkerName, AgentToolSet> = {
-  order: { getOrderStatus },          // 只查订单
-  refund: { createTicket },           // 只建工单
+  order: { getOrderStatus }, // 只查订单
+  refund: { createTicket }, // 只建工单
   knowledge: { searchKnowledgeBase }, // 只检索知识库
 };
 ```
@@ -102,11 +102,11 @@ run<T>(scope: string, toolName: string, args: unknown, execute: () => Promise<T>
 
 参数指纹由 `stableStringify` 生成：对象键排序、`undefined` 字段剔除——`{a:1,b:2}` 与 `{b:2,a:1}` 必然同指纹。三条纪律，缺一不可：
 
-| 纪律 | 防什么 | 比喻 |
-|---|---|---|
-| ① 成功才缓存 | 失败被缓存 → 合理重试被堵死 | 第一锅煮糊了不占灶 |
-| ② 在途共享 | 同键并发各执行各 → 并发穿透 | 电梯已在路上，第二个人跟着上，不再叫一台 |
-| ③ scope 隔离 | 跨会话同参数误去重，两笔业务变一笔 | 隔壁包间点了同样的菜，不能拼一单 |
+| 纪律         | 防什么                             | 比喻                                     |
+| ------------ | ---------------------------------- | ---------------------------------------- |
+| ① 成功才缓存 | 失败被缓存 → 合理重试被堵死        | 第一锅煮糊了不占灶                       |
+| ② 在途共享   | 同键并发各执行各 → 并发穿透        | 电梯已在路上，第二个人跟着上，不再叫一台 |
+| ③ scope 隔离 | 跨会话同参数误去重，两笔业务变一笔 | 隔壁包间点了同样的菜，不能拼一单         |
 
 **设计对照**：业界标准是客户端显式幂等键（Stripe 的 `Idempotency-Key` 请求头）；Agent 场景模型不可靠地生成键——退一档用**参数指纹**：内容真变了才算新调用。实测：同会话重复建单拿到同一个 `TK-` 工单号（`test:engine` 里的 `idempotency.spec.ts` 盯着这套语义）。
 
@@ -137,10 +137,10 @@ execute: async (input: unknown, options: ToolCallOptions) => {
 // apps/api/src/chat/tool-assembly.ts —— 组装车间：顺序即配置
 const shells: ((table: ToolSet) => ToolSet)[] = [];
 if (approval !== undefined && approval.confirmTools.size > 0) {
-  shells.push((table) => wrapToolsWithApproval(table, approval.confirmTools, { /* … */ }));
+  shells.push((table) => wrapToolsWithApproval(table, approval.confirmTools, {/* … */}));
 }
 shells.push((table) => wrapToolsWithIdempotency(table, idempotency, { scope: sessionId }));
-return composeToolShells(baseTools, shells);  // shells[0] 最外：审批在外、幂等在内
+return composeToolShells(baseTools, shells); // shells[0] 最外：审批在外、幂等在内
 ```
 
 `composeToolShells(base, shells)` 里数组顺序 = 书写顺序 = 拦截顺序，`shells[0]` 最靠外、最先看到调用；空数组 = 原表原样返回。将来加限流壳 / 审计壳，清单里添一行即可。

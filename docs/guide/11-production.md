@@ -2,7 +2,7 @@
 
 > **这一站解决「从 Demo 到生产」的距离问题**：这个距离不是一步登天，而是一张诚实的差距清单。学完你将拥有：env 一键切换的真实持久化（pgvector + Redis）、一条命令拉起的四容器全栈、双形态部署——以及一张逐模块标注「离生产还差几步」的成熟度矩阵。
 
-**前置**：[03 · 记忆与上下文压缩](/guide/03-memory)（存储接口与 env 工厂是本章地基）+ [10 · Web 前端](/guide/10-frontend)（三页前端等着容器化）
+**前置**：[03 · 记忆与上下文压缩](/learn/03-capabilities/memory-context)（存储接口与 env 工厂是本章地基）+ [10 · Web 前端](/guide/10-frontend)（三页前端等着容器化）
 **配套跑起来**：`pnpm infra:up` → 切存储开关 → `pnpm stack:up`（全流程见第七节）
 **深读**：[how-to · MATURITY](/how-to/MATURITY)（每个模块的档位与生产前置项——本章的诚实清单全文）
 
