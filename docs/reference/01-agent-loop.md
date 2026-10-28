@@ -57,12 +57,14 @@ ReAct = **Rea**son + **Act**（思考 + 行动）的缩写，Agent 领域最经�
 ```ts
 messages.push({
   role: "tool",
-  content: [{
-    type: "tool-result",
-    toolCallId: call.toolCallId,  // 对应模型发出的调用 id（一对一回执）
-    toolName: call.toolName,
-    output,                       // { type: "json" | "error-json", value }
-  }],
+  content: [
+    {
+      type: "tool-result",
+      toolCallId: call.toolCallId, // 对应模型发出的调用 id（一对一回执）
+      toolName: call.toolName,
+      output, // { type: "json" | "error-json", value }
+    },
+  ],
 });
 ```
 
@@ -80,14 +82,14 @@ zod schema 跑一遍 `safeParse`，失败就把错误说明回灌给模型引导
 
 ## 代码走读（`src/agent-loop.ts`，共 ~210 行）
 
-| 位置 | 内容 | 要点 |
-|---|---|---|
-| `RunToolLoopOptions`（L20） | 循环的入参契约 | `model` / `messages` / `system` / `tools` / `maxSteps` / `signal`（断连中止）/ `onStep`（每步观察钩子） |
-| `ToolLoopResult`（L51） | 循环的返回 | `text`（最终回答）/ `messages`（含全部工具往来的完整消息数组——API 的流式收尾直接复用它）/ `steps` |
-| `ToolLoopStepEvent`（L61） | 每步的事件 | `step` / `toolCall{toolName,input}` / `output` / `text`（模型步间推理文本，常为 undefined） |
-| `toSchemaTools`（L77） | 工具表预处理 | 把 zod schema 转成 SDK 需要的形状 |
-| `jsonOutput` / `errorOutput`（L89/94） | 输出序列化 | `JSON.parse(JSON.stringify(v))` 防不可序列化对象炸协议 |
-| `runToolLoop`（L102） | ★ 循环本体 | 下面逐段讲 |
+| 位置                                   | 内容           | 要点                                                                                                    |
+| -------------------------------------- | -------------- | ------------------------------------------------------------------------------------------------------- |
+| `RunToolLoopOptions`（L20）            | 循环的入参契约 | `model` / `messages` / `system` / `tools` / `maxSteps` / `signal`（断连中止）/ `onStep`（每步观察钩子） |
+| `ToolLoopResult`（L51）                | 循环的返回     | `text`（最终回答）/ `messages`（含全部工具往来的完整消息数组——API 的流式收尾直接复用它）/ `steps`       |
+| `ToolLoopStepEvent`（L61）             | 每步的事件     | `step` / `toolCall{toolName,input}` / `output` / `text`（模型步间推理文本，常为 undefined）             |
+| `toSchemaTools`（L77）                 | 工具表预处理   | 把 zod schema 转成 SDK 需要的形状                                                                       |
+| `jsonOutput` / `errorOutput`（L89/94） | 输出序列化     | `JSON.parse(JSON.stringify(v))` 防不可序列化对象炸协议                                                  |
+| `runToolLoop`（L102）                  | ★ 循环本体     | 下面逐段讲                                                                                              |
 
 ### 循环本体的骨架（简化到只剩脉络）
 
@@ -151,13 +153,13 @@ pnpm chat --trace
 
 ## 设计取舍（面试级追问）
 
-| 追问 | 回答 |
-|---|---|
-| 为什么 maxSteps 只给 5？ | 保险丝。正常任务 1-3 步完成；不设上限的话模型陷入循环时烧钱又卡死。调大=允许更复杂任务，代价是失控风险。库级默认值导出为 DEFAULT_MAX_STEPS 常量（调用方统一引用，magic number 不散落） |
-| 为什么工具抛错不中断循环？ | 错误也是信息。包成 error-json 回灌，模型有机会向用户解释、换参数重试——「错误回灌引导自我修正」比「一炸全断」鲁棒得多 |
-| 为什么不用 generateObject 让模型输出结构化决策？ | 实测 glm-4-flash 会无视 response_format 指令（见 `json-utils.ts` 头注与 week19 踩坑）。工具调用（function calling）是模型原生训练过的能力，比 JSON 指令可靠 |
-| onStep 钩子是干嘛的？ | 解耦：循环本身不知道「日志、SSE 推送、审批」的存在，订阅方各取所需（api 的 step 事件就是它发的） |
-| signal 有什么用？ | 用户关掉浏览器页面后停止烧 token（abortSignal 三层贯穿：HTTP 请求 → streamText → 工具执行） |
+| 追问                                             | 回答                                                                                                                                                                                   |
+| ------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 为什么 maxSteps 只给 5？                         | 保险丝。正常任务 1-3 步完成；不设上限的话模型陷入循环时烧钱又卡死。调大=允许更复杂任务，代价是失控风险。库级默认值导出为 DEFAULT_MAX_STEPS 常量（调用方统一引用，magic number 不散落） |
+| 为什么工具抛错不中断循环？                       | 错误也是信息。包成 error-json 回灌，模型有机会向用户解释、换参数重试——「错误回灌引导自我修正」比「一炸全断」鲁棒得多                                                                   |
+| 为什么不用 generateObject 让模型输出结构化决策？ | 实测 glm-4-flash 会无视 response_format 指令（见 `json-utils.ts` 头注与 week19 踩坑）。工具调用（function calling）是模型原生训练过的能力，比 JSON 指令可靠                            |
+| onStep 钩子是干嘛的？                            | 解耦：循环本身不知道「日志、SSE 推送、审批」的存在，订阅方各取所需（api 的 step 事件就是它发的）                                                                                       |
+| signal 有什么用？                                | 用户关掉浏览器页面后停止烧 token（abortSignal 三层贯穿：HTTP 请求 → streamText → 工具执行）                                                                                            |
 
 ---
 
@@ -182,7 +184,7 @@ pnpm chat --trace
 
 ## 延伸阅读
 
-- [ARCHITECTURE.md](https://github.com/1648298170/ai-agent-blog/blob/main/agent-app/ARCHITECTURE.md) ——「一条消息的完整旅程」章节与踩坑实录
+- [ARCHITECTURE.md](https://github.com/zrayjay/ai-agent-blog/blob/main/agent-app/ARCHITECTURE.md) ——「一条消息的完整旅程」章节与踩坑实录
 - `docs/archive/weeks/week11/agent-loop-ts.md`——教程主线的循环深入篇（`npm run docs:dev` 起博客看）
 - [02-llm-config-trace.md](./02-llm-config-trace.md) ——循环里那个 `model` 是怎么造出来的
 - [03-tools.md](./03-tools.md) ——工具表怎么注册、审批壳与幂等壳怎么叠加

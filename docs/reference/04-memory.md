@@ -292,8 +292,8 @@ pnpm test:infra                                 # 基础设施集成测试（RUN
 
 - [02-llm-config-trace.md](./02-llm-config-trace.md) —— `*_STORE` 开关为什么进得了配置（ENV_KEYS 白名单）
 - [05-rag.md](./05-rag.md) —— 情景记忆借走的那套余弦检索的完整版（规划中）
-- [../../packages/engine/src/memory/README.md](https://github.com/1648298170/ai-agent-blog/blob/main/agent-app/packages/engine/src/memory/README.md) —— 本目录自带深度导读（含压缩竞态修复的完整时间线）
-- [ARCHITECTURE.md](https://github.com/1648298170/ai-agent-blog/blob/main/agent-app/ARCHITECTURE.md) —— 三层记忆在整体架构中的位置
+- [../../packages/engine/src/memory/README.md](https://github.com/zrayjay/ai-agent-blog/blob/main/agent-app/packages/engine/src/memory/README.md) —— 本目录自带深度导读（含压缩竞态修复的完整时间线）
+- [ARCHITECTURE.md](https://github.com/zrayjay/ai-agent-blog/blob/main/agent-app/ARCHITECTURE.md) —— 三层记忆在整体架构中的位置
 - `docs/archive/weeks/week11/memory-ts.md` —— 教程《记忆 TS 版》（`npm run docs:dev` 起博客看）
 - `docs/archive/weeks/week17/index.md` —— 记忆架构 + 上下文工程周（Redis TTL 续期的出处）
 - `docs/archive/weeks/week14/index.md` —— pgvector 周（`<=>` 余弦检索与 HNSW 维度限制）
