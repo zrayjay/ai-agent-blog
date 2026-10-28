@@ -101,6 +101,7 @@ pnpm examples:minimal  # 38 行最小 Agent：模型自己决定查几次天气
 ## 素材与延伸
 
 - 归档周教程（正文重组的原始材料，内容完整）：[week11 · LLM API 三天](/archive/weeks/week11/)（原生调用/流式/结构化输出/多供应商）
+- TS 前置补课（如需）：[week01 · TypeScript 进阶](/archive/weeks/week01/)（泛型/类型守卫，[从这里开始](/start/index)前置自查不过时用）
 - 上一课：无（主线起点）· 下一课：[02 · 手写工具循环](/learn/02-runtime/agent-loop)
 - [学习路线图](/start/roadmap) · 遇到环境问题查[运行环境](/start/environment)
 

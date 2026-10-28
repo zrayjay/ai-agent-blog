@@ -81,7 +81,7 @@ throw new Error(`步数用完（${maxSteps}）`);       // 保险丝（见防御
 ```powershell
 cd agent-app
 pnpm build                    # examples 引用构建产物
-pnpm examples:minimal         # 40 行最小版：模型自己决定查几次天气
+pnpm examples:minimal         # 38 行最小版：模型自己决定查几次天气
 pnpm chat --trace             # 全功能版：轨迹打开，每一步打到终端
 ```
 
