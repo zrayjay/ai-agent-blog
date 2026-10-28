@@ -1,7 +1,7 @@
 # P0-01 基线记录
 
 - 基线：`8c8c0fc4789988973e16c8ed565223321634bd9c`；工作目录 `D:\JERRY\ai-agent-study\ai-agent-blog`。2026-10-28 执行 `git status --short --branch`、`git rev-parse HEAD main origin/main`，创建分支前 main 干净且三者相同。
-- 所有 Git 跟踪 Markdown：基线 258；含本任务 4 个新增 Markdown 共 262。`node scripts/p0-audit.mjs` 从仓库根重新生成清单与追踪表。首次生成需指定实施方案文件路径。清单含内部文档；路径分类不等于内容审查，重复、过时、迁移及旧 URL 均待 P0-02。
+- 所有 Git 跟踪 Markdown：基线 258；含本任务 4 个新增 Markdown 共 262。生成器 `scripts/p0-audit.mjs`：`--init <实施方案路径>` 为显式全量重建；`--update` 重新生成清单并按 taskId 保留追踪表人工字段；读取失败的输入会报路径与错误类别并不写任何输出。`node scripts/p0-check.mjs` 只读校验生成物、覆盖与追踪表一致性，不写文件。清单含内部文档；路径分类不等于内容审查，重复、过时、迁移及旧 URL 均待 P0-02。
 - 跟踪文件树：`git ls-files`；包清单：根 `package.json`、`agent-app/package.json`、`agent-app/apps/{api,cli,web}/package.json`、`agent-app/packages/{engine,shared}/package.json`。详细依赖、exports、脚本以各文件为准，可执行 `node scripts/p0-package-baseline.mjs` 重现逐项快照。
 - 独立 workspace 由 `agent-app/pnpm-workspace.yaml` 的 `apps/*`、`packages/*` 定义；`agent-app/turbo.json` 的 build/typecheck/test 依赖 `^build`，build 输出 `dist/**`、`.next/**`。安装版 turbo 2.11.5 文档 `docs/README.md` 与 `docs/core-concepts/package-and-task-graph.mdx` 已核对。
 - 站点配置 `docs/.vitepress/config.mts`：顶部首页、学习路线、模块参考、扩展指南；侧栏并列开始、主线、参考、指南和旧版按周/Node/Python 归档；本任务未修改导航。
