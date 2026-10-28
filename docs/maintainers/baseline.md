@@ -23,6 +23,15 @@ Pi 在隔离快照的 tree `bed146bf186ad360c09a82ba6587071785c3cf80` 验证字�
 - 基础设施集成、真实 Key 模型路径和手动浏览器验收 NOT RUN；跳过不等于通过。
 - 本工作树曾误执行根 `pnpm exec vitepress build --help`，它实际启动未指定 docs 目录的构建并在 `docs/products/docintel.md:94` 解析失败。该非标准命令不是 `pnpm docs:build`，不证明正式构建失败；未更改原文件。
 
+## 独立审查结论（P0-01）
+
+2026-10-28 独立审查 `8c8c0fc..d3bf741`：**PASS**，0×P0/P1。4 个 P2 潜伏缺陷（当前数据不触发，须在引入含 `|` 的任务描述或含特殊字符的新路径前修复，移交 P0-02 前的审计脚本收口）：
+
+1. `scripts/p0-audit-lib.mjs` `parseTrackerRows` 用 `split("|")` 不识别 `\|` 转义；若 tracker 出现转义管道符，`--update` round-trip 会错列。
+2. `scripts/p0-check.mjs:78` 覆盖性检查用原始路径匹配，未经过 `cell()` HTML 实体转义；未来含 `_()[]*` 等字符的新路径会误报"清单缺少路径"。
+3. `scripts/p0-package-baseline.mjs` 对缺失 package.json 无 try/catch，抛裸 ENOENT。
+4. `describe()` 摘要过滤未排除 mermaid 围栏首行，`01-ARCHITECTURE.md` 摘录显示为 "flowchart TB"。
+
 ## 兼容与回滚
 
 本任务只添加审计脚本和维护文档，不迁移旧 URL 或修改应用/配置。合并后按实际合并策略 revert 该任务的合并提交；不重写历史。P0-02 至 P0-05 均为待办，不能将计划视为已实现。
