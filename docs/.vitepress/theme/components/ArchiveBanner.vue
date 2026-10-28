@@ -9,7 +9,7 @@ const { frontmatter } = useData()
 
 const isArchive = computed(() => route.path.startsWith('/archive/'))
 // 归档索引页自身已有完整声明，不重复显示
-const isIndex = computed(() => frontmatter.value?.title?.includes('历史课程归档'))
+const isIndex = computed(() => route.path === '/archive/weeks/' || route.path === '/archive/weeks')
 </script>
 
 <template>

@@ -12,11 +12,11 @@ title: 阶段 07 · 产品案例
 
 ## 课程
 
-| order | 课程                                        | 当前正文                                                              | status                                                                      |
-| ----- | ------------------------------------------- | --------------------------------------------------------------------- | --------------------------------------------------------------------------- |
-| 90    | service-product-line · 产品线组装：客服系统 | [learn/09 · 客服产品线](/learn/07-applications/service-product-line)  | implemented                                                                 |
-| —     | 知识库问答案例                              | [products/kb](/cases/knowledge-base)（P1-05 迁为 cases）              | implemented（kb 产品线有源码与 API e2e 测试背书）                           |
-| —     | 文档智能案例                                | [products/docintel](/cases/document-intelligence)（P1-05 迁为 cases） | —（正文为 Python 教学叙事，`agent-app` 无对应实现；只作案例链接，不标状态） |
+| order | 课程                                        | 当前正文                                                             | status                                                                      |
+| ----- | ------------------------------------------- | -------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| 90    | service-product-line · 产品线组装：客服系统 | [learn/09 · 客服产品线](/learn/07-applications/service-product-line) | implemented                                                                 |
+| —     | 知识库问答案例                              | [cases/kb](/cases/knowledge-base)（已迁入 cases）                    | implemented（kb 产品线有源码与 API e2e 测试背书）                           |
+| —     | 文档智能案例                                | [cases/docintel](/cases/document-intelligence)（已迁入 cases）       | —（正文为 Python 教学叙事，`agent-app` 无对应实现；只作案例链接，不标状态） |
 
 ## 阶段验收
 

@@ -107,10 +107,10 @@ export const learningStages: LearningStage[] = [
       {
         no: '12',
         title: '学完之后：演进方向',
-        href: '/guide/12-roadmap',
+        href: '/advanced/evolution',
         summary: '按需求选择下一步，理解框架与平台取舍'
       },
-      { no: '13', title: '面试实战', href: '/guide/13-interview', summary: '知识自检、追问链与场景设计题' }
+      { no: '13', title: '面试实战', href: '/advanced/interview', summary: '知识自检、追问链与场景设计题' }
     ]
   }
 ]

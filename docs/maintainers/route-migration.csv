@@ -11,8 +11,8 @@ docs/guide/09-product.md,docs/learn/07-applications/,MIGRATE,planned(P1-03),
 docs/guide/09b-multi-agent.md,docs/learn/04-orchestration/ (重编号去除 09b 插入式编号，旧 slug 保留兼容页),MIGRATE,planned(P1-03),
 docs/guide/10-frontend.md,docs/learn/06-fullstack/,MIGRATE,planned(P1-03),
 docs/guide/11-production.md,docs/learn/05-quality/,MIGRATE,planned(P1-03),
-docs/guide/12-roadmap.md,docs/advanced/ (演进方向并入进阶),MERGE,planned(P1-05),
-docs/guide/13-interview.md,docs/advanced/ (求职专题),MIGRATE,planned(P1-05),
+docs/guide/12-roadmap.md,docs/advanced/evolution.md,MIGRATE,done,2026-10-29
+docs/guide/13-interview.md,docs/advanced/interview.md,MIGRATE,done,2026-10-29
 docs/guide/index.md,docs/start/roadmap.md (双轨说明并入新路线图历史边界节),MERGE,planned(P1-01),
 docs/preface.md,docs/start/index.md (重写；修复重复段落),MIGRATE,planned(P1-01),
 docs/roadmap.md,docs/archive/ + docs/start/roadmap.md (23 周表归档并指向唯一新路线),MIGRATE,planned(P1-01),
@@ -27,11 +27,11 @@ docs/reference/08-evals.md,docs/reference/ (KEEP),KEEP,decided,
 docs/reference/09-service.md,docs/reference/ (KEEP),KEEP,decided,
 docs/reference/10-orchestrator.md,docs/reference/ (KEEP),KEEP,decided,
 docs/reference/README.md,docs/reference/ (KEEP: 深讲索引),KEEP,decided,
-docs/products/kb.md,docs/cases/knowledge-base.md,MIGRATE,planned(P1-05),
-docs/products/service.md,docs/cases/customer-service.md,MIGRATE,planned(P1-05),
-docs/products/docintel.md,docs/cases/document-intelligence.md,MIGRATE,planned(P1-05),
-docs/how-to/EXTENDING.md,docs/advanced/extending.md,MIGRATE,planned(P1-05),
-docs/how-to/MATURITY.md,docs/advanced/maturity.md,MIGRATE,planned(P1-05),
+docs/products/kb.md,docs/cases/knowledge-base.md,MIGRATE,done,2026-10-29
+docs/products/service.md,docs/cases/customer-service.md,MIGRATE,done,2026-10-29
+docs/products/docintel.md,docs/cases/document-intelligence.md,MIGRATE,done,2026-10-29
+docs/how-to/EXTENDING.md,docs/advanced/extending.md,MIGRATE,done,2026-10-29
+docs/how-to/MATURITY.md,docs/advanced/maturity.md,MIGRATE,done,2026-10-29
 docs/archive/weeks/**,docs/archive/weeks/ (KEEP: 原位归档，加过时提示),KEEP,decided,
 docs/index.md,docs/index.md (REWRITE: 三入口新首页，保留 learning-path 锚点名评估),KEEP,planned(P1-01),
 docs/technical/,无 (空目录，不在 git 跟踪，删除本地空目录),DELETE-empty,done,2026-10-28
