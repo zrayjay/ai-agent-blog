@@ -81,7 +81,21 @@ export default defineConfig({
         ]
       },
       {
-        text: '🚀 主线 · 从 0 到生产',
+        text: '🚀 主线 · 七阶段',
+        collapsed: false,
+        items: [
+          { text: '主线课程总览', link: '/learn/' },
+          { text: '阶段 01 · 基础与模型交互', link: '/learn/01-foundations/' },
+          { text: '阶段 02 · Agent Runtime', link: '/learn/02-runtime/' },
+          { text: '阶段 03 · Agent 能力层', link: '/learn/03-capabilities/' },
+          { text: '阶段 04 · 编排', link: '/learn/04-orchestration/' },
+          { text: '阶段 05 · 质量与可靠', link: '/learn/05-quality/' },
+          { text: '阶段 06 · 全栈交付', link: '/learn/06-fullstack/' },
+          { text: '阶段 07 · 产品案例', link: '/learn/07-applications/' }
+        ]
+      },
+      {
+        text: '🚀 主线正文 · 13 站（迁移中）',
         collapsed: false,
         items: [
           { text: '总览（首页）', link: '/' },
