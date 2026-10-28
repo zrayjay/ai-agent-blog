@@ -22,7 +22,7 @@ lastVerifiedCommit: b16e421
 
 **前置**：[03 · 记忆与上下文压缩](/learn/03-capabilities/memory-context)（存储接口与 env 工厂是本章地基）+ [10 · Web 前端](/learn/06-fullstack/web-sse-frontend)（三页前端等着容器化）
 **配套跑起来**：`pnpm infra:up` → 切存储开关 → `pnpm stack:up`（全流程见第七节）
-**深读**：[how-to · MATURITY](/how-to/MATURITY)（每个模块的档位与生产前置项——本章的诚实清单全文）
+**深读**：[how-to · MATURITY](/advanced/maturity)（每个模块的档位与生产前置项——本章的诚实清单全文）
 
 ---
 
@@ -30,7 +30,7 @@ lastVerifiedCommit: b16e421
 
 「能跑」和「能上生产」之间隔着三个维度的追问：**数据会丢吗**（重启之后会话还在吗）、**挂了会炸吗**（模型网关抖一下整个系统死吗）、**被攻击会漏吗**（没有认证限流，公网上就是裸奔）。
 
-[how-to · MATURITY](/how-to/MATURITY) 把答案整理成三档：
+[how-to · MATURITY](/advanced/maturity) 把答案整理成三档：
 
 | 档           | 定义                            | 本项目对应                                  |
 | ------------ | ------------------------------- | ------------------------------------------- |
@@ -96,7 +96,7 @@ api 容器内：  PG_CONNECTION_STRING=postgres://agent:agent@postgres:5432/agen
 
 ## 六、诚实清单：生产前置未做项
 
-这张表每一条都能在 [how-to · MATURITY](/how-to/MATURITY) 与 [BACKLOG](https://github.com/zrayjay/ai-agent-blog/blob/main/agent-app/BACKLOG.md) 里找到出处：
+这张表每一条都能在 [how-to · MATURITY](/advanced/maturity) 与 [BACKLOG](https://github.com/zrayjay/ai-agent-blog/blob/main/agent-app/BACKLOG.md) 里找到出处：
 
 | 未做项                    | 差在哪                                          | 挂账        |
 | ------------------------- | ----------------------------------------------- | ----------- |
@@ -145,11 +145,11 @@ pnpm stack:down                                     # ⑤ 只撤 api+web，pg/re
 
 ## 延伸
 
-- [how-to · MATURITY](/how-to/MATURITY) —— 每个模块的档位与生产前置项（本章诚实清单的全文版）
+- [how-to · MATURITY](/advanced/maturity) —— 每个模块的档位与生产前置项（本章诚实清单的全文版）
 - [参考库 · 三层记忆](/reference/04-memory) —— 存储接口契约与契约测试挂法
 - 归档周教程：[week14 · pgvector](/archive/weeks/week14/) · [week17 · Redis 记忆](/archive/weeks/week17/) · [week21 · 可观测与成本](/archive/weeks/week21/) · [week22 · 系统设计](/archive/weeks/week22/)
 - 上一课：[10 · Web 前端与 SSE](/learn/06-fullstack/web-sse-frontend)
-- 下一课：[12 · 学完之后：演进方向](/guide/12-roadmap) —— 十三站走完，这张诚实清单就是你的下一份地图
+- 下一课：[12 · 学完之后：演进方向](/advanced/evolution) —— 十三站走完，这张诚实清单就是你的下一份地图
 
 ---
 

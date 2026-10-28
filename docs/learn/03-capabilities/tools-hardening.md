@@ -56,7 +56,7 @@ const addTodo = tool({
 });
 ```
 
-三个字段三种读者：**description 是写给模型的说明书**——写清「适合 / 不适合」，轻量模型几乎完全靠它决定调不调；**inputSchema 是 zod 图纸**——生成参数说明与执行前校验是同一张纸，`.describe()` 与 zod 的 `message` 都是写给模型看的指令（报错即修正方向，见 02 站防御 2）；**execute 是真身**——模型只点名，干活的是这里。写好三件套是本站一切加固的地基（更多范例见[扩展指南](/how-to/EXTENDING)）。
+三个字段三种读者：**description 是写给模型的说明书**——写清「适合 / 不适合」，轻量模型几乎完全靠它决定调不调；**inputSchema 是 zod 图纸**——生成参数说明与执行前校验是同一张纸，`.describe()` 与 zod 的 `message` 都是写给模型看的指令（报错即修正方向，见 02 站防御 2）；**execute 是真身**——模型只点名，干活的是这里。写好三件套是本站一切加固的地基（更多范例见[扩展指南](/advanced/extending)）。
 
 ### 2.2 工具表 = 能力边界：三工人案例
 
@@ -201,7 +201,7 @@ return composeToolShells(baseTools, shells); // shells[0] 最外：审批在外�
 - 上一课：[04 · RAG 知识库与检索](/learn/03-capabilities/rag-knowledge-base)
 - 下一课：[06 · 护栏与安全红队](/learn/05-quality/guardrails-safety) —— 工具之外的防线：脱敏、防注入、审计账本，全部来自真实红队实验
 - [参考库 · 工具箱](/reference/03-tools) —— 注册表 / 幂等层 / 壳组合器的完整语义与代码走读
-- [扩展指南](/how-to/EXTENDING) —— 加一个自定义工具的完整步骤与验收清单
+- [扩展指南](/advanced/extending) —— 加一个自定义工具的完整步骤与验收清单
 - 归档周教程：[week11 · 工具三件套与循环](/archive/weeks/week11/) · [week18 · Day 5-6 安全护栏与审批](/archive/weeks/week18/)
 
 ---

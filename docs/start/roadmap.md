@@ -14,7 +14,7 @@
 | S6 全栈交付       | Next.js 前端、NestJS BFF、SSE 流式、compose 部署 | 可本地启动的完整 Web 应用                    | S1~S5   |
 | S7 产品案例       | 知识库问答、智能客服、文档智能                   | 三个可演示的业务案例及组装说明               | S3~S6   |
 
-**课程顺序不预示产品功能**：某主题若只有演示或设计，教程会如实标注，不写「已生产可用」。全站能力现状见各章「状态」声明与 [MATURITY 成熟度矩阵](/how-to/MATURITY)。
+**课程顺序不预示产品功能**：某主题若只有演示或设计，教程会如实标注，不写「已生产可用」。全站能力现状见各章「状态」声明与 [MATURITY 成熟度矩阵](/advanced/maturity)。
 
 ## 主线章节（guide 01-13）
 
@@ -34,8 +34,8 @@
 | [09b](/learn/04-orchestration/multi-agent-orchestration) | 多 Agent 编排：拆 · 派 · 跑 | S4       |
 | [10](/learn/06-fullstack/web-sse-frontend)               | Web 前端与 SSE 流式         | S6       |
 | [11](/learn/05-quality/production-maturity)              | 生产化与成熟度              | S5/S6    |
-| [12](/guide/12-roadmap)                                  | 学完之后：演进方向          | 毕业站   |
-| [13](/guide/13-interview)                                | 面试实战：带着问题通关      | 求职专题 |
+| [12](/advanced/evolution)                                | 学完之后：演进方向          | 毕业站   |
+| [13](/advanced/interview)                                | 面试实战：带着问题通关      | 求职专题 |
 
 > 编号即推荐学习顺序。09b 编排专题已重编号为课程 `multi-agent-orchestration`（[阶段 04](/learn/04-orchestration/)，旧链接 `/guide/09b-multi-agent` 保留跳转）；09 之后进入全栈与收尾。
 

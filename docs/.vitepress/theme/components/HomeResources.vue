@@ -11,13 +11,13 @@ const resources = [
   {
     title: '扩展指南',
     description: '加一个工具、替换存储实现或切换模型网关，从现有接口接入。',
-    href: '/how-to/EXTENDING',
+    href: '/advanced/extending',
     label: '动手改造项目'
   },
   {
     title: '成熟度矩阵',
     description: '对照已有实现、演示边界与生产缺口，判断下一步该补什么。',
-    href: '/how-to/MATURITY',
+    href: '/advanced/maturity',
     label: '检查交付边界'
   }
 ]

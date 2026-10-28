@@ -27,7 +27,7 @@ const entries = [
     no: '04',
     title: '准备面试与复盘',
     description: '用知识题和场景题检查掌握程度，沿每题的项目证据回到实现。',
-    href: '/guide/13-interview',
+    href: '/advanced/interview',
     action: '带着问题自检'
   }
 ]

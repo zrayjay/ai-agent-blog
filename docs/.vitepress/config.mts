@@ -28,7 +28,7 @@ export default defineConfig({
       { text: '首页', link: '/' },
       { text: '学习路线', link: '/#learning-path' },
       { text: '模块参考', link: '/reference/README' },
-      { text: '扩展指南', link: '/how-to/EXTENDING' }
+      { text: '进阶专题', link: '/advanced/' }
     ],
 
     // 顶部 GitHub 仓库入口：默认主题会同时渲染桌面顶栏图标与移动端菜单入口。
@@ -95,7 +95,7 @@ export default defineConfig({
         ]
       },
       {
-        text: '🚀 主线正文 · 13 站（迁移中）',
+        text: '🚀 主线正文 · 13 站（原 guide，已落位 learn/）',
         collapsed: false,
         items: [
           { text: '总览（首页）', link: '/' },
@@ -111,8 +111,8 @@ export default defineConfig({
           { text: '09b · 多 Agent 编排（已迁至阶段 04）', link: '/learn/04-orchestration/multi-agent-orchestration' },
           { text: '10 · Web 前端与 SSE 流式', link: '/learn/06-fullstack/web-sse-frontend' },
           { text: '11 · 生产化与成熟度', link: '/learn/05-quality/production-maturity' },
-          { text: '12 · 学完之后：演进方向', link: '/guide/12-roadmap' },
-          { text: '13 · 面试实战：带着问题通关', link: '/guide/13-interview' }
+          { text: '12 · 学完之后：演进方向（已迁至进阶）', link: '/advanced/evolution' },
+          { text: '13 · 面试实战（已迁至进阶）', link: '/advanced/interview' }
         ]
       },
       {
@@ -128,24 +128,34 @@ export default defineConfig({
           { text: 'MCP 集成', link: '/reference/07-mcp' },
           { text: '评估框架', link: '/reference/08-evals' },
           { text: '客服产品线', link: '/reference/09-service' },
-          { text: '编排器：多 Agent 骨架', link: '/reference/10-orchestrator' },
-          { text: '产品 · 知识库问答', link: '/products/kb' },
-          { text: '产品 · 智能客服', link: '/products/service' },
-          { text: '产品 · 文档智能', link: '/products/docintel' }
+          { text: '编排器：多 Agent 骨架', link: '/reference/10-orchestrator' }
         ]
       },
       {
-        text: '🛠 指南 · 配置与扩展',
+        text: '🧩 案例 · 产品落地',
+        collapsed: false,
+        items: [
+          { text: '知识库问答', link: '/cases/knowledge-base' },
+          { text: '智能客服', link: '/cases/customer-service' },
+          { text: '文档智能', link: '/cases/document-intelligence' }
+        ]
+      },
+      {
+        text: '🎓 进阶 · 演进与求职',
         collapsed: true,
         items: [
-          { text: '扩展指南：加工具/加实现/换网关', link: '/how-to/EXTENDING' },
-          { text: '成熟度矩阵：离生产还差几步', link: '/how-to/MATURITY' }
+          { text: '进阶专题入口', link: '/advanced/' },
+          { text: '扩展指南：加工具/加实现/换网关', link: '/advanced/extending' },
+          { text: '成熟度矩阵：离生产还差几步', link: '/advanced/maturity' },
+          { text: '学完之后：演进方向（原 12 站）', link: '/advanced/evolution' },
+          { text: '面试实战：带着问题通关（原 13 站）', link: '/advanced/interview' }
         ]
       },
       {
         text: '📦 归档 · 按周索引（旧版课程）',
         collapsed: true,
         items: [
+          { text: '归档索引与说明', link: '/archive/weeks/' },
           { text: '第 1 周 · TypeScript 进阶 + Monorepo 工程化', link: '/archive/weeks/week01/' },
           { text: '第 2 周 · 代码质量门禁 + 测试 + Next.js 全栈路由', link: '/archive/weeks/week02/' },
           { text: '第 3 周 · Node.js 核心 + NestJS 入门', link: '/archive/weeks/week03/' },
@@ -339,9 +349,9 @@ export default defineConfig({
               { text: '语义缓存', link: '/archive/weeks/week21/day6' },
               { text: '周复盘（第 20 周）', link: '/archive/weeks/week20/day7' },
               { text: '压测日与周复盘', link: '/archive/weeks/week21/day7' },
-              { text: '知识库问答落地', link: '/products/kb' },
-              { text: '文档智能落地', link: '/products/docintel' },
-              { text: '客服系统落地', link: '/products/service' }
+              { text: '知识库问答落地', link: '/cases/knowledge-base' },
+              { text: '文档智能落地', link: '/cases/document-intelligence' },
+              { text: '客服系统落地', link: '/cases/customer-service' }
             ]
           },
           {

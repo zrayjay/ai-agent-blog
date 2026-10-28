@@ -6,6 +6,6 @@
 | -------------------- | ------------------------------------------------------- |
 | 课程正文（全部内容） | [生产化与成熟度](/learn/05-quality/production-maturity) |
 | 阶段索引             | [阶段 05 · 质量与可靠](/learn/05-quality/)              |
-| 成熟度矩阵全文       | [how-to · MATURITY](/how-to/MATURITY)                   |
+| 成熟度矩阵全文       | [how-to · MATURITY](/advanced/maturity)                 |
 
 主线结构说明见[学习路线图](/start/roadmap)。

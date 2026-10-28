@@ -259,7 +259,7 @@ pnpm service --trace    # 盯 🧭 行：硬规则命中 / 模型分类 / 重试
 ## 延伸阅读
 
 - [src/service/README.md](https://github.com/zrayjay/ai-agent-blog/blob/main/agent-app/packages/engine/src/service/README.md) ——本模块深度篇：三堵墙、降级链路全表、11 问自测清单、2.5 小时学习路线
-- `docs/products/service.md`——教程产品线篇：Supervisor 星型 / 上线检查清单（仓库外层 `ai-agent-blog/docs/products/`，`npm run docs:dev` 起博客看）
+- 站内案例篇 [cases/customer-service](/cases/customer-service)（原 `docs/products/service.md`，已迁）：Supervisor 星型 / 上线检查清单
 - [ARCHITECTURE.md](https://github.com/zrayjay/ai-agent-blog/blob/main/agent-app/ARCHITECTURE.md) ——「一条消息的完整旅程」与六条踩坑实录
 - [01-agent-loop.md](./01-agent-loop.md) ——工人手里的 `runToolLoop` 就是第 1 站那个循环
 - [08-evals.md](./08-evals.md) ——路由套件断言的正是本篇的 `checkHardRules`；`pnpm eval` 里看它的 8 条路由用例

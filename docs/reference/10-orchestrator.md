@@ -254,4 +254,4 @@ pnpm cli team --plan samples/team-plan.json --id demo-run-1
 - `packages/engine/test/orchestrator.spec.ts` —— 30 用例离线测试
 - [09 · 产品线组装](/reference/09-service) —— Supervisor 星型的单机版实战（编排器的特化前身）
 - [05 · 工具层加固](/learn/03-capabilities/tools-hardening) —— 幂等壳与审批壳（编排器的两个"壳"）
-- [MATURITY 矩阵](/how-to/MATURITY) —— 编排器的当前档位与生产前置项
+- [MATURITY 矩阵](/advanced/maturity) —— 编排器的当前档位与生产前置项

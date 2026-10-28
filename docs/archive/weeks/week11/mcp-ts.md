@@ -50,11 +50,9 @@ export function buildServer(): McpServer {
         };
       }
       return {
-        content: [
-          { type: "text", text: JSON.stringify({ orderId, ...order }) },
-        ],
+        content: [{ type: "text", text: JSON.stringify({ orderId, ...order }) }],
       };
-    }
+    },
   );
 
   // 资源：只读数据源，应用代码控制读取时机，不交给模型「执行」
@@ -64,7 +62,7 @@ export function buildServer(): McpServer {
     { description: "当前全部订单的只读列表", mimeType: "application/json" },
     async (uri) => ({
       contents: [{ uri: uri.href, text: JSON.stringify(orders, null, 2) }],
-    })
+    }),
   );
 
   return server;
@@ -140,16 +138,15 @@ import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 
 const client = new Client({ name: "agent-client", version: "0.1.0" });
-const transport = new StreamableHTTPClientTransport(
-  new URL("http://localhost:3001/mcp")
-);
+const transport = new StreamableHTTPClientTransport(new URL("http://localhost:3001/mcp"));
 
 await client.connect(transport); // 握手：初始化请求、能力协商
 
 const { tools } = await client.listTools(); // 发现：拿到名字、描述、JSON Schema
 console.log(tools.map((t) => `${t.name}: ${t.description}`));
 
-const result = await client.callTool({  // 调用：参数原样进 Server 的 execute
+const result = await client.callTool({
+  // 调用：参数原样进 Server 的 execute
   name: "get_order_status",
   arguments: { orderId: "A-1024" },
 });
@@ -175,7 +172,7 @@ import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/
 
 function wrapMcpTool(
   client: Client,
-  def: { name: string; description: string; schema: z.ZodObject<z.ZodRawShape> }
+  def: { name: string; description: string; schema: z.ZodObject<z.ZodRawShape> },
 ) {
   return tool({
     description: def.description,
@@ -188,9 +185,7 @@ function wrapMcpTool(
 }
 
 const client = new Client({ name: "agent-client", version: "0.1.0" });
-await client.connect(
-  new StreamableHTTPClientTransport(new URL("http://localhost:3001/mcp"))
-);
+await client.connect(new StreamableHTTPClientTransport(new URL("http://localhost:3001/mcp")));
 
 const tools = {
   get_order_status: wrapMcpTool(client, {
@@ -249,7 +244,7 @@ process.on("SIGTERM", shutdown);
 
 ## 安全提醒
 
-第 18 周 Day 5-6 的两条护栏，TS 侧一条都不能省。入口校验：`registerTool` 的 zod schema 是第一道门，但它只拦「格式不对」，拦不住「格式合法、值有恶意」——`orderId` 传别人的订单号，schema 笔画都不皱一下。Server 的 `execute` 里要做业务校验：格式、归属、权限，一层层过。高危审批：退款、删数据这类工具别裸奔进工具循环，先过人工确认这一关，做法第 18 周 Day 6 已经演示过（[Day 5 脏参数防御](/archive/weeks/week18/day5)、[Day 6 审批 UI](/archive/weeks/week18/day6)）。要看到这两条护栏在生产系统里的完整拼装，去[落地实战三：客服系统](/products/service)。
+第 18 周 Day 5-6 的两条护栏，TS 侧一条都不能省。入口校验：`registerTool` 的 zod schema 是第一道门，但它只拦「格式不对」，拦不住「格式合法、值有恶意」——`orderId` 传别人的订单号，schema 笔画都不皱一下。Server 的 `execute` 里要做业务校验：格式、归属、权限，一层层过。高危审批：退款、删数据这类工具别裸奔进工具循环，先过人工确认这一关，做法第 18 周 Day 6 已经演示过（[Day 5 脏参数防御](/archive/weeks/week18/day5)、[Day 6 审批 UI](/archive/weeks/week18/day6)）。要看到这两条护栏在生产系统里的完整拼装，去[落地实战三：客服系统](/cases/customer-service)。
 
 ## 自测问题
 

@@ -1,14 +1,14 @@
 # 主线补篇 · 客服流式化：事件契约、诚实 Thought 与断连中止
 
-> 衔接：[Day 5](/archive/weeks/week20/day5) 给 chat 线接上了 SSE 和思考面板，[Day 2](/archive/weeks/week20/day2) 的 BFF 骨架和 [products · 客服系统](/products/service) 的 Supervisor 路由早已就位，但 agent-app 里客服线自己还是一条非流式 JSON 端点——用户点完发送，界面上只剩一句「处理中…」。本篇把三段真实上线代码串成一件事讲透：客服 SSE 化（七事件契约 + 路由先行）、假 Thought 的诚实化管道、客户端断连后停止烧 token 的三层 signal。读者默认走完 week20 主线和 [week11 补篇 · Agent 循环 TS 深入](/archive/weeks/week11/agent-loop-ts)。读完的检验标准只有一条：给你一条客服消息，你能画出它在 `GET /api/service/stream` 上的完整事件序列，并说清 abort signal 在控制器、服务层、引擎循环三层各拦在哪一拍。
+> 衔接：[Day 5](/archive/weeks/week20/day5) 给 chat 线接上了 SSE 和思考面板，[Day 2](/archive/weeks/week20/day2) 的 BFF 骨架和 [products · 客服系统](/cases/customer-service) 的 Supervisor 路由早已就位，但 agent-app 里客服线自己还是一条非流式 JSON 端点——用户点完发送，界面上只剩一句「处理中…」。本篇把三段真实上线代码串成一件事讲透：客服 SSE 化（七事件契约 + 路由先行）、假 Thought 的诚实化管道、客户端断连后停止烧 token 的三层 signal。读者默认走完 week20 主线和 [week11 补篇 · Agent 循环 TS 深入](/archive/weeks/week11/agent-loop-ts)。读完的检验标准只有一条：给你一条客服消息，你能画出它在 `GET /api/service/stream` 上的完整事件序列，并说清 abort signal 在控制器、服务层、引擎循环三层各拦在哪一拍。
 
 三幕各修一个生产缺陷，先摆总账：
 
-| 幕 | 症状 | 根因 | 修法 | 验证 |
-| --- | --- | --- | --- | --- |
-| 一 | 客服页只有「处理中…」 | 客服线只有非流式 JSON 端点（chat 线早有 SSE） | `ServiceStreamEvent` 七事件契约 + `GET /api/service/stream` | 事件序列单测逐字段断言 |
-| 二 | Thought 段是每步同一句静态模板 | 管道里没有模型步间文本这一格 | `ToolLoopStepEvent.text` 三层贯穿，诚实渲染 | step.text 透传断言 |
-| 三 | 客户端断连后模型烧 token 到结束 | abortSignal 全链未接线 | 三层 signal：控制器监听 close → 服务层透传 → 引擎步间熔断 | D2 三例断言 `signal.aborted` |
+| 幕  | 症状                            | 根因                                          | 修法                                                        | 验证                         |
+| --- | ------------------------------- | --------------------------------------------- | ----------------------------------------------------------- | ---------------------------- |
+| 一  | 客服页只有「处理中…」           | 客服线只有非流式 JSON 端点（chat 线早有 SSE） | `ServiceStreamEvent` 七事件契约 + `GET /api/service/stream` | 事件序列单测逐字段断言       |
+| 二  | Thought 段是每步同一句静态模板  | 管道里没有模型步间文本这一格                  | `ToolLoopStepEvent.text` 三层贯穿，诚实渲染                 | step.text 透传断言           |
+| 三  | 客户端断连后模型烧 token 到结束 | abortSignal 全链未接线                        | 三层 signal：控制器监听 close → 服务层透传 → 引擎步间熔断   | D2 三例断言 `signal.aborted` |
 
 ## 第一幕 · 「处理中…」黑盒：客服线补一条自己的 SSE
 
@@ -20,7 +20,13 @@
 export type ServiceStreamEvent =
   | { type: "session"; sessionId: string }
   | { type: "route"; route: RouteTarget; reason: string }
-  | { type: "step"; step: number; toolCall: { toolName: string; input: unknown }; output: unknown; text?: string }
+  | {
+      type: "step";
+      step: number;
+      toolCall: { toolName: string; input: unknown };
+      output: unknown;
+      text?: string;
+    }
   | { type: "token"; text: string }
   | { type: "handoff"; handoff: ServiceHandoffPack }
   | { type: "done" }
@@ -45,7 +51,7 @@ write({ type: "route", route: decision.target, reason: decision.reason });
 
 `route` 事件在工人开跑之前发出——路由判定先行，是流式版独有的可视性增量。为什么这一拍要抢？因为路由结果对用户是即时信息：徽标先亮（订单蓝 / 退款紫 / 知识库绿 / 转人工琥珀），用户第一时间知道「我被分给了谁」，剩下的等待不再是悬空的黑盒，而是「订单专员正在查」的合理延迟。supervise 本身只花一次小调用，route 的提前量几乎白送。
 
-第二处设计藏在降级分支。工人跑到一半失败（模型网关不可达），按 [products · 客服系统](/products/service) 的上线检查清单第 8 条，降级方向只有一个——转人工，不给报错页。但此时前端徽标已经亮了「订单」，怎么办？补发一次 route：
+第二处设计藏在降级分支。工人跑到一半失败（模型网关不可达），按 [products · 客服系统](/cases/customer-service) 的上线检查清单第 8 条，降级方向只有一个——转人工，不给报错页。但此时前端徽标已经亮了「订单」，怎么办？补发一次 route：
 
 ```ts
 } catch (err) {
@@ -73,8 +79,8 @@ export async function runWorkerStreaming(
     messages: buildMessages(input),
     tools: WORKER_TOOLS[name],
     maxSteps: 5,
-    onStep: options?.onStep,   // 工具步实时外发给调用方（API 转成 step 事件）
-    signal: options?.signal,   // 断开即中止（第三幕的主角）
+    onStep: options?.onStep, // 工具步实时外发给调用方（API 转成 step 事件）
+    signal: options?.signal, // 断开即中止（第三幕的主角）
   });
   return { messages: result.messages }; // 最终文本弃用——API 拿去 streamText 收尾
 }

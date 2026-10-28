@@ -30,7 +30,7 @@
 
 1. **主线教程**（`guide` 13 站）：按顺序读，每站有前置、可运行命令与自测。入口是[第 01 站 · LLM API 与结构化输出](/learn/01-foundations/llm-structured-output)
 2. **模块深读**（`reference`）：实现细节、代码走读与设计取舍。主线遇到实现疑问时按站内链接进入，例如[工具循环深读](/reference/01-agent-loop)
-3. **产品案例**（`products`）：把学到的零件组装成完整业务，如[知识库问答](/products/kb)、[智能客服](/products/service)
+3. **产品案例**（`products`）：把学到的零件组装成完整业务，如[知识库问答](/cases/knowledge-base)、[智能客服](/cases/customer-service)
 
 进度判断以「能跑通、能解释」为准：每站末尾有自测题，配套命令能离线运行的部分不需要任何密钥。
 

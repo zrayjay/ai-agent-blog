@@ -21,7 +21,7 @@ lastVerifiedCommit: b16e421
 
 **前置**：[09 · 产品线组装](/learn/07-applications/service-product-line)（BFF 上那套产品逻辑，本章给它一张脸）
 **配套跑起来**：`pnpm api` + `pnpm --filter @agent-app/web dev`（两个终端：BFF 在前，前端在后）
-**深读**：[how-to · MATURITY](/how-to/MATURITY)（这套前端的成熟度档位与生产前置项）
+**深读**：[how-to · MATURITY](/advanced/maturity)（这套前端的成熟度档位与生产前置项）
 
 ---
 
@@ -169,7 +169,7 @@ pnpm --filter @agent-app/web build      # 验证：类型检查 + 产物构建
 - 下一课：[11 · 生产化与成熟度](/learn/05-quality/production-maturity) —— 前端有了脸，接下来给整套系统换上真实的骨：持久化、部署、以及离生产还差几步的诚实清单
 - 源码走读：[lib/chat-state.ts](https://github.com/zrayjay/ai-agent-blog/blob/main/agent-app/apps/web/lib/chat-state.ts)（状态机）· [lib/api.ts](https://github.com/zrayjay/ai-agent-blog/blob/main/agent-app/apps/web/lib/api.ts)（SSE 手解析）
 - 归档周教程：[week20 · 全栈整合](/archive/weeks/week20/)（BFF / RBAC / 流式 UI 的原始叙述）· [客服流式化补篇](/archive/weeks/week20/service-streaming)（七事件契约 + route 先行 + 三层 abort signal）
-- 产品实战：[知识库问答落地](/products/kb)
+- 产品实战：[知识库问答落地](/cases/knowledge-base)
 
 ---
 
