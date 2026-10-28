@@ -133,5 +133,5 @@ REPL 里按这个顺序试五句话，正好覆盖全部路由路径：
 - [参考库 · 客服产品线深读](/reference/09-service) —— 星型调度逐文件走读 + 上线检查清单
 - 产品页：[客服系统](/products/service) —— REPL 话术清单与设计要点
 - 归档周教程：[week13 · 产品线组装](/archive/weeks/week13/)
-- **进阶下一站**：[09b · 多 Agent 编排](/guide/09b-multi-agent) —— Supervisor 已是多 Agent 第一形态，这里学会泛化成可配置编排器
+- **进阶下一站**：[09b · 多 Agent 编排](/learn/04-orchestration/multi-agent-orchestration) —— Supervisor 已是多 Agent 第一形态，这里学会泛化成可配置编排器
 - 下一站：[10 · Web 前端与 SSE](/guide/10-frontend) —— 给这套系统装上事件驱动的脸

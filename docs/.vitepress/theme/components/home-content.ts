@@ -81,7 +81,7 @@ export const learningStages: LearningStage[] = [
       {
         no: '09b',
         title: '多 Agent 编排',
-        href: '/guide/09b-multi-agent',
+        href: '/learn/04-orchestration/multi-agent-orchestration',
         summary: '任务拆分、DAG 调度与逐任务验收'
       },
       {

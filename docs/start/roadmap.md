@@ -20,22 +20,22 @@
 
 主线正文共 13 站，按上表阶段分组。每站的「上一站/下一站」在页首页尾，跳读后可随时回到顺序路径：
 
-| 站                              | 标题                        | 所属阶段 |
-| ------------------------------- | --------------------------- | -------- |
-| [01](/guide/01-llm-basics)      | LLM API 与结构化输出        | S1       |
-| [02](/guide/02-agent-loop)      | 手写工具循环（Agent 核心）  | S2       |
-| [03](/guide/03-memory)          | 记忆与上下文压缩            | S3       |
-| [04](/guide/04-rag)             | RAG 知识库与检索            | S3       |
-| [05](/guide/05-tools-hardening) | 工具层加固与幂等            | S2/S3    |
-| [06](/guide/06-safety)          | 护栏与安全红队              | S5       |
-| [07](/guide/07-mcp)             | MCP 标准插口                | S3       |
-| [08](/guide/08-evals)           | 评估框架：跑分说话          | S5       |
-| [09](/guide/09-product)         | 产品线组装：客服系统        | S7       |
-| [09b](/guide/09b-multi-agent)   | 多 Agent 编排：拆 · 派 · 跑 | S4       |
-| [10](/guide/10-frontend)        | Web 前端与 SSE 流式         | S6       |
-| [11](/guide/11-production)      | 生产化与成熟度              | S5/S6    |
-| [12](/guide/12-roadmap)         | 学完之后：演进方向          | 毕业站   |
-| [13](/guide/13-interview)       | 面试实战：带着问题通关      | 求职专题 |
+| 站                                                       | 标题                        | 所属阶段 |
+| -------------------------------------------------------- | --------------------------- | -------- |
+| [01](/guide/01-llm-basics)                               | LLM API 与结构化输出        | S1       |
+| [02](/guide/02-agent-loop)                               | 手写工具循环（Agent 核心）  | S2       |
+| [03](/guide/03-memory)                                   | 记忆与上下文压缩            | S3       |
+| [04](/guide/04-rag)                                      | RAG 知识库与检索            | S3       |
+| [05](/guide/05-tools-hardening)                          | 工具层加固与幂等            | S2/S3    |
+| [06](/guide/06-safety)                                   | 护栏与安全红队              | S5       |
+| [07](/guide/07-mcp)                                      | MCP 标准插口                | S3       |
+| [08](/guide/08-evals)                                    | 评估框架：跑分说话          | S5       |
+| [09](/guide/09-product)                                  | 产品线组装：客服系统        | S7       |
+| [09b](/learn/04-orchestration/multi-agent-orchestration) | 多 Agent 编排：拆 · 派 · 跑 | S4       |
+| [10](/guide/10-frontend)                                 | Web 前端与 SSE 流式         | S6       |
+| [11](/guide/11-production)                               | 生产化与成熟度              | S5/S6    |
+| [12](/guide/12-roadmap)                                  | 学完之后：演进方向          | 毕业站   |
+| [13](/guide/13-interview)                                | 面试实战：带着问题通关      | 求职专题 |
 
 > 编号即推荐学习顺序（09b 为插入的编排专题，将随信息架构演进重编号，届时旧链接保留跳转）。9b 之后进入全栈与收尾。
 
