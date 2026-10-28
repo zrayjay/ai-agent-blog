@@ -124,7 +124,7 @@ export const products = [
     label: '检索与引用',
     description: '把企业文档变成可检索知识，回答带出处，查不到时知道如何收尾。',
     prerequisite: '建议先学 02 → 04 → 08',
-    href: '/products/kb'
+    href: '/cases/knowledge-base'
   },
   {
     no: '02',
@@ -132,7 +132,7 @@ export const products = [
     label: '路由与业务操作',
     description: '从问题分诊到工具执行，串起多轮对话、人工审批与转人工流程。',
     prerequisite: '建议先学 05 → 06 → 09',
-    href: '/products/service'
+    href: '/cases/customer-service'
   },
   {
     no: '03',
@@ -140,6 +140,6 @@ export const products = [
     label: '文档处理选修',
     description: '从 PDF 文本与 OCR 分诊，到字段抽取、结构化校验和文档问答。',
     prerequisite: '结合结构化输出与 RAG · 含 Python 示例',
-    href: '/products/docintel'
+    href: '/cases/document-intelligence'
   }
 ]

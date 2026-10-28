@@ -20,7 +20,7 @@ lastVerifiedCommit: b16e421
 
 **前置**：[08 · 评估框架](/learn/05-quality/evals-quality-gate)（组装完的系统靠考卷看守）+ [02 · 手写工具循环](/learn/02-runtime/agent-loop)（工人手里的发动机）
 **配套跑起来**：`pnpm service`（话术实测）+ `pnpm test:service`（硬规则纯函数离线自测，node:assert、零网络）
-**深读**：[参考库 · 客服产品线深读](/reference/09-service)（模块走读 + 上线检查清单）· [产品页 · 客服系统](/products/service)
+**深读**：[参考库 · 客服产品线深读](/reference/09-service)（模块走读 + 上线检查清单）· [产品页 · 客服系统](/cases/customer-service)
 
 ---
 
@@ -149,7 +149,7 @@ REPL 里按这个顺序试五句话，正好覆盖全部路由路径：
 - 上一课：[08 · 评估框架：跑分说话](/learn/05-quality/evals-quality-gate)
 - 下一课：[10 · Web 前端与 SSE](/learn/06-fullstack/web-sse-frontend) —— 给这套系统装上事件驱动的脸
 - [参考库 · 客服产品线深读](/reference/09-service) —— 星型调度逐文件走读 + 上线检查清单
-- 产品页：[客服系统](/products/service) —— REPL 话术清单与设计要点
+- 产品页：[客服系统](/cases/customer-service) —— REPL 话术清单与设计要点
 - 归档周教程：[week13 · 产品线组装](/archive/weeks/week13/)
 - **进阶下一站**：[09b · 多 Agent 编排](/learn/04-orchestration/multi-agent-orchestration) —— Supervisor 已是多 Agent 第一形态，这里学会泛化成可配置编排器
 
