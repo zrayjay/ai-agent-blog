@@ -12,9 +12,9 @@ title: 阶段 04 · 编排
 
 ## 课程
 
-| order | 课程                                      | 当前正文                            | status      |
-| ----- | ----------------------------------------- | ----------------------------------- | ----------- |
-| 95    | multi-agent-orchestration · 多 Agent 编排 | [guide/09b](/guide/09b-multi-agent) | implemented |
+| order | 课程                                      | 当前正文                                                                      | status      |
+| ----- | ----------------------------------------- | ----------------------------------------------------------------------------- | ----------- |
+| 95    | multi-agent-orchestration · 多 Agent 编排 | [learn/04 · 多 Agent 编排](/learn/04-orchestration/multi-agent-orchestration) | implemented |
 
 **源码与测试**：`agent-app/packages/engine/src/orchestrator/`（Effect 版）· `test/orchestrator.spec.ts`（30 离线用例）、`test/failure-cases.spec.ts`
 

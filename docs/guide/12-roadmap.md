@@ -52,7 +52,7 @@
              · 事件流：每步广播（可接 SSE / 审计 / OTel）
 ```
 
-**编排器（✅ 已实现）**就是这三个字的代码化——`orchestrator/` 模块（8 文件 ~985 行，Effect 范式）：显式状态机 + TaskSpec 验收标准（critic 已接线）+ DAG 波次并行派发 + 失败四分支策略 + 预算控制 + 失败终态落盘 + 事件流 + 可插拔三角色（Planner / Executor / Critic）。**一键体验**：`pnpm team "查订单A-1024，未发货就建催发工单" --trace`（`--plan` 传静态任务单 / `--id` 断点续跑）。主线教程见 [09b · 多 Agent 编排](/guide/09b-multi-agent)，完整深读见 [参考库 · 编排器](/reference/10-orchestrator)。
+**编排器（✅ 已实现）**就是这三个字的代码化——`orchestrator/` 模块（8 文件 ~985 行，Effect 范式）：显式状态机 + TaskSpec 验收标准（critic 已接线）+ DAG 波次并行派发 + 失败四分支策略 + 预算控制 + 失败终态落盘 + 事件流 + 可插拔三角色（Planner / Executor / Critic）。**一键体验**：`pnpm cli team "查订单A-1024，未发货就建催发工单" --trace`（`--plan` 传静态任务单 / `--id` 断点续跑）。主线教程见 [09b · 多 Agent 编排](/learn/04-orchestration/multi-agent-orchestration)，完整深读见 [参考库 · 编排器](/reference/10-orchestrator)。
 
 P2 的示例目标设计得很妙：「查订单 A-1024，未发货就建催发工单」——正好逼出拆/派/跑三分工。风险也在账上写死了：planner 的计划 JSON 不稳（宽松解析 + 重试一次 + 失败降级单步）、critic 打回死循环（重试上限 2 次，超限带「未完全达成」诚实收尾）——你看，又是熟悉的「防御先行」味道。
 
@@ -125,7 +125,7 @@ Agent 这个领域还在高速变化，但你在 02 站握住的那台发动机�
 
 <details><summary>答案</summary>
 
-1. 分工（谁干什么）、共享状态（互相知道什么）、质量闭环（谁验收）；Planner 对应分工、StateStore 快照对应共享状态、Critic 对照 Acceptance 验收标准对应质量闭环（Executor 是干活的工人）。一键体验：`pnpm team "目标"`。
+1. 分工（谁干什么）、共享状态（互相知道什么）、质量闭环（谁验收）；Planner 对应分工、StateStore 快照对应共享状态、Critic 对照 Acceptance 验收标准对应质量闭环（Executor 是干活的工人）。一键体验：`pnpm cli team "目标"`。
 2. 当你发现自己在重复造「消息裁剪 / 工具缓存 / 并行调度」三个轮子时（02 站岔路 3）；手写过的人知道框架幕后的每一根线怎么接——快捷方式行为不对时能拆开看，不是黑盒。
 3. 替代「写死 40 条消息触发压缩」的条数阈值（条数不是 token 的合格代理变量）；三层 = 上次 generateText 的 usage 回馈校准、字符数×模型系数估算、无任何数据时退回条数兜底（向下兼容）。
 
