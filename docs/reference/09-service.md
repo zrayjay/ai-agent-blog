@@ -39,11 +39,11 @@
 **① 硬规则优先**（`checkHardRules`，纯函数、可离线单测），优先级是刻意的——
 **未解决计数 ≥2 > 转人工关键词 > 高危白名单**（「最需要兜底的排最前」）：
 
-| 常量 | 关键词（代码原文） | 兜什么 |
-|---|---|---|
-| `UNRESOLVED_SIGNALS` | 不是这个 / 到底 / 还是不行…（共 8 个） | 连续 2 轮未解决——AI 已在原地打转 |
-| `HUMAN_REQUEST_KEYWORDS` | 转人工 / 找真人 / 换人工 / 人工客服 / 换个人 | 用户明确要求（说出口前通常已忍了一阵） |
-| `HIGH_RISK_KEYWORDS` | 退款争议 / 投诉 / 起诉 / 律师 / 法院 / 媒体 | 高危业务（答错一个字的代价远高于转一百单人工） |
+| 常量                     | 关键词（代码原文）                           | 兜什么                                         |
+| ------------------------ | -------------------------------------------- | ---------------------------------------------- |
+| `UNRESOLVED_SIGNALS`     | 不是这个 / 到底 / 还是不行…（共 8 个）       | 连续 2 轮未解决——AI 已在原地打转               |
+| `HUMAN_REQUEST_KEYWORDS` | 转人工 / 找真人 / 换人工 / 人工客服 / 换个人 | 用户明确要求（说出口前通常已忍了一阵）         |
+| `HIGH_RISK_KEYWORDS`     | 退款争议 / 投诉 / 起诉 / 律师 / 法院 / 媒体  | 高危业务（答错一个字的代价远高于转一百单人工） |
 
 **② 模型只兜模糊地带**：`classifyWithLlm` 做 order/refund/knowledge 三分类。为什么不用
 `generateObject`？glm-4-flash 等轻薄模型会**静默无视** `response_format`（见
@@ -64,13 +64,13 @@ order 工人只发查订单的锤子，refund 只发建工单的锤子，knowled
 
 ### 降级链路：每一层挂了都有下一层接着
 
-| 哪里挂了 | 降级动作 | 用户看到 |
-|---|---|---|
-| 模型两次分类输出不合规 | `classifyWithLlm` 抛错 → CLI catch → 直接判 human | 转人工 + 工单 |
-| 没配 key / 网关不通 | 同上，reason 写明「按降级预案直接转人工（用户侧不暴露报错）」 | 转人工 + 工单 |
-| 工人执行失败 | CLI catch → `doHandoff` | 转人工 + 工单 |
-| 摘要模型挂 | `fallbackSummary`（最近 3 条用户消息拼接） | 工单照出 |
-| 完全离线 | 工单本就是 mock 实现 | 完整转人工流程 |
+| 哪里挂了               | 降级动作                                                      | 用户看到       |
+| ---------------------- | ------------------------------------------------------------- | -------------- |
+| 模型两次分类输出不合规 | `classifyWithLlm` 抛错 → CLI catch → 直接判 human             | 转人工 + 工单  |
+| 没配 key / 网关不通    | 同上，reason 写明「按降级预案直接转人工（用户侧不暴露报错）」 | 转人工 + 工单  |
+| 工人执行失败           | CLI catch → `doHandoff`                                       | 转人工 + 工单  |
+| 摘要模型挂             | `fallbackSummary`（最近 3 条用户消息拼接）                    | 工单照出       |
+| 完全离线               | 工单本就是 mock 实现                                          | 完整转人工流程 |
 
 降级方向只有一个——**转人工，绝不给报错页**。「降级要降得可用」，这是 service.md
 上线检查清单第 8 条，且是写在 catch 分支里可测的行为。
@@ -79,13 +79,13 @@ order 工人只发查订单的锤子，refund 只发建工单的锤子，knowled
 
 ## 代码走读（`src/service/`，5 个文件）
 
-| 文件 | 行数 | 要点 |
-|---|---|---|
-| `supervisor.ts`（L61） | 144 行 | ★ 路由核心：三组**导出的**关键词常量（L29/32/35）+ `matchAnyKeyword` / `isUnresolvedSignal` 纯函数 + `checkHardRules`（L61）+ `classifyWithLlm`（L110）+ `supervise` 总入口（L134）；路由契约 `RouteDecision` / `RouteTarget` / `WorkerRoute` 定义在 `@agent-app/shared`，这里再出口 |
-| `workers.ts`（L24/40/58） | 110 行 | `WORKER_PROMPTS` 职责提示词 + `WORKER_TOOLS` 最小工具表 + `runWorker`（复用引擎的 `runToolLoop`）+ `runWorkerStreaming`（SSE 流式路径，同一套提示词/工具表） |
-| `handoff.ts`（L66） | 116 行 | `formatTranscript`（L17）→ `buildHandoffPack`（L66，LLM 摘要 + 降级 + mock 工单）→ `formatHandoffPack` 打印块 + `handoffReply` 用户告知 |
-| `index.ts` | 7 行 | 桶导出（`@agent-app/engine/service` 子路径公共面）——CLI 与 HTTP API 共用，**app 之间禁止互相 import，公共核心一律进包** |
-| `README.md` | — | 本模块深度篇（三堵墙 / 降级链路 / 11 问自测清单） |
+| 文件                      | 行数   | 要点                                                                                                                                                                                                                                                                                 |
+| ------------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `supervisor.ts`（L61）    | 144 行 | ★ 路由核心：三组**导出的**关键词常量（L29/32/35）+ `matchAnyKeyword` / `isUnresolvedSignal` 纯函数 + `checkHardRules`（L61）+ `classifyWithLlm`（L110）+ `supervise` 总入口（L134）；路由契约 `RouteDecision` / `RouteTarget` / `WorkerRoute` 定义在 `@agent-app/shared`，这里再出口 |
+| `workers.ts`（L24/40/58） | 110 行 | `WORKER_PROMPTS` 职责提示词 + `WORKER_TOOLS` 最小工具表 + `runWorker`（复用引擎的 `runToolLoop`）+ `runWorkerStreaming`（SSE 流式路径，同一套提示词/工具表）                                                                                                                         |
+| `handoff.ts`（L66）       | 116 行 | `formatTranscript`（L17）→ `buildHandoffPack`（L66，LLM 摘要 + 降级 + mock 工单）→ `formatHandoffPack` 打印块 + `handoffReply` 用户告知                                                                                                                                              |
+| `index.ts`                | 7 行   | 桶导出（`@agent-app/engine/service` 子路径公共面）——CLI 与 HTTP API 共用，**app 之间禁止互相 import，公共核心一律进包**                                                                                                                                                              |
+| `README.md`               | —      | 本模块深度篇（三堵墙 / 降级链路 / 11 问自测清单）                                                                                                                                                                                                                                    |
 
 ### 硬规则判定（`supervisor.ts`，L61–77 全文骨架）
 
@@ -102,7 +102,7 @@ export function checkHardRules(state: SupervisorState): RouteDecision | null {
   if (risk !== null) {
     return { target: "human", reason: `命中高危业务白名单（关键词「${risk}」），必须人工处理` };
   }
-  return null;   // 全不命中，才轮到模型分类
+  return null; // 全不命中，才轮到模型分类
 }
 ```
 
@@ -136,18 +136,18 @@ export async function classifyWithLlm(history: ChatTurn[]): Promise<RouteDecisio
 
 ```ts
 const WORKER_TOOLS: Record<WorkerName, AgentToolSet> = {
-  order: { getOrderStatus },          // 只给查订单的锤子
-  refund: { createTicket },           // 只给建工单的锤子
+  order: { getOrderStatus }, // 只给查订单的锤子
+  refund: { createTicket }, // 只给建工单的锤子
   knowledge: { searchKnowledgeBase }, // 只给知识库检索
 };
 
 export async function runWorker(name: WorkerName, input: WorkerInput): Promise<string> {
   const result = await runToolLoop({
     model: createModel(),
-    system: WORKER_PROMPTS[name],     // 职责提示词：边界 + 拒答出口
-    messages: buildMessages(input),   // 历史去尾截 20 轮 + 本轮拼末尾
+    system: WORKER_PROMPTS[name], // 职责提示词：边界 + 拒答出口
+    messages: buildMessages(input), // 历史去尾截 20 轮 + 本轮拼末尾
     tools: WORKER_TOOLS[name],
-    maxSteps: DEFAULT_MAX_STEPS,      // 库级默认 5（agent-loop.ts 导出），magic number 不散落
+    maxSteps: DEFAULT_MAX_STEPS, // 库级默认 5（agent-loop.ts 导出），magic number 不散落
   });
   return result.text;
 }
@@ -159,17 +159,26 @@ export async function runWorker(name: WorkerName, input: WorkerInput): Promise<s
 ### 转人工上下文包（`handoff.ts`，L66 起的骨架）
 
 ```ts
-export async function buildHandoffPack(input: { reason: string; turns: ChatTurn[] }): Promise<ServiceHandoffPack> {
-  const transcript = formatTranscript(input.turns);           // 最近 10 轮逐字文稿
+export async function buildHandoffPack(input: {
+  reason: string;
+  turns: ChatTurn[];
+}): Promise<ServiceHandoffPack> {
+  const transcript = formatTranscript(input.turns); // 最近 10 轮逐字文稿
   let userSummary: string;
   try {
     const { text } = await generateText({ model: getModel(), system: PACK_PROMPT, prompt: transcript });
     userSummary = text.trim() || fallbackSummary(input.turns);
   } catch {
-    userSummary = fallbackSummary(input.turns);              // 摘要挂了也要转得出去
+    userSummary = fallbackSummary(input.turns); // 摘要挂了也要转得出去
   }
   const ticketId = await createHandoffTicket(`转人工：${input.reason}`, userSummary); // mock 工单，离线可用
-  return { ticketId, reason: input.reason, userSummary, recentTranscript: transcript, createdAt: new Date().toISOString() };
+  return {
+    ticketId,
+    reason: input.reason,
+    userSummary,
+    recentTranscript: transcript,
+    createdAt: new Date().toISOString(),
+  };
 }
 ```
 
@@ -214,15 +223,15 @@ pnpm service --trace    # 盯 🧭 行：硬规则命中 / 模型分类 / 重试
 
 ## 设计取舍（面试级追问）
 
-| 追问 | 回答 |
-|---|---|
-| 为什么硬规则必须排在模型前面？ | 「必须转」的场景容不得模型偶尔判漏：关键词匹配零 LLM 成本、零延迟、行为完全可测。让模型做模型擅长的事，**别让它替你数数** |
+| 追问                                            | 回答                                                                                                                                                                       |
+| ----------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 为什么硬规则必须排在模型前面？                  | 「必须转」的场景容不得模型偶尔判漏：关键词匹配零 LLM 成本、零延迟、行为完全可测。让模型做模型擅长的事，**别让它替你数数**                                                  |
 | 路由为什么用 generateText 不用 generateObject？ | generateObject 依赖网关 `response_format`，glm-4-flash 会静默无视导致解析炸裂。格式写进提示词 + `extractJson` 宽松解析 + zod 校验 + 重试一次，任何 OpenAI 兼容网关行为一致 |
-| 三分类为什么喂最近 10 轮而不是只喂最新一条？ | 分类要看上下文，否则追问「那退款呢」会分错类；截 10 轮是精度与 token 的折中 |
-| order 工人为什么建不了工单？ | 工具表按工人裁剪（最小权限）：误伤面从工具表上掐掉，比提示词里求它别建可靠得多 |
-| 转人工为什么要带 HandoffPack？ | 退路的底线是「转过去不用复述」：工单号/原因/摘要/最近对话四件套让接手人直接上手，`reason` 写进工单是接手人的第一眼信息 |
-| 模型挂了为什么是转人工不是报错？ | 用户侧看到的永远是业务动作，不是技术故障——降级写在 catch 分支里，可测且上线前必须演练 |
-| 这段代码为什么住在 engine 包？ | CLI REPL 与 HTTP API（`/api/service`）共用同一套产品逻辑，app 之间禁止互相 import；连响应形状都同源（契约在 `@agent-app/shared`） |
+| 三分类为什么喂最近 10 轮而不是只喂最新一条？    | 分类要看上下文，否则追问「那退款呢」会分错类；截 10 轮是精度与 token 的折中                                                                                                |
+| order 工人为什么建不了工单？                    | 工具表按工人裁剪（最小权限）：误伤面从工具表上掐掉，比提示词里求它别建可靠得多                                                                                             |
+| 转人工为什么要带 HandoffPack？                  | 退路的底线是「转过去不用复述」：工单号/原因/摘要/最近对话四件套让接手人直接上手，`reason` 写进工单是接手人的第一眼信息                                                     |
+| 模型挂了为什么是转人工不是报错？                | 用户侧看到的永远是业务动作，不是技术故障——降级写在 catch 分支里，可测且上线前必须演练                                                                                      |
+| 这段代码为什么住在 engine 包？                  | CLI REPL 与 HTTP API（`/api/service`）共用同一套产品逻辑，app 之间禁止互相 import；连响应形状都同源（契约在 `@agent-app/shared`）                                          |
 
 ---
 
@@ -242,14 +251,15 @@ pnpm service --trace    # 盯 🧭 行：硬规则命中 / 模型分类 / 重试
 3. 能。`buildHandoffPack` 的 catch 会降级到 `fallbackSummary`：拼接最近 3 条用户消息
    （「不猜、不编，只交出可信的已知」）；工单是 mock 实现不走网络——完全离线也能走完
    转人工流程。
+
 </details>
 
 ---
 
 ## 延伸阅读
 
-- [src/service/README.md](https://github.com/1648298170/ai-agent-blog/blob/main/agent-app/packages/engine/src/service/README.md) ——本模块深度篇：三堵墙、降级链路全表、11 问自测清单、2.5 小时学习路线
+- [src/service/README.md](https://github.com/zrayjay/ai-agent-blog/blob/main/agent-app/packages/engine/src/service/README.md) ——本模块深度篇：三堵墙、降级链路全表、11 问自测清单、2.5 小时学习路线
 - `docs/products/service.md`——教程产品线篇：Supervisor 星型 / 上线检查清单（仓库外层 `ai-agent-blog/docs/products/`，`npm run docs:dev` 起博客看）
-- [ARCHITECTURE.md](https://github.com/1648298170/ai-agent-blog/blob/main/agent-app/ARCHITECTURE.md) ——「一条消息的完整旅程」与六条踩坑实录
+- [ARCHITECTURE.md](https://github.com/zrayjay/ai-agent-blog/blob/main/agent-app/ARCHITECTURE.md) ——「一条消息的完整旅程」与六条踩坑实录
 - [01-agent-loop.md](./01-agent-loop.md) ——工人手里的 `runToolLoop` 就是第 1 站那个循环
 - [08-evals.md](./08-evals.md) ——路由套件断言的正是本篇的 `checkHardRules`；`pnpm eval` 里看它的 8 条路由用例

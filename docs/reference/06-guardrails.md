@@ -27,12 +27,12 @@
 
 ### 两道闸 + 一个门 + 一本账
 
-| 零件 | 文件 | 职责 |
-|---|---|---|
-| 输出闸 | `pii-mask.ts` | 手机号 / 身份证 / 银行卡打码（保头尾，边界锁死长串不误拆） |
-| 输入闸 | `validate.ts` | 规范化 + 提示注入黑名单扫描；白名单解析 |
-| 门 | `gate.ts` | `wrapToolWithGate`：把「白名单 → 输入闸 → 确认 → 原执行 → 输出闸」套在任意工具外 |
-| 账本 | `audit.ts` | 安全事件 JSONL 追加落盘（`.data/audit.log`） |
+| 零件   | 文件          | 职责                                                                             |
+| ------ | ------------- | -------------------------------------------------------------------------------- |
+| 输出闸 | `pii-mask.ts` | 手机号 / 身份证 / 银行卡打码（保头尾，边界锁死长串不误拆）                       |
+| 输入闸 | `validate.ts` | 规范化 + 提示注入黑名单扫描；白名单解析                                          |
+| 门     | `gate.ts`     | `wrapToolWithGate`：把「白名单 → 输入闸 → 确认 → 原执行 → 输出闸」套在任意工具外 |
+| 账本   | `audit.ts`    | 安全事件 JSONL 追加落盘（`.data/audit.log`）                                     |
 
 门内五步按**成本排序**，前置闸任一命中直接短路返回拒绝，**绝不触碰原 execute**：
 
@@ -55,16 +55,16 @@
 
 ## 代码走读（`src/guardrails/`，4 个文件 + 两端装配）
 
-| 位置 | 内容 | 要点 |
-|---|---|---|
-| `PHONE_REGEX` 等（pii-mask.ts L32/34/36） | 三条脱敏正则 | 全部环视锁死边界：`(?<!\d)…(?!\d)`，嵌在更长数字串里的不算命中 |
-| `maskPii`（pii-mask.ts L91） | 打码出口 | 手机号留前 3 后 4（`138****5678`）、身份证留前 4 后 2、银行卡留前 4 后 4 |
-| `normalizeForInjectionScan`（validate.ts L22） | 规范化三步 | ①剔零宽字符 ②全角转半角 ③小写化——纯写法差异在此抹平 |
-| `INJECTION_PATTERNS`（validate.ts L48） | 注入黑名单 | 6 条中英双语正则，对**规范化后**的文本匹配 |
-| `inspectTextInput`（validate.ts L77） | 扫描出口 | 命中返回 `{ ok: false, matchedPattern }`；话术原文不回传（防二次注入） |
-| `wrapToolWithGate`（gate.ts L98） | ★ 门本体 | 五步编排，见下 |
-| `ToolConfirmFn`（gate.ts L38） | 确认回调接缝 | `(info) => Promise<boolean>`——CLI 传 readline 问答，API 传 SSE 审批 |
-| `auditLog`（audit.ts L32） | 审计出口 | JSONL 追加一行一事件，I/O 异常全吞（审计失败不能阻断安全路径） |
+| 位置                                           | 内容         | 要点                                                                     |
+| ---------------------------------------------- | ------------ | ------------------------------------------------------------------------ |
+| `PHONE_REGEX` 等（pii-mask.ts L32/34/36）      | 三条脱敏正则 | 全部环视锁死边界：`(?<!\d)…(?!\d)`，嵌在更长数字串里的不算命中           |
+| `maskPii`（pii-mask.ts L91）                   | 打码出口     | 手机号留前 3 后 4（`138****5678`）、身份证留前 4 后 2、银行卡留前 4 后 4 |
+| `normalizeForInjectionScan`（validate.ts L22） | 规范化三步   | ①剔零宽字符 ②全角转半角 ③小写化——纯写法差异在此抹平                      |
+| `INJECTION_PATTERNS`（validate.ts L48）        | 注入黑名单   | 6 条中英双语正则，对**规范化后**的文本匹配                               |
+| `inspectTextInput`（validate.ts L77）          | 扫描出口     | 命中返回 `{ ok: false, matchedPattern }`；话术原文不回传（防二次注入）   |
+| `wrapToolWithGate`（gate.ts L98）              | ★ 门本体     | 五步编排，见下                                                           |
+| `ToolConfirmFn`（gate.ts L38）                 | 确认回调接缝 | `(info) => Promise<boolean>`——CLI 传 readline 问答，API 传 SSE 审批      |
+| `auditLog`（audit.ts L32）                     | 审计出口     | JSONL 追加一行一事件，I/O 异常全吞（审计失败不能阻断安全路径）           |
 
 ### 输出闸：三条正则与边界纪律（`pii-mask.ts` L31-L36）
 
@@ -116,9 +116,12 @@ export function wrapToolWithGate(tool: AgentTool, options: ToolGateOptions): Age
       if (!inspection.ok) return deny(name, `输入命中提示注入黑名单（模式：${inspection.matchedPattern}）。`);
       if (confirm !== undefined) {
         let approved: boolean;
-        try { approved = await confirm({ toolName: name, input }); }
-        catch { approved = false; } // 回调抛异常也视为未确认（fail-closed）
-        auditLog("gate.confirm", { tool: name, approved });           // 裁决留痕
+        try {
+          approved = await confirm({ toolName: name, input });
+        } catch {
+          approved = false;
+        } // 回调抛异常也视为未确认（fail-closed）
+        auditLog("gate.confirm", { tool: name, approved }); // 裁决留痕
         if (approved !== true) return deny(name, "人工确认未通过（未应答或明确拒绝均视为不同意）。");
       }
       const output = await execute(input, executeOptions); // ④ 原执行：正常与异常都原样上抛
@@ -137,7 +140,9 @@ export function auditLog(event: string, details: Record<string, unknown>, filePa
   try {
     const target = filePath ?? process.env.AGENT_AUDIT_LOG ?? join(process.cwd(), ".data", "audit.log");
     appendFileSync(target, JSON.stringify({ ...details, event, time: new Date().toISOString() }) + "\n");
-  } catch { /* 静默失败：审计不能反过来破坏被它记录的安全路径 */ }
+  } catch {
+    /* 静默失败：审计不能反过来破坏被它记录的安全路径 */
+  }
 }
 ```
 
@@ -176,15 +181,15 @@ Get-Content .\.data\audit.log | Select-Object -Last 3 # 审计账本里躺着 in
 
 ## 设计取舍（面试级追问）
 
-| 追问 | 回答 |
-|---|---|
-| 为什么拒绝返回 `{denied}` 而不是抛异常？ | ① 语义错位：拒绝是策略结果不是工具坏了，模型看到 denied 才会放弃重试、向用户解释；② 结构丢失：循环会把异常折成 errorOutput，调用方分不清「被拦」与「挂了」；③ 不可移植：拒绝即数据在所有宿主循环里都安全 |
-| 为什么检查点加在工具边界而不是模型边界？ | prompt 是概率性的，代码检查是确定性的——确定性防线放确定性边界。与 evals「先做确定性断言」同一哲学 |
-| 为什么 confirm 是注入的函数而不是写死 readline？ | 依赖倒置：闸门只依赖 `ToolConfirmFn` 这个函数形状。CLI 传 readline 问答、API 传 SSE 审批，闸门两边都不认识 |
-| 黑名单拦得住「编故事绕弯子」的语义注入吗？ | 拦不住，且文档里明说（纵深防御的一层，不是银弹）。字符串匹配只拦明示型注入；语义级改写靠提示词分层与最小权限工具表兜底 |
-| 为什么 AGENT_GUARD_INPUT 默认关闭？ | 零变化默认铁律：黑名单宁可漏报不误伤，先灰度观察误伤率再谈默认开启——这是刻意的工程保守 |
-| 幂等壳与审批壳谁包谁？ | 幂等在内、审批在外（chat.service.ts L186）：审批放行后才进幂等判定，被拒绝的调用不污染幂等缓存 |
-| 审计写盘失败会怎样？ | 静默吞掉。业务失败要抛给用户看，审计失败必须静默——可观测性永远不做拦路石 |
+| 追问                                             | 回答                                                                                                                                                                                                     |
+| ------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 为什么拒绝返回 `{denied}` 而不是抛异常？         | ① 语义错位：拒绝是策略结果不是工具坏了，模型看到 denied 才会放弃重试、向用户解释；② 结构丢失：循环会把异常折成 errorOutput，调用方分不清「被拦」与「挂了」；③ 不可移植：拒绝即数据在所有宿主循环里都安全 |
+| 为什么检查点加在工具边界而不是模型边界？         | prompt 是概率性的，代码检查是确定性的——确定性防线放确定性边界。与 evals「先做确定性断言」同一哲学                                                                                                        |
+| 为什么 confirm 是注入的函数而不是写死 readline？ | 依赖倒置：闸门只依赖 `ToolConfirmFn` 这个函数形状。CLI 传 readline 问答、API 传 SSE 审批，闸门两边都不认识                                                                                               |
+| 黑名单拦得住「编故事绕弯子」的语义注入吗？       | 拦不住，且文档里明说（纵深防御的一层，不是银弹）。字符串匹配只拦明示型注入；语义级改写靠提示词分层与最小权限工具表兜底                                                                                   |
+| 为什么 AGENT_GUARD_INPUT 默认关闭？              | 零变化默认铁律：黑名单宁可漏报不误伤，先灰度观察误伤率再谈默认开启——这是刻意的工程保守                                                                                                                   |
+| 幂等壳与审批壳谁包谁？                           | 幂等在内、审批在外（chat.service.ts L186）：审批放行后才进幂等判定，被拒绝的调用不污染幂等缓存                                                                                                           |
+| 审计写盘失败会怎样？                             | 静默吞掉。业务失败要抛给用户看，审计失败必须静默——可观测性永远不做拦路石                                                                                                                                 |
 
 ---
 
@@ -206,8 +211,8 @@ Get-Content .\.data\audit.log | Select-Object -Last 3 # 审计账本里躺着 in
 
 ## 延伸阅读
 
-- [../../packages/engine/src/guardrails/README.md](https://github.com/1648298170/ai-agent-blog/blob/main/agent-app/packages/engine/src/guardrails/README.md) —— 本模块原理篇：13 问自测清单 + 学习顺序
-- [../../SECURITY.md](https://github.com/1648298170/ai-agent-blog/blob/main/agent-app/SECURITY.md) —— 红队加固清单与残余风险（每条护栏对应哪个实验洞）
+- [../../packages/engine/src/guardrails/README.md](https://github.com/zrayjay/ai-agent-blog/blob/main/agent-app/packages/engine/src/guardrails/README.md) —— 本模块原理篇：13 问自测清单 + 学习顺序
+- [../../SECURITY.md](https://github.com/zrayjay/ai-agent-blog/blob/main/agent-app/SECURITY.md) —— 红队加固清单与残余风险（每条护栏对应哪个实验洞）
 - [../archive/weeks/week19/redteam-notes.md](../archive/weeks/week19/redteam-notes.md) —— 八实验矩阵的攻击复盘（E2 混淆变体 / E3 知识库投毒）
 - [../archive/weeks/week18/day5.md](../archive/weeks/week18/day5.md)、[day6.md](../archive/weeks/week18/day6.md) —— 教程主线：MCP 安全护栏 / 人工审批
 - [01-agent-loop.md](./01-agent-loop.md) —— 工具表在哪里被调度（护栏的包壳为什么对循环透明）

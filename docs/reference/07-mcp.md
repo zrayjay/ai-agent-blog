@@ -210,8 +210,8 @@ pnpm test:engine
 
 ## 延伸阅读
 
-- [../../packages/engine/src/mcp/README.md](https://github.com/1648298170/ai-agent-blog/blob/main/agent-app/packages/engine/src/mcp/README.md) —— 本模块原理篇：M+N 数学 + 14 问自测清单
-- [ARCHITECTURE.md](https://github.com/1648298170/ai-agent-blog/blob/main/agent-app/ARCHITECTURE.md) —— 整体架构图与踩坑实录
+- [../../packages/engine/src/mcp/README.md](https://github.com/zrayjay/ai-agent-blog/blob/main/agent-app/packages/engine/src/mcp/README.md) —— 本模块原理篇：M+N 数学 + 14 问自测清单
+- [ARCHITECTURE.md](https://github.com/zrayjay/ai-agent-blog/blob/main/agent-app/ARCHITECTURE.md) —— 整体架构图与踩坑实录
 - [01-agent-loop.md](./01-agent-loop.md) —— 适配后的工具在哪里被调度（循环为什么零感知）
 - [../archive/weeks/week11/mcp-ts.md](../archive/weeks/week11/mcp-ts.md) —— 教程 TS 主线的 MCP 篇
 - [../archive/weeks/week18/index.md](../archive/weeks/week18/index.md) —— MCP 协议 + 工具生态周（Day 1 概念 / Day 5 安全护栏 / Day 6 人工审批）

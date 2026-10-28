@@ -294,5 +294,5 @@ pnpm selftest         # 注册表链路：ToolRegistry → getAll() → runToolL
 - [02-llm-config-trace.md](./02-llm-config-trace.md) —— 模型工厂与轨迹开关（⚙✓ 就是 trace.ts 打的）
 - [04-memory.md](./04-memory.md) —— scope（sessionId）背后那套会话存储
 - [06-guardrails.md](./06-guardrails.md) —— 审批壳 / PII 脱敏 / 白名单这些安全壳怎么叠（规划中）
-- [../../packages/engine/src/tools/README.md](https://github.com/1648298170/ai-agent-blog/blob/main/agent-app/packages/engine/src/tools/README.md) —— 本目录自带的深度导读（含评测为什么另造夹具工具）
-- [ARCHITECTURE.md](https://github.com/1648298170/ai-agent-blog/blob/main/agent-app/ARCHITECTURE.md) —— 工具在整条消息旅程里的位置
+- [../../packages/engine/src/tools/README.md](https://github.com/zrayjay/ai-agent-blog/blob/main/agent-app/packages/engine/src/tools/README.md) —— 本目录自带的深度导读（含评测为什么另造夹具工具）
+- [ARCHITECTURE.md](https://github.com/zrayjay/ai-agent-blog/blob/main/agent-app/ARCHITECTURE.md) —— 工具在整条消息旅程里的位置
