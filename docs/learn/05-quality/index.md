@@ -12,11 +12,11 @@ title: 阶段 05 · 质量与可靠
 
 ## 课程
 
-| order | 课程                                    | 当前正文                         | status      |
-| ----- | --------------------------------------- | -------------------------------- | ----------- |
-| 60    | guardrails-safety · 护栏与安全红队      | [guide/06](/guide/06-safety)     | implemented |
-| 80    | evals-quality-gate · 评估框架：跑分说话 | [guide/08](/guide/08-evals)      | implemented |
-| 110   | production-maturity · 生产化与成熟度    | [guide/11](/guide/11-production) | implemented |
+| order | 课程                                    | 当前正文                                                | status      |
+| ----- | --------------------------------------- | ------------------------------------------------------- | ----------- |
+| 60    | guardrails-safety · 护栏与安全红队      | [learn/06 · 护栏](/learn/05-quality/guardrails-safety)  | implemented |
+| 80    | evals-quality-gate · 评估框架：跑分说话 | [learn/08 · 评估](/learn/05-quality/evals-quality-gate) | implemented |
+| 110   | production-maturity · 生产化与成熟度    | [guide/11](/guide/11-production)                        | implemented |
 
 **源码与测试**：`engine/src/guardrails/`、`engine/src/evals/`、`engine/src/verification/`、`engine/src/telemetry/` · 对应 `test/guardrails.spec.ts`、`test/evals.spec.ts`、`test/quality-gate.spec.ts` 等
 
