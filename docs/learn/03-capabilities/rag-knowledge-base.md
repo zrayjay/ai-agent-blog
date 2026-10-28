@@ -119,7 +119,7 @@ pnpm kb                                   # 问答 REPL
 - 归档周教程：[week14 · RAG Pipeline](/archive/weeks/week14/) · [week15 · 进阶与引用溯源](/archive/weeks/week15/)（Hybrid / 重排 / Adaptive RAG / 管理端 UI）
 - 产品实战：[知识库问答落地](/products/kb)（kb 产品线的完整形态）
 - 上一课：[03 · 记忆与上下文压缩](/learn/03-capabilities/memory-context)
-- 下一课：[05 · 工具层加固与幂等](/guide/05-tools-hardening) —— 工具是模型的手，这一站给手戴上安全装备
+- 下一课：[05 · 工具层加固与幂等](/learn/03-capabilities/tools-hardening) —— 工具是模型的手，这一站给手戴上安全装备
 
 ---
 

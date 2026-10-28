@@ -18,7 +18,7 @@ lastVerifiedCommit: 4ba8887
 
 > **这一站解决「单 Agent 什么时候不够用、不够用了怎么办」**。上一站客服系统的 Supervisor 已经是多 Agent 的第一形态（路由 Agent + 三个专家工人）——本站把它泛化成可配置的编排器：LLM 把目标拆成子任务单、按依赖 DAG 并行派发、逐任务验收，失败有四分支退路，全程预算受控。配套代码 `packages/engine/src/orchestrator/`，一条命令体验：`pnpm cli team "目标"`。
 
-**前置**：[05 · 工具层加固](/guide/05-tools-hardening)（幂等壳/审批壳在编排里继续复用）· 建议先读 [09 · 产品线组装](/guide/09-product)（Supervisor 是本站的第一形态）
+**前置**：[05 · 工具层加固](/learn/03-capabilities/tools-hardening)（幂等壳/审批壳在编排里继续复用）· 建议先读 [09 · 产品线组装](/guide/09-product)（Supervisor 是本站的第一形态）
 **深讲**：[参考库 · 编排器](/reference/10-orchestrator)（代码走读 / 设计取舍 / 面试级追问）
 
 ---
@@ -128,8 +128,8 @@ pnpm cli team --plan samples/team-plan.json --id demo-run-1
 
 ## 延伸
 
-- 上一课：[05 · 工具层加固与幂等](/guide/05-tools-hardening) —— 幂等壳与审批壳（编排器的两个「壳」）
-- 下一课：[06 · 护栏与安全红队](/guide/06-safety) —— 编排过的系统更需要防线
+- 上一课：[05 · 工具层加固与幂等](/learn/03-capabilities/tools-hardening) —— 幂等壳与审批壳（编排器的两个「壳」）
+- 下一课：[06 · 护栏与安全红队](/learn/05-quality/guardrails-safety) —— 编排过的系统更需要防线
 - [参考库 · 编排器](/reference/10-orchestrator) —— 代码走读 / 拆分方法论 / 面试级取舍
 - `packages/engine/src/orchestrator/README.md` —— 模块地图与关键语义速查
 - [09 · 产品线组装](/guide/09-product) —— Supervisor 星型：编排器的第一形态前身

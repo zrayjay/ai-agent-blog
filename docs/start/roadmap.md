@@ -26,10 +26,10 @@
 | [02](/learn/02-runtime/agent-loop)                       | 手写工具循环（Agent 核心）  | S2       |
 | [03](/learn/03-capabilities/memory-context)              | 记忆与上下文压缩            | S3       |
 | [04](/learn/03-capabilities/rag-knowledge-base)          | RAG 知识库与检索            | S3       |
-| [05](/guide/05-tools-hardening)                          | 工具层加固与幂等            | S2/S3    |
-| [06](/guide/06-safety)                                   | 护栏与安全红队              | S5       |
-| [07](/guide/07-mcp)                                      | MCP 标准插口                | S3       |
-| [08](/guide/08-evals)                                    | 评估框架：跑分说话          | S5       |
+| [05](/learn/03-capabilities/tools-hardening)             | 工具层加固与幂等            | S2/S3    |
+| [06](/learn/05-quality/guardrails-safety)                | 护栏与安全红队              | S5       |
+| [07](/learn/03-capabilities/mcp-integration)             | MCP 标准插口                | S3       |
+| [08](/learn/05-quality/evals-quality-gate)               | 评估框架：跑分说话          | S5       |
 | [09](/guide/09-product)                                  | 产品线组装：客服系统        | S7       |
 | [09b](/learn/04-orchestration/multi-agent-orchestration) | 多 Agent 编排：拆 · 派 · 跑 | S4       |
 | [10](/guide/10-frontend)                                 | Web 前端与 SSE 流式         | S6       |

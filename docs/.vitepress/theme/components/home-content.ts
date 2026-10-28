@@ -53,17 +53,17 @@ export const learningStages: LearningStage[] = [
       {
         no: '05',
         title: '工具层加固与幂等',
-        href: '/guide/05-tools-hardening',
+        href: '/learn/03-capabilities/tools-hardening',
         summary: '工具注册、高危审批与重复执行防护'
       },
       {
         no: '06',
         title: '护栏与安全红队',
-        href: '/guide/06-safety',
+        href: '/learn/05-quality/guardrails-safety',
         summary: '脱敏、防注入、审计与攻击实验'
       },
-      { no: '07', title: 'MCP 标准插口', href: '/guide/07-mcp', summary: 'Server、Client 与外部工具适配' },
-      { no: '08', title: '评估框架', href: '/guide/08-evals', summary: '分层判分、基线对比与质量门禁' }
+      { no: '07', title: 'MCP 标准插口', href: '/learn/03-capabilities/mcp-integration', summary: 'Server、Client 与外部工具适配' },
+      { no: '08', title: '评估框架', href: '/learn/05-quality/evals-quality-gate', summary: '分层判分、基线对比与质量门禁' }
     ]
   },
   {

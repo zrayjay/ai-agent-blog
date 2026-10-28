@@ -1,7 +1,7 @@
 # 07 · MCP：把别人家的工具接进来
 
 > 一句话：MCP（Model Context Protocol）是 Anthropic 推的工具接入行业标准——**JSON-RPC 之上的工具发现协议**。没有它，M 个客户端 × N 个工具 = M×N 份胶水；有了它 = M+N：工具方实现一次 Server，客户端方实现一次 Client，中间说同一种话。
-> 本目录 `src/mcp/` 三个文件一个闭环：**server = 开放窗口**（把自家工具暴露出去）/ **client = 接线员**（连别人的服务器）/ **adapter = 翻译官**（把 MCP 工具适配成自家 `AgentTool`）。本文是深读篇：逐行走读 + 行号对照 + 面试级追问。先读[教学章](/guide/07-mcp)再回来，体感更好。
+> 本目录 `src/mcp/` 三个文件一个闭环：**server = 开放窗口**（把自家工具暴露出去）/ **client = 接线员**（连别人的服务器）/ **adapter = 翻译官**（把 MCP 工具适配成自家 `AgentTool`）。本文是深读篇：逐行走读 + 行号对照 + 面试级追问。先读[教学章](/learn/03-capabilities/mcp-integration)再回来，体感更好。
 
 ---
 
