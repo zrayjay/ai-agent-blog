@@ -9,7 +9,7 @@
 | S1 基础与模型交互 | LLM API、流式、结构化输出、工具调用协议          | 能徒手调通 OpenAI 兼容网关的流式与 JSON 调用 | TS 基础 |
 | S2 Agent Runtime  | 手写工具循环、终止条件、错误回灌、审批与幂等     | 一个 200 行、带五道工程防御的工具循环        | S1      |
 | S3 Capabilities   | 记忆（三层）、RAG（含引用溯源）、MCP、Skills     | 带记忆、可检索私有知识、可接外部工具的 Agent | S2      |
-| S4 Orchestration  | 多 Agent 编排：拆 · 派 · 跑、DAG 并行、验收闭环  | 可运行的多任务编排实验（`pnpm team`）        | S2      |
+| S4 Orchestration  | 多 Agent 编排：拆 · 派 · 跑、DAG 并行、验收闭环  | 可运行的多任务编排实验（`pnpm cli team`）    | S2      |
 | S5 质量与可靠     | 护栏、红队、评估框架、质量门禁、生产化           | 可重复运行的评估报告与 CI 门禁               | S2~S3   |
 | S6 全栈交付       | Next.js 前端、NestJS BFF、SSE 流式、compose 部署 | 可本地启动的完整 Web 应用                    | S1~S5   |
 | S7 产品案例       | 知识库问答、智能客服、文档智能                   | 三个可演示的业务案例及组装说明               | S3~S6   |
@@ -35,7 +35,7 @@
 | [10](/guide/10-frontend)        | Web 前端与 SSE 流式         | S6       |
 | [11](/guide/11-production)      | 生产化与成熟度              | S5/S6    |
 | [12](/guide/12-roadmap)         | 学完之后：演进方向          | 毕业站   |
-| [13](/guide/13-interview)       | 面试实战                    | 求职专题 |
+| [13](/guide/13-interview)       | 面试实战：带着问题通关      | 求职专题 |
 
 > 编号即推荐学习顺序（09b 为插入的编排专题，将随信息架构演进重编号，届时旧链接保留跳转）。9b 之后进入全栈与收尾。
 

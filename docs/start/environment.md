@@ -44,7 +44,7 @@ pnpm typecheck    # 全 workspace 类型检查
 pnpm examples:minimal
 ```
 
-这是一个 40 行的最小 Agent：模型自己决定调用几次天气工具。**无密钥时会打印清晰的配置错误提示而不崩溃**——这就是预期行为；想看完整效果需在 `agent-app/.env` 配置 OpenAI 兼容网关：
+这是一个 38 行的最小 Agent：模型自己决定调用几次天气工具。**无密钥时会打印清晰的配置错误提示而不崩溃**——这就是预期行为；想看完整效果需在 `agent-app/.env` 配置 OpenAI 兼容网关：
 
 ```bash
 Copy-Item .env.example .env   # PowerShell；POSIX 用 cp .env.example .env

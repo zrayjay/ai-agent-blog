@@ -84,7 +84,7 @@ export default defineConfig({
         text: '🚀 主线 · 从 0 到生产',
         collapsed: false,
         items: [
-          { text: '学习路线图（从这里开始）', link: '/' },
+          { text: '总览（首页）', link: '/' },
           { text: '01 · LLM API 与结构化输出', link: '/guide/01-llm-basics' },
           { text: '02 · 手写工具循环（Agent 核心）', link: '/guide/02-agent-loop' },
           { text: '03 · 记忆与上下文压缩', link: '/guide/03-memory' },
