@@ -4,11 +4,11 @@
 
 ## 页面类型
 
-| type          | 位置                                      | 必填字段                       |
-| ------------- | ----------------------------------------- | ------------------------------ |
-| `lesson`      | `docs/learn/<stage>/<站号>-<lessonId>.md` | 全部下述字段（除 optional 外） |
-| `stage-index` | `docs/learn/<stage>/index.md`             | `type`、`stage`、`title`       |
-| 框架总览      | `docs/learn/index.md`                     | `type: learn-index`、`title`   |
+| type          | 位置                                                                                               | 必填字段                       |
+| ------------- | -------------------------------------------------------------------------------------------------- | ------------------------------ |
+| `lesson`      | `docs/learn/<stage>/<lessonId>.md`（P1-03 起文件名省略站号前缀；已存在的带前缀文件名不强制重命名） | 全部下述字段（除 optional 外） |
+| `stage-index` | `docs/learn/<stage>/index.md`                                                                      | `type`、`stage`、`title`       |
+| 框架总览      | `docs/learn/index.md`                                                                              | `type: learn-index`、`title`   |
 
 ## lesson 必填 frontmatter
 

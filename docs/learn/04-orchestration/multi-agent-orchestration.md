@@ -140,3 +140,7 @@ pnpm cli team --plan samples/team-plan.json --id demo-run-1
 ::: tip 旧链接兼容
 本课原地址为 `/guide/09b-multi-agent`，已迁移至 `learn/04-orchestration`（课程 ID `multi-agent-orchestration`，原 09b 插入式编号停用）。旧链接请更新；本页由 [阶段 04 索引](/learn/04-orchestration/) 收录。
 :::
+
+::: info 章节结构说明
+本课由 guide 整体迁移而来。对照课程元数据 Schema 的十章结构：核心原理（§一/二）、最小可执行实现（§三）、真实工程实现位置（§四）、自测及下一课（自测题/延伸）已达标；「学完会什么」由开篇引语承担；「先决知识与运行环境」见[运行环境](/start/environment)；「测试与验收」见 frontmatter `tests` 与[阶段 04 验收清单](/learn/04-orchestration/)；「常见误区与排错」内容含于自测题答案。属**整体迁移章例外**，缺失小节随批次 B 统一补齐。
+:::
