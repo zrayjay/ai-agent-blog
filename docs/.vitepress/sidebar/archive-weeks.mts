@@ -1,7 +1,7 @@
 // 归档 · 按周索引（旧版课程）
-import type { SidebarItem } from 'vitepress'
+import type { DefaultTheme } from 'vitepress'
 
-export const archiveWeeksSidebar: SidebarItem[] = [
+export const archiveWeeksSidebar: DefaultTheme.SidebarItem[] = [
   {
       text: '📦 归档 · 按周索引（旧版课程）',
       collapsed: true,

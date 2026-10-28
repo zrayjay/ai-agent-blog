@@ -1,7 +1,7 @@
 // 归档 B · Python 按天
-import type { SidebarItem } from 'vitepress'
+import type { DefaultTheme } from 'vitepress'
 
-export const archiveBSidebar: SidebarItem[] = [
+export const archiveBSidebar: DefaultTheme.SidebarItem[] = [
   {
       text: '📦 归档 B · Python 按天',
       collapsed: true,

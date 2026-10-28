@@ -1,7 +1,7 @@
 // 归档 A · Node + TS 按天
-import type { SidebarItem } from 'vitepress'
+import type { DefaultTheme } from 'vitepress'
 
-export const archiveASidebar: SidebarItem[] = [
+export const archiveASidebar: DefaultTheme.SidebarItem[] = [
   {
       text: '📦 归档 A · Node + TS 按天',
       collapsed: true,

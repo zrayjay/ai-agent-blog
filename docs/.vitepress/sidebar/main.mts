@@ -1,7 +1,7 @@
 // 主线侧边栏：开始 / 七阶段 / 主线正文 / 参考库 / 案例 / 进阶
-import type { SidebarItem } from 'vitepress'
+import type { DefaultTheme } from 'vitepress'
 
-export const mainSidebar: SidebarItem[] = [
+export const mainSidebar: DefaultTheme.SidebarItem[] = [
   {
       text: '开始',
       collapsed: false,
