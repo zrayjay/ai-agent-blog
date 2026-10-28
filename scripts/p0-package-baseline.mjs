@@ -6,7 +6,13 @@ const files = [
   ...["engine", "shared"].map((x) => `agent-app/packages/${x}/package.json`),
 ];
 for (const file of files) {
-  const p = JSON.parse(readFileSync(file, "utf8"));
+  let p;
+  try {
+    p = JSON.parse(readFileSync(file, "utf8"));
+  } catch (e) {
+    console.error(`SKIP ${file}: ${e && e.code ? e.code : e && e.message ? e.message : String(e)}`);
+    continue;
+  }
   console.log(
     JSON.stringify(
       {

@@ -2,6 +2,7 @@ import { existsSync, readFileSync } from "node:fs";
 import {
   DIR,
   OUTPUT_PATHS,
+  cell,
   listTrackedMarkdown,
   readTrackedInputs,
   buildInventory,
@@ -75,7 +76,7 @@ if (plan && existsSync(`${DIR}/implementation-tracker.md`)) {
 // 6. 覆盖与行数（不依赖具体表格行格式，空白不敏感）
 if (inventoryDisk) {
   const invLines = squeezeLines(inventoryDisk);
-  const missing = paths.filter((p) => !invLines.some((l) => l.startsWith(`| ${p} `)));
+  const missing = paths.filter((p) => !invLines.some((l) => l.startsWith(`| ${cell(p)} `)));
   if (missing.length) failures.push(`清单缺少路径: ${missing.join(", ")}`);
   const rowCount = invLines.filter(
     (l) => l.startsWith("| ") && !l.startsWith("| 路径") && !/^\| -+ /.test(l),

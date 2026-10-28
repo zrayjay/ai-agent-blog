@@ -65,11 +65,12 @@ function typeOf(p) {
   return "仓库文档";
 }
 
-const cell = (s) =>
+const escapeCell = (s) =>
   String(s)
     .replace(/\r?\n/g, " ")
     .trim()
     .replace(/[&<>\[\]()*_`|{}]/g, (c) => `&#${c.charCodeAt(0)};`);
+export const cell = escapeCell;
 
 // 提取标题：frontmatter title 优先，其次正文一级标题，否则如实标注未标注。
 export function describe(path, contents) {
@@ -88,7 +89,13 @@ export function describe(path, contents) {
     body
       .split(/\r?\n/)
       .map((s) => s.trim())
-      .find((s) => s && !/^(#|>|\||```|[-*][ \t]|<|---$)/.test(s)) || "(无普通正文段落)";
+      .find(
+        (s) =>
+          s &&
+          !/^(#|>|\||```|[-*][ \t]|<|---$|flowchart|graph|sequenceDiagram|classDiagram|stateDiagram|erDiagram|pie|mindmap)/.test(
+            s,
+          ),
+      ) || "(无普通正文段落)";
   return { fm, title, summary };
 }
 
@@ -117,16 +124,38 @@ export function parseTasks(plan) {
 const rowLine = (cells) => `| ${cells.join(" | ")} |\n`;
 
 // 解析现有追踪表数据行（taskId 为第一列）；保留原单元格内容以保住人工字段。
+// 单元格切分须识别 `\|` 转义（buildTracker 的 esc 会写入转义管道符），否则 round-trip 错列。
+export function splitUnescaped(line, sep) {
+  const cells = [];
+  let cur = "";
+  for (let i = 0; i < line.length; i++) {
+    if (line[i] === "\\" && line[i + 1] === sep) {
+      cur += line[++i];
+      continue;
+    }
+    if (line[i] === sep) {
+      cells.push(cur.trim());
+      cur = "";
+      continue;
+    }
+    cur += line[i];
+  }
+  cells.push(cur.trim());
+  return cells;
+}
+
 export function parseTrackerRows(text) {
   const rows = new Map();
   const order = [];
   for (const raw of text.split(/\r?\n/)) {
     if (!raw.trimStart().startsWith("|")) continue;
-    const cells = raw.split("|").map((c) => c.trim());
-    const id = cells[1];
+    const line = raw.trim().replace(/^\|/, "").replace(/\|$/, "");
+    const cells = splitUnescaped(line, "|");
+    const id = cells[0];
     if (!/^P[0-6]-\d\d$/.test(id)) continue;
     if (!rows.has(id)) order.push(id);
-    rows.set(id, cells.slice(1, cells.length - 1));
+    // 约定与旧实现一致：存含 taskId 的完整单元格（首个为 id），buildTracker 直接 rowLine。
+    rows.set(id, cells);
   }
   return { rows, order };
 }
