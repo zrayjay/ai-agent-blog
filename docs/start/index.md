@@ -28,7 +28,7 @@
 
 ## 怎么用：三层结构
 
-1. **主线教程**（`guide` 13 站）：按顺序读，每站有前置、可运行命令与自测。入口是[第 01 站 · LLM API 与结构化输出](/guide/01-llm-basics)
+1. **主线教程**（`guide` 13 站）：按顺序读，每站有前置、可运行命令与自测。入口是[第 01 站 · LLM API 与结构化输出](/learn/01-foundations/llm-structured-output)
 2. **模块深读**（`reference`）：实现细节、代码走读与设计取舍。主线遇到实现疑问时按站内链接进入，例如[工具循环深读](/reference/01-agent-loop)
 3. **产品案例**（`products`）：把学到的零件组装成完整业务，如[知识库问答](/products/kb)、[智能客服](/products/service)
 
@@ -42,4 +42,4 @@
 
 - 看路线：[学习路线图](/start/roadmap)（唯一正式路线，七阶段结构）
 - 搭环境：[运行环境](/start/environment)（版本锁定与常见故障）
-- 直接开学：[第 01 站](/guide/01-llm-basics)
+- 直接开学：[第 01 站](/learn/01-foundations/llm-structured-output)

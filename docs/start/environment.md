@@ -94,4 +94,4 @@ pnpm docs:dev    # VitePress 开发服务器，默认 http://localhost:5173
 
 ## 下一步
 
-环境就绪 → [学习路线图](/start/roadmap)了解全程 → [第 01 站](/guide/01-llm-basics)开始学习。
+环境就绪 → [学习路线图](/start/roadmap)了解全程 → [第 01 站](/learn/01-foundations/llm-structured-output)开始学习。

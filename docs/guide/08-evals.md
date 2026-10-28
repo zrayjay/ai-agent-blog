@@ -2,7 +2,7 @@
 
 > **这一站解决「变好还是变坏」的举证问题**：改了 prompt、换了模型，「感觉变好了」是幻觉。学完你将拥有一条五件套评估流水线、三档四评分器、76 例版本化考卷，以及一套改动前后对比基线的回归纪律。
 
-**前置**：[02 · 手写工具循环](/guide/02-agent-loop)（`onStep` 钩子是评测采集轨迹的出口——循环那章埋的线在这收）
+**前置**：[02 · 手写工具循环](/learn/02-runtime/agent-loop)（`onStep` 钩子是评测采集轨迹的出口——循环那章埋的线在这收）
 **配套跑起来**：`pnpm eval`（无 key 也出报告）+ `pnpm test:engine`（`test/evals.spec.ts` 覆盖打分器与运行器端到端）
 **深读**：[参考库 · 评估框架深读](/reference/08-evals)（四个评分器的口径差异与 judge 校准设计）
 
@@ -22,13 +22,13 @@ Agent 系统的每次变更（改 system prompt、换 embedding 模型、调工�
 corpus(语料) → dataset(考卷) → fixtures(剧本模型) → runner(跑) → report + baseline(报告与基线)
 ```
 
-| 件 | 文件 | 一句话 |
-|---|---|---|
-| 语料 | `corpus.ts` | 10 篇主题互斥的中文政策文档 + 50 条查询（三种难度混排） |
-| 考卷 | `dataset.ts` | 18 条离线用例 + 8 条 judge 用例；`EVAL_DATASET_VERSION = "3"`——改用例必须升版 |
-| 夹具 | `fixtures.ts` | 三个固定数据工具 + `createScriptedModel()` 剧本模型 |
-| 运行器 | `runner.ts` | 逐 case 跑真实管线，单例失败不炸整轮 |
-| 报告 | `report.ts` / `baseline.ts` | 控制台逐例标记 + `.data/eval-report.json`；套件级数字快照 |
+| 件     | 文件                        | 一句话                                                                        |
+| ------ | --------------------------- | ----------------------------------------------------------------------------- |
+| 语料   | `corpus.ts`                 | 10 篇主题互斥的中文政策文档 + 50 条查询（三种难度混排）                       |
+| 考卷   | `dataset.ts`                | 18 条离线用例 + 8 条 judge 用例；`EVAL_DATASET_VERSION = "3"`——改用例必须升版 |
+| 夹具   | `fixtures.ts`               | 三个固定数据工具 + `createScriptedModel()` 剧本模型                           |
+| 运行器 | `runner.ts`                 | 逐 case 跑真实管线，单例失败不炸整轮                                          |
+| 报告   | `report.ts` / `baseline.ts` | 控制台逐例标记 + `.data/eval-report.json`；套件级数字快照                     |
 
 **最容易困惑的一点：模型是剧本，评的是什么？** 轨迹评估里的模型不是真 GLM，而是 `ai/test` 的 `MockLanguageModelV2` 按剧本逐轮吐 tool-call / 文本：
 
@@ -38,7 +38,8 @@ export function createScriptedModel(script: ScriptedModelTurn[]): LanguageModel 
   let cursor = 0;
   return new MockLanguageModelV2({
     doGenerate: async () => {
-      const turn = script[cursor]; cursor += 1;   // 游标逐轮推进
+      const turn = script[cursor];
+      cursor += 1; // 游标逐轮推进
       // text 轮 → finishReason "stop"（循环出口）；tool-calls 轮 → "tool-calls"
     },
   });
@@ -49,12 +50,12 @@ export function createScriptedModel(script: ScriptedModelTurn[]): LanguageModel 
 
 **三档四评分器，从便宜到贵**：
 
-| 档 | 评分器 | 判什么 | 依赖 |
-|---|---|---|---|
-| Tier 1 | `scorers/trajectory.ts` | 工具序列与期望**逐位比对**；空序列特判（期望不调、没调 = 1 分，调了 = 0 分） | 零 |
-| Tier 1 | `scorers/routing.ts` | 客服路由断言；期望 `null` = 硬规则应放行（不该劫持正常业务） | 零 |
-| Tier 2 | `scorers/retrieval.ts` | 期望文档进没进 top-k：单例得分 = 命中排名倒数，套件级汇总出 Recall@1/3/5 与 MRR | embedding key |
-| Tier 3 | `scorers/judge.ts` | LLM rubric **二元判定**，宁可误杀不可放过 | chat key |
+| 档     | 评分器                  | 判什么                                                                          | 依赖          |
+| ------ | ----------------------- | ------------------------------------------------------------------------------- | ------------- |
+| Tier 1 | `scorers/trajectory.ts` | 工具序列与期望**逐位比对**；空序列特判（期望不调、没调 = 1 分，调了 = 0 分）    | 零            |
+| Tier 1 | `scorers/routing.ts`    | 客服路由断言；期望 `null` = 硬规则应放行（不该劫持正常业务）                    | 零            |
+| Tier 2 | `scorers/retrieval.ts`  | 期望文档进没进 top-k：单例得分 = 命中排名倒数，套件级汇总出 Recall@1/3/5 与 MRR | embedding key |
+| Tier 3 | `scorers/judge.ts`      | LLM rubric **二元判定**，宁可误杀不可放过                                       | chat key      |
 
 轨迹评分器的口径值得单独看一眼——**顺序敏感 + 部分分**：
 

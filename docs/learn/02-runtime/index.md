@@ -12,9 +12,9 @@ title: 阶段 02 · Agent Runtime
 
 ## 课程
 
-| order | 课程                      | 当前正文                         | status      |
-| ----- | ------------------------- | -------------------------------- | ----------- |
-| 20    | agent-loop · 手写工具循环 | [guide/02](/guide/02-agent-loop) | implemented |
+| order | 课程                      | 当前正文                                            | status      |
+| ----- | ------------------------- | --------------------------------------------------- | ----------- |
+| 20    | agent-loop · 手写工具循环 | [learn/02 · 工具循环](/learn/02-runtime/agent-loop) | implemented |
 
 **源码与测试**：`agent-app/packages/engine/src/agent-loop.ts` · `test/agent-loop.spec.ts`、`test/reliability.spec.ts`、`test/hardening.spec.ts`
 

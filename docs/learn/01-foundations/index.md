@@ -12,9 +12,9 @@ title: 阶段 01 · 基础与模型交互
 
 ## 课程
 
-| order | 课程                                         | 当前正文                         | status                                                                                                                                                                       |
-| ----- | -------------------------------------------- | -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 10    | llm-structured-output · LLM API 与结构化输出 | [guide/01](/guide/01-llm-basics) | partial（正文迁移填充中；能力已实现，[examples/minimal-agent](https://github.com/zrayjay/ai-agent-blog/blob/main/agent-app/packages/engine/examples/minimal-agent.ts) 可跑） |
+| order | 课程                                         | 当前正文                                                          | status                                                                                                                                                                   |
+| ----- | -------------------------------------------- | ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 10    | llm-structured-output · LLM API 与结构化输出 | [learn/01 · LLM API](/learn/01-foundations/llm-structured-output) | partial（精简框架版；能力已实现，[examples/minimal-agent](https://github.com/zrayjay/ai-agent-blog/blob/main/agent-app/packages/engine/examples/minimal-agent.ts) 可跑） |
 
 ## 阶段验收
 
