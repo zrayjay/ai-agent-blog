@@ -22,7 +22,11 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
+      # fetch-depth 0：matrix:check（P2-05）的 R7 需完整历史与 origin/main
+      # 校验 lastVerifiedCommit 是否为 main 祖先——浅克隆下必挂
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       # pnpm 版本读取 agent-app/package.json 的 packageManager 字段，本地与 CI 同版本
       - uses: pnpm/action-setup@v4
