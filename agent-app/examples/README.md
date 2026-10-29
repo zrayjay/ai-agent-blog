@@ -32,5 +32,5 @@ examples/
 | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- | -------- |
 | 01-tool-loop-offline               | [02 · 手写工具循环](../../docs/learn/02-runtime/agent-loop.md)                                                                  | ✅ 本批  |
 | 02-structured-output               | [01 · LLM API 与结构化输出](../../docs/learn/01-foundations/llm-structured-output.md)                                           | ✅ 本批  |
-| 03-memory / 04-rag / 05-mcp-skills | 阶段 03 各课                                                                                                                    | ⬜ P2-03 |
+| 03-memory / 04-rag / 05-mcp-skills | 阶段 03 各课                                                                                                                    | ✅ 本批  |
 | 06-orchestration / 07-evals        | [09b](../../docs/learn/04-orchestration/multi-agent-orchestration.md) / [08](../../docs/learn/05-quality/evals-quality-gate.md) | ⬜ P2-04 |
