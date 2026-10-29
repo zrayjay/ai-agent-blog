@@ -20,6 +20,7 @@ pnpm exec tsx examples/01-tool-loop-offline/src/main.ts
 ```text
 [step 1] 调用 getWeather({"city":"北京"})
 [step 2] 调用 getWeather({"city":"上海"})
+
 最终回答（共 3 步）：
 上海今天更热：28°C 对 23°C。
 ```
