@@ -46,11 +46,11 @@ const r2 = await orch2.runAsync({
 });
 const t2Out = r2.outputs.find((o) => o.taskId === "t2");
 console.log(
-  "[编排 2] 验收打回：第一次产出不含关键词 → critic 拒绝 → " +
-    (t2Out?.text.includes("完成") ? "重做后通过" : `降级占位续链（${t2Out?.text}）`),
+  "[编排 2] 验收不达标：第一次产出不含关键词 → AcceptanceFailedError 不可重试 → 降级占位续链" +
+    (t2Out ? `（${t2Out.text}）` : ""),
 );
 
-// 编排 3：失败降级（执行器持续抛错 → retry 耗尽 → 降级占位续链）
+// 编排 3：失败重试耗尽（RetriableError → defaultRetryPolicy 退避重试 3 次 → 全失败 → 降级占位续链）
 const orch3 = new Orchestrator({
   stateStore: new MemoryStateStore(),
   planner: happyPlanner(),
@@ -59,7 +59,7 @@ const orch3 = new Orchestrator({
 });
 const r3 = await orch3.runAsync({
   id: "orch-demo-3",
-  goal: "演示失败降级",
+  goal: "演示失败重试耗尽",
   tasks: [{ id: "t1", title: "会失败的任务", goal: "调用持续不可用的下游" }],
 });
-console.log(`[编排 3] 失败降级：任务反复失败 → 降级占位续链 → 编排继续到 ${r3.state}`);
+console.log(`[编排 3] 失败重试耗尽：RetriableError ×3（退避重试）→ 降级占位续链 → 编排继续到 ${r3.state}`);

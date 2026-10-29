@@ -60,10 +60,12 @@ describe("06-orchestration", () => {
     });
     const r = await orch.runAsync({
       id: "spec-fail-1",
-      goal: "演示失败降级",
+      goal: "演示失败重试耗尽",
       tasks: [{ id: "t1", title: "会失败的任务", goal: "调用不可用下游" }],
     });
-    // 失败被降级吸收（占位续链），编排状态机走到合法终态而非卡死
-    expect(["done", "failed"]).toContain(r.state);
+    // RetriableError → 退避重试 ×3 全失败 → 降级占位续链，编排走到合法终态而非卡死
+    expect(r.state).toBe("done");
+    const t1 = r.outputs.find((o) => o.taskId === "t1");
+    expect(t1?.text).toBe("（降级跳过）");
   });
 });
