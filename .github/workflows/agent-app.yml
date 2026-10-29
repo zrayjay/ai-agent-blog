@@ -66,6 +66,12 @@ jobs:
         run: pnpm --filter @agent-app/api test
         working-directory: agent-app
 
+      # 教学示例门禁（P2-01）：目录结构完整 + 每例 ≥1 条离线确定性 spec。
+      # 假模型驱动（ai/test 同缝），零密钥零网络。
+      - name: 示例校验（examples:check——结构 + 离线 spec）
+        run: pnpm examples:check
+        working-directory: agent-app
+
   # 评测套件（P3）：CI 无 key → 检索/评审套件自动跳过（跳过 ≠ 失败，退出码 0），
   # Tier 1（轨迹/路由）确定性门禁。零 Secret；基线是 .data 本地文件（不进 git），
   # CI 侧不比对基线，回归门禁只覆盖 Tier 1。

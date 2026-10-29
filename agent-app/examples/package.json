@@ -1,0 +1,22 @@
+{
+  "name": "@agent-app/examples",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "渐进式教学示例系列（离线确定性测试；真实模型路径显式可选）",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@agent-app/engine": "workspace:*",
+    "ai": "^5.0.266",
+    "zod": "^4.6.6"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.2",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.2"
+  }
+}

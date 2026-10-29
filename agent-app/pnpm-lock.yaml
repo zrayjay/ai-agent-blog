@@ -150,6 +150,31 @@ importers:
         specifier: ^5.9.3
         version: 5.9.3
 
+  examples:
+    dependencies:
+      '@agent-app/engine':
+        specifier: workspace:*
+        version: link:../packages/engine
+      ai:
+        specifier: ^5.0.266
+        version: 5.0.267(zod@4.6.7)
+      zod:
+        specifier: ^4.6.6
+        version: 4.6.7
+    devDependencies:
+      '@types/node':
+        specifier: ^26.6.2
+        version: 26.6.3
+      tsx:
+        specifier: ^4.23.15
+        version: 4.23.15
+      typescript:
+        specifier: ^7.0.2
+        version: 7.0.2
+      vitest:
+        specifier: ^5.0.2
+        version: 5.0.2(@opentelemetry/api@1.9.0)(@types/node@26.6.3)(vite@8.3.5(@types/node@26.6.3)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15))
+
   packages/engine:
     dependencies:
       '@ai-sdk/openai':
