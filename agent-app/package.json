@@ -32,7 +32,9 @@
     "examples:minimal": "tsx packages/engine/examples/minimal-agent.ts",
     "examples:custom-tool": "tsx packages/engine/examples/custom-tool.ts",
     "examples": "pnpm examples:minimal && pnpm examples:custom-tool",
-    "verify": "pnpm typecheck && pnpm test:engine && pnpm test:api && pnpm selftest && pnpm exec tsc --noEmit -p packages/engine/examples/tsconfig.json && pnpm lint:deps"
+    "examples:list": "node examples/list.mjs",
+    "examples:check": "node examples/list.mjs --check",
+    "verify": "pnpm typecheck && pnpm test:engine && pnpm test:api && pnpm selftest && pnpm exec tsc --noEmit -p packages/engine/examples/tsconfig.json && pnpm lint:deps && pnpm examples:check"
   },
   "engines": {
     "node": ">=18.18"
