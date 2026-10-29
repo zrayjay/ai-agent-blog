@@ -8,12 +8,12 @@ type ScriptedResponse = Awaited<ReturnType<InstanceType<typeof MockLanguageModel
 
 const ZERO_USAGE = { inputTokens: 0, outputTokens: 0, totalTokens: 0 };
 
-function toolCallResponse(toolName: string, input: Record<string, unknown>): ScriptedResponse {
+function toolCallResponse(id: number, toolName: string, input: Record<string, unknown>): ScriptedResponse {
   return {
     content: [
       {
         type: "tool-call" as const,
-        toolCallId: `mock-call-${Math.random().toString(36).slice(2, 8)}`,
+        toolCallId: `mock-call-${id}`,
         toolName,
         input: JSON.stringify(input),
       },
@@ -40,8 +40,8 @@ function textResponse(text: string): ScriptedResponse {
 export function scriptedWeatherModel(): InstanceType<typeof MockLanguageModelV2> {
   let step = 0;
   const script: ScriptedResponse[] = [
-    toolCallResponse("getWeather", { city: "北京" }),
-    toolCallResponse("getWeather", { city: "上海" }),
+    toolCallResponse(1, "getWeather", { city: "北京" }),
+    toolCallResponse(2, "getWeather", { city: "上海" }),
     textResponse("上海今天更热：28°C 对 23°C。"),
   ];
   return new MockLanguageModelV2({

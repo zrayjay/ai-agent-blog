@@ -3,7 +3,7 @@
 // 规则（examples/README.md）：每个 NN-<slug>/ 必须含 README.md、src/main.ts、
 // src/main.spec.ts；README 须含对应课链接（docs/learn/…）与离线路径声明。
 import { readdirSync, readFileSync, existsSync } from "node:fs";
-import { join, dirname } from "node:path";
+import { join, dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { execFileSync } from "node:child_process";
 
@@ -15,21 +15,31 @@ const ENTRIES = readdirSync(ROOT, { withFileTypes: true })
 
 function checkStructure(dir) {
   const problems = [];
+  const dirPath = join(ROOT, dir);
+  const readmePath = join(dirPath, "README.md");
   for (const f of ["README.md", join("src", "main.ts"), join("src", "main.spec.ts")]) {
-    if (!existsSync(join(ROOT, dir, f))) problems.push(`缺少 ${f}`);
+    if (!existsSync(join(dirPath, f))) problems.push(`缺少 ${f}`);
   }
-  const readme = readFileSync(join(ROOT, dir, "README.md"), "utf8");
-  if (!/docs\/learn\//.test(readme)) problems.push("README 缺少对应课链接（docs/learn/…）");
+  if (!existsSync(readmePath)) return { problems, readme: "", lesson: "(缺少 README)" };
+
+  const readme = readFileSync(readmePath, "utf8");
+  const lessonLink = readme.match(/\]\(([^)#]*docs\/learn\/[^)#]+\.md)\)/)?.[1];
+  if (!lessonLink) {
+    problems.push("README 缺少对应课链接（…/docs/learn/….md）");
+  } else if (!existsSync(resolve(dirPath, lessonLink))) {
+    problems.push(`对应课链接目标不存在: ${lessonLink}`);
+  }
+  if (!/^## 前置$/m.test(readme)) problems.push("README 缺少「## 前置」章节");
+  if (!/命令与预期输出/.test(readme)) problems.push("README 缺少命令与预期输出章节");
+  if (!/对应源码/.test(readme)) problems.push("README 缺少对应源码说明");
   if (!/离线|offline/i.test(readme)) problems.push("README 未声明离线路径");
-  return problems;
+  return { problems, readme, lesson: lessonLink ?? "(未标注)" };
 }
 
-const list = ENTRIES.map((dir) => ({ dir, problems: checkStructure(dir) }));
+const list = ENTRIES.map((dir) => ({ dir, ...checkStructure(dir) }));
 
 console.log(`共 ${ENTRIES.length} 个示例：`);
-for (const { dir, problems } of list) {
-  const readme = readFileSync(join(ROOT, dir, "README.md"), "utf8");
-  const lesson = (readme.match(/docs\/learn\/[^)\]]+/) || ["(未标注)"])[0];
+for (const { dir, problems, lesson } of list) {
   console.log(`  ${dir}  → ${lesson}${problems.length ? "  [结构问题: " + problems.join("; ") + "]" : ""}`);
 }
 

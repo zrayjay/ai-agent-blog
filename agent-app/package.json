@@ -34,7 +34,7 @@
     "examples": "pnpm examples:minimal && pnpm examples:custom-tool",
     "examples:list": "node examples/list.mjs",
     "examples:check": "node examples/list.mjs --check",
-    "verify": "pnpm typecheck && pnpm test:engine && pnpm test:api && pnpm selftest && pnpm exec tsc --noEmit -p packages/engine/examples/tsconfig.json && pnpm lint:deps"
+    "verify": "pnpm typecheck && pnpm test:engine && pnpm test:api && pnpm selftest && pnpm exec tsc --noEmit -p packages/engine/examples/tsconfig.json && pnpm lint:deps && pnpm examples:check"
   },
   "engines": {
     "node": ">=18.18"

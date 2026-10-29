@@ -5,6 +5,7 @@
   "type": "module",
   "description": "渐进式教学示例系列（离线确定性测试；真实模型路径显式可选）",
   "scripts": {
+    "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest"
   },

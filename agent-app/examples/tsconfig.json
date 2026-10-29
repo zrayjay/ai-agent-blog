@@ -7,5 +7,5 @@
       "@agent-app/engine/*": ["../packages/engine/src/*"]
     }
   },
-  "include": ["*/src/*.ts"]
+  "include": ["*.ts", "*/src/*.ts"]
 }

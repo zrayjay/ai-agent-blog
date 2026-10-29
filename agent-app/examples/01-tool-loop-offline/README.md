@@ -1,7 +1,11 @@
 # 01 · 工具循环（离线版）
 
-> 对应课：[learn/02 · 手写工具循环](../../docs/learn/02-runtime/agent-loop.md) · 对应源码：`packages/engine/src/agent-loop.ts`
+> 对应课：[learn/02 · 手写工具循环](../../../docs/learn/02-runtime/agent-loop.md) · 对应源码：`packages/engine/src/agent-loop.ts`
 > 本示例用 **mock 模型**演示 `runToolLoop` 的核心机制（点名 → 执行 → 回灌 → 终答），**零密钥、零网络**，CI 直接跑。
+
+## 前置
+
+无。默认路径完全离线，不需要 API Key、`.env`、Docker 或网络；在 `agent-app/` 完成 `pnpm install && pnpm build` 后即可运行。
 
 ## 命令与预期输出
 
@@ -16,7 +20,8 @@ pnpm exec tsx examples/01-tool-loop-offline/src/main.ts
 ```text
 [step 1] 调用 getWeather({"city":"北京"})
 [step 2] 调用 getWeather({"city":"上海"})
-最终回答（共 3 步）：上海今天更热（28°C）……
+最终回答（共 3 步）：
+上海今天更热：28°C 对 23°C。
 ```
 
 ## 学到什么
