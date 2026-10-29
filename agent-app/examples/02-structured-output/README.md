@@ -20,7 +20,7 @@ pnpm exec tsx examples/02-structured-output/src/main.ts
 ```text
 [场景 1] 裸 JSON 指令 + 严格 parse —— 模型跑偏（输出散文），直接抛错
 [场景 2] 同样的跑偏文本 + extractJson 宽松抽取 —— 成功抠出 {"city":"上海","hotter":true}
-[场景 3] zod 校验把关 —— 通过 { city: '上海', hotter: true }
+[场景 3] zod 校验把关 —— 通过 {"city":"上海","hotter":true}
 [场景 4] 抽取也救不了（纯闲聊无 JSON）—— 抛中文错误，上层决定重试
 ```
 

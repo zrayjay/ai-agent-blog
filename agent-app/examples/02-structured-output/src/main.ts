@@ -20,12 +20,11 @@ async function ask(model: Parameters<typeof generateText>[0]["model"], prompt: s
 }
 
 // 场景 1：裸 JSON 指令 + 严格 parse
-let strictError: unknown;
 try {
   const raw = await ask(driftyModel(), '比较北京和上海，只输出 JSON：{"city":…,"hotter":…}');
   JSON.parse(raw);
-} catch (e) {
-  strictError = e;
+} catch {
+  // 跑偏文本不是合法 JSON——严格路径必炸（教学点本身）
 }
 console.log("[场景 1] 裸 JSON 指令 + 严格 parse —— 模型跑偏（输出散文），直接抛错");
 

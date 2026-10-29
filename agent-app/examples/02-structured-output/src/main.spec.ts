@@ -3,7 +3,8 @@
 // 1) 严格 JSON.parse 对跑偏文本必炸；2) extractJson 能从围栏+废话中抠出 JSON；
 // 3) zod 校验拒绝形状不对的数据（哪怕 JSON 合法）。
 import { describe, expect, it } from "vitest";
-import { generateText, z } from "./test-utils.js";
+import { generateText } from "ai";
+import { z } from "zod";
 import { driftyModel, chattyModel } from "./mock-model.js";
 import { extractJson } from "@agent-app/engine/json-utils";
 
