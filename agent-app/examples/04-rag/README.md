@@ -5,7 +5,7 @@
 
 ## 前置
 
-无。完全离线；`pnpm install` 后即可运行。
+无。完全离线；在 `agent-app/` 完成 `pnpm install && pnpm build` 后即可运行（engine 公开导出走 dist 产物）。
 
 ## 命令与预期输出
 

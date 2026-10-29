@@ -5,7 +5,7 @@
 
 ## 前置
 
-无。完全离线；在 `agent-app/` 完成 `pnpm install` 后即可运行（不依赖 build 产物，直接用 engine src 经 workspace 链接）。
+无。完全离线；在 `agent-app/` 完成 `pnpm install && pnpm build` 后即可运行（engine 公开导出走 dist 产物）。
 
 ## 命令与预期输出
 
@@ -15,7 +15,7 @@ pnpm examples:check           # 结构 + 离线测试全部通过（CI 门禁）
 pnpm exec tsx examples/03-memory/src/main.ts
 ```
 
-`main.ts` 预期输出（内存实现，确定性；首行为 factory 的 stderr 日志）：
+`main.ts` 预期输出（内存实现，确定性；首行为 factory 的日志行，走 engine logger 的 stdout；默认 env 下 glm-4-flash 命中水位查表——设了 `OPENAI_MODEL`/`MODEL_CONTEXT_TOKENS` 则该行会变或消失）：
 
 ```text
 [memory] 压缩水位线已启用：窗口 128000 tokens（触发 = 窗口 × 75%）
