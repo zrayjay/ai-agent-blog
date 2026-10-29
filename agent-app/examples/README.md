@@ -24,7 +24,7 @@ examples/
 | `pnpm examples:list`  | 列出全部示例及其对应课、离线/真实路径标记                                |
 | `pnpm examples:check` | 校验每个示例目录结构完整（README/src/spec）且 spec 全部离线通过——CI 门禁 |
 
-（`pnpm examples:minimal` / `examples:custom-tool` 语义不变，仍指向引擎内置示例。）
+（`pnpm examples:minimal` / `examples:custom-tool` 语义不变，仍指向引擎内置示例。Windows PowerShell 用户：示例命令均为 `pnpm ...` / `pnpm exec tsx ...` 形态，两个 shell 通用；路径含空格时加引号——环境级差异见 [start/environment](../../docs/start/environment.md)。）
 
 ## 示例清单（随 P2 逐批落地）
 
