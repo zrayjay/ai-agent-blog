@@ -10,6 +10,7 @@
     "docs:build": "vitepress build docs",
     "docs:preview": "vitepress preview docs",
     "docs:check": "node scripts/p5-01-doc-check.mjs",
+    "security:check": "node scripts/p5-02-security-check.mjs",
     "prepare": "husky",
     "lint:staged": "lint-staged",
     "format:check": "prettier --check ."
