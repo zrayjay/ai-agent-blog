@@ -63,7 +63,7 @@
 ## 与教程声明的核对
 
 - `how-to/MATURITY.md` 成熟度档位与上表一致（agent-loop 单实例、trace Demo、evals 单实例等）——未发现"文档声称高于实现"的情况。
-- `docs/guide/12-roadmap.md` "编排器 ✅ 已实现"与 C 节一致；"一键体验 pnpm team"入口存在（apps/cli/src/apps/team）。
+- `advanced/evolution.md` "编排器 ✅ 已实现"与 C 节一致；"一键体验 `pnpm cli team`"入口存在（apps/cli/src/apps/team；guide/12 原课已迁至 advanced，占位页保留兼容）。
 - `docs/products/kb|service` 所述能力与 B/D 节一致；引用编号后端生成、转人工 mock 的边界声明如实。
 - 未发现 deprecated 能力。
 
