@@ -307,16 +307,16 @@ pnpm --filter @agent-app/web dev        # 前端开发服务器（默认 3000；
 pnpm api        # 等价：构建 @agent-app/engine + @agent-app/api 后 node apps/api/dist/main.js，默认端口 3000（PORT 可改）
 ```
 
-| 方法 | 路径                        | 作用                                                                                                                                                                          | 离线（无 .env）行为              |
-| ---- | --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------- |
-| GET  | `/api/health`               | 健康检查                                                                                                                                                                      | 正常                             |
-| POST | `/api/chat`                 | 非流式对话（手写工具循环 + 会话记忆）。**不提供挂起式审批**——配置了 `AGENT_CONFIRM_TOOLS` 时请用 SSE 流式入口 `/api/chat/stream`（审批事件挂在 SSE 通道上，非流式没有该通道） | 500 + 中文配置提示               |
-| GET  | `/api/chat/stream?message=` | SSE 流式对话：`session` → `approval`（高危工具待审批，week18 Day 6）→ `step`（工具调用/结果）→ `token`（答案分片）→ `done`                                                    | SSE `error` 事件 + 配置提示      |
-| POST | `/api/chat/approve`         | 工具审批裁决 `{ sessionId, approvalId, approved }` → `{ approvalId, approved }`；未知/过期/超时已自动拒绝 → 404 中文错误                                                      | 404 `{ statusCode, message }`    |
-| POST | `/api/kb/ingest`            | multipart 文件上传入库（字段名 `file`，支持 .txt/.md/.pdf）                                                                                                                   | 500 + embeddings 配置提示        |
-| POST | `/api/kb/ingest-path`       | 服务端本地路径入库（开发用）                                                                                                                                                  | 同上                             |
-| POST | `/api/kb/query`             | 知识库问答 `{ question, topK? }` → `{ answer, citations }`                                                                                                                    | 500 + 配置提示                   |
-| POST | `/api/service/message`      | 客服消息 `{ sessionId?, message }` → `{ route, reply, handoff? }`                                                                                                             | **降级转人工出工单**（完整可用） |
+| 方法 | 路径                        | 作用                                                                                                                                                                                                                            | 离线（无 .env）行为                                       |
+| ---- | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
+| GET  | `/api/health`               | 健康检查                                                                                                                                                                                                                        | 正常                                                      |
+| POST | `/api/chat`                 | 非流式对话（手写工具循环 + 会话记忆）。**不提供挂起式审批**——审批名单非空即拒绝（`AGENT_CONFIRM_TOOLS` 默认 `createTicket`，置空关闭），需审批请用 SSE 流式入口 `/api/chat/stream`（审批事件挂在 SSE 通道上，非流式没有该通道） | 名单非空=400 审批不支持；置空后无 .env=500 + 中文配置提示 |
+| GET  | `/api/chat/stream?message=` | SSE 流式对话：`session` → `approval`（高危工具待审批，week18 Day 6）→ `step`（工具调用/结果）→ `token`（答案分片）→ `done`                                                                                                      | SSE `error` 事件 + 配置提示                               |
+| POST | `/api/chat/approve`         | 工具审批裁决 `{ sessionId, approvalId, approved }` → `{ approvalId, approved }`；未知/过期/超时已自动拒绝 → 404 中文错误                                                                                                        | 404 `{ statusCode, message }`                             |
+| POST | `/api/kb/ingest`            | multipart 文件上传入库（字段名 `file`，支持 .txt/.md/.pdf）                                                                                                                                                                     | 500 + embeddings 配置提示                                 |
+| POST | `/api/kb/ingest-path`       | 服务端本地路径入库（开发用）                                                                                                                                                                                                    | 同上                                                      |
+| POST | `/api/kb/query`             | 知识库问答 `{ question, topK? }` → `{ answer, citations }`                                                                                                                                                                      | 500 + 配置提示                                            |
+| POST | `/api/service/message`      | 客服消息 `{ sessionId?, message }` → `{ route, reply, handoff? }`                                                                                                                                                               | **降级转人工出工单**（完整可用）                          |
 
 curl 冒烟示例：
 
@@ -339,6 +339,6 @@ curl -X POST http://localhost:3000/api/kb/ingest -F "file=@samples/company-faq.m
 
 ## 扩展与贡献
 
-- **往引擎加自己的东西**（自定义工具/Memory/RAG 存储/LLM 网关/运行参数）：按 [extending 扩展指南](../docs/advanced/extending.md) 的最小步骤 + 仓内样板动手，每节附验证方法；改完跑 `pnpm selftest && pnpm typecheck` + 相关套件。
+- **往引擎加自己的东西**（自定义工具/Memory/RAG 存储/LLM 网关/运行参数）：按 [extending 扩展指南](../docs/advanced/extending.md) 的最小步骤 + 仓内样板动手（验证方法集中在第 7 节）；改完跑 `pnpm selftest && pnpm typecheck` + 相关套件。
 - **改站点文档**（学习内容/导航）：文档体系统一为七阶段主线（`docs/learn/`）+ 参考库（`docs/reference/`）+ 案例/进阶，新增页面需同步 [config.mts](../docs/.vitepress/config.mts) 导航与侧边栏；本地 `pnpm docs:dev` 预览、`pnpm docs:check` 校验断链与课元数据。
 - **改工程文档**（本 README / ARCHITECTURE.md / 模块 README）：职责分工——本 README 管「快速上手与命令」，[ARCHITECTURE.md](./ARCHITECTURE.md) 管「实现细节与设计取舍」，各模块 README 管「该模块的 API 与边界」；同一技术细节只在一处保持正文，其他位置用链接指回。
