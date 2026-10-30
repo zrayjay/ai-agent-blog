@@ -3,7 +3,6 @@ import DefaultTheme from 'vitepress/theme'
 import { useRoute } from 'vitepress'
 import { nextTick, watch } from 'vue'
 import HomeHeroInfo from './components/HomeHeroInfo.vue'
-import ArchiveBanner from './components/ArchiveBanner.vue'
 import HomeAgentLoop from './components/HomeAgentLoop.vue'
 import HomeStats from './components/HomeStats.vue'
 import HomePillars from './components/HomePillars.vue'
@@ -35,10 +34,6 @@ watch(
 
 <template>
   <Layout>
-    <template #layout-top>
-      <ArchiveBanner />
-    </template>
-
     <template #home-hero-info>
       <HomeHeroInfo />
     </template>
