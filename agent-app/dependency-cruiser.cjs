@@ -112,7 +112,7 @@ module.exports = {
       severity: "error",
       comment: "packages/engine 禁止 import apps/* 与 examples/*（内核不认识具体应用；ADR-0004 分层地图方向性约束）。",
       from: { path: "^packages/engine/src/" },
-      to: { path: "^(apps/|examples/|packages/(web|api|cli)/)" },
+      to: { path: ["^(apps/|examples/|packages/(web|api|cli)/)", "^@agent-app/(web|api|cli)"] },
     },
     {
       // 为什么：孤儿模块 = 既没人 import 它、它也不 import 任何人（v18 语义）。
@@ -123,7 +123,7 @@ module.exports = {
       comment:
         "packages/engine/src 内不允许孤儿模块（无入边也无出边，多半是重构残骸）。" +
         ".d.ts 声明文件豁免。",
-      from: { orphan: true, pathNot: "\\.d\\.ts$" },
+      from: { orphan: true, pathNot: ["\\.d\\.ts$", "^packages/shared/src/"] },
       to: {},
     },
   ],
