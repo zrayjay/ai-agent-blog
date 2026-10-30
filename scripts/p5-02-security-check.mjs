@@ -149,13 +149,13 @@ for (const p of lessonFiles) {
       // pnpm <script> / pnpm -C x <script> / pnpm --filter y <script> / pnpm cli ...
       let scriptTok = firstTok;
       // --filter <pkg> <script>：走 workspace 包 scripts 校验（独立分支，不落入 -C 泛化）。
-      // dev/test 属各包自有 script（web dev、engine test），bare 直呼才要求根/agent-app 有——
-      // 这里 sub 是包内 script，内建与常见包级名放行，其余对包 scripts 精确校验。
+      // bypass 表仅收真正的 pnpm 内建子命令（install/add/remove/exec/run）；dev/test 等
+      // 包级 script 不豁免——对包 scripts 精确校验（审查 NOTE-1：包存在性检查不得被短路）。
       if (scriptTok === "--filter") {
         const toks = rest.split(/\s+/);
         const pkgTok = toks[1];
         const sub = toks[2];
-        if (!sub || ["install", "add", "remove", "exec", "run", "test", "dev"].includes(sub)) continue;
+        if (!sub || ["install", "add", "remove", "exec", "run"].includes(sub)) continue;
         const pkgScripts = workspaceScripts.get(pkgTok);
         if (!pkgScripts) {
           failures.push(`S2 ${rel}: --filter 目标包不存在 ${pkgTok}`);
