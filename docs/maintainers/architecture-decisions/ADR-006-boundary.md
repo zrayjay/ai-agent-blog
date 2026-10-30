@@ -26,7 +26,7 @@
 
 - `pnpm lint:deps`（engine + shared 双 src，124 modules / 381 dependencies）：**0 violations**。
 - app 层（api/cli/web）对 engine 的消费全部走公开导出面（子路径 exports），无 src 相对路径跨包 import。
-- shared 对 engine：仅 2 处 **type-only** 契约导入（service/handoff.ts、service/supervisor.ts）——方向合法（契约引用类型而非实现），且 ADR-0004 的「shared 零运行时」不受影响。
+- engine 对 shared：仅 2 处 **type-only** 契约导入（service/handoff.ts、service/supervisor.ts）——方向合法（契约引用类型而非实现），且 ADR-0004 的「shared 零运行时」不受影响。
 - **结论：不存在需要修复的错误跨层 import。方案预设的「修复」动作为零，如实记录。**
 
 ### 3. 守护机制（未来靠什么）
