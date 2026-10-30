@@ -21,7 +21,7 @@
 | 课程元数据 | 无契约                                      | lesson frontmatter（lessonId/status/source/tests/lastVerifiedCommit），`docs:check` 强制校验 |
 | 教学示例   | engine/examples 2 个旧示例                  | `agent-app/examples/` 01~07 渐进系列（每例离线 spec，`examples:check`）                      |
 | 课↔码追踪  | 无                                          | 映射矩阵（`matrix:check`）+ capability-matrix（能力↔证据↔CI）                                |
-| 依赖治理   | engine 单包无分层规则                       | dependency-cruiser 10 条规则（124 modules 0 violations），ADR-0004 不拆包裁决                |
+| 依赖治理   | engine 单包无分层规则                       | dependency-cruiser 8 条规则（124 modules 0 violations），ADR-0004 不拆包裁决                 |
 | 文档门禁   | 仅 docs:build                               | docs CI workflow：p0-check/docs:check/security:check/assert:check/site:check 五道            |
 | 根 README  | 「23 周通关」叙事 + 逐命令 CI 教程          | TypeScript 主线定位 + 快速入口 + 四 CI 流水线表（P6-01）                                     |
 
@@ -29,7 +29,7 @@
 
 ## 3. 迁移索引
 
-- **路线迁移表**：[route-migration.csv](./route-migration.csv)（39 行：MIGRATE/MERGE/KEEP/DELETE-empty 逐路径旧→新映射与状态）。2026-10-31 已按实际完成态校准——全部 MIGRATE/MERGE 行的旧路径现均为兼容跳转页（逐行实证），空目录清理完成；12 条 decided 行为「原样保留」类决策（archive/weeks 分批、engine 内置示例保留等）。
+- **路线迁移表**：[route-migration.csv](./route-migration.csv)（39 行：MIGRATE/MERGE/KEEP/DELETE-empty 逐路径旧→新映射与状态）。2026-10-31 已按实际完成态校准——全部 MIGRATE/MERGE 行的旧路径现均为兼容跳转页（逐行实证），空目录在 git 层面清理完成（本地磁盘残留空壳不影响构建与跟踪）；12 条 decided 行为「原样保留」类决策（archive/weeks 分批、engine 内置示例保留等）。
 - **路由兼容机制**：旧 URL 经跳转页 HTML meta/正文链接到新位置（VitePress 1.6.3 无内置重定向，ADR-0001 已核实）；`docs/guide/`、`docs/preface.md`、`docs/roadmap.md`、`docs/products/` 四组跳转页由 `site:check` 的导航可达性持续验证。
 
 ## 4. 维护指南
