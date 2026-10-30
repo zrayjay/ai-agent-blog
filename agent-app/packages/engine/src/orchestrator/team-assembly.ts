@@ -1,7 +1,7 @@
 // team-assembly.ts —— team 场景的编排器标准装配：demo 工具 + 知识库检索过幂等壳，
 // 角色用 engine 默认三件套（可注入覆盖）。
 //
-// 为什么在 engine 而不是各端：cli 的 `pnpm team` 与 api 的 `/api/team/stream`
+// 为什么在 engine 而不是各端：cli 的 `pnpm cli team` 与 api 的 `/api/team/stream`
 // 消费同一个编排场景——装配逻辑（工具表怎么包壳、角色怎么默认）放两份迟早漂移
 //（先例：supervisor/handoff 产品核心上移引擎包，CLI 与 HTTP API 共用同一套）。
 // 各端只做「入口的事」：cli 管参数与 REPL 输出，api 管 SSE 帧与断连。

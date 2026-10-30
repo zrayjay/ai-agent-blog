@@ -50,7 +50,7 @@ pnpm typecheck
 | `pnpm cli kb` / `pnpm kb`                  | 知识库问答 REPL：检索 top5 → 带引用回答                                                                            | [products · 知识库问答](../docs/products/kb.md)、[week11 · RAG TS](../docs/archive/weeks/week11/rag-ts.md)                         |
 | `pnpm kb:ingest <文件>`                    | 知识库入库：切块 → 向量化 → 快照落盘（.txt / .md / .pdf）                                                          | [week11 · RAG TS](../docs/archive/weeks/week11/rag-ts.md)                                                                          |
 | `pnpm cli service` / `pnpm service`        | 智能客服 REPL：硬规则 + 三分类路由 + 三工人 + 转人工                                                               | [products · 客服系统](../docs/products/service.md)                                                                                 |
-| `pnpm team "目标"` / `pnpm cli team`       | 多 Agent 编排：LLM 拆单 → DAG 并行派发 → 逐任务验收（`--plan` 静态任务单 / `--trace` 全轨迹 / `--id` 断点续跑）    | [reference · 编排器](../docs/reference/10-orchestrator.md)                                                                         |
+| `pnpm cli team "目标"`                     | 多 Agent 编排：LLM 拆单 → DAG 并行派发 → 逐任务验收（`--plan` 静态任务单 / `--trace` 全轨迹 / `--id` 断点续跑）    | [reference · 编排器](../docs/reference/10-orchestrator.md)                                                                         |
 | `pnpm test:service`                        | 客服硬规则离线自测（纯函数断言，无网络）                                                                           | [products · 客服系统](../docs/products/service.md)                                                                                 |
 | `pnpm infra:up` / `pnpm infra:down`        | 真实持久化基座：pgvector(pg16) + redis(7) 容器起停                                                                 | [week14](../docs/archive/weeks/week14/index.md)、[week17](../docs/archive/weeks/week17/index.md)                                   |
 | `pnpm test:infra`                          | 基础设施集成测试（RUN_INFRA_TESTS=1，需先 `infra:up`）                                                             | week14 / week17 实战                                                                                                               |
@@ -85,7 +85,7 @@ agent-app/
 │   │   └── src/                     # index.ts 路由 + apps/chat|kb|service|team + selftest.ts
 │   ├── api/                         # @agent-app/api：NestJS BFF（tsc 编译后 node dist 运行）
 │   │   └── src/                     # main / app.module / chat|kb|service 控制器与服务
-│   └── web/                         # 占位：week20 Next.js 前端（消费 @agent-app/shared 的 SSE 类型）
+│   └── web/                         # Next.js 前端：聊天 / kb / 客服三页（SSE 消费 + 审批/Handoff 组件）
 ├── .env.example                     # 三家 OpenAI 兼容网关（DeepSeek / Qwen / GLM）配置示例
 ├── samples/                         # 入库样例：company-faq.md（制度 FAQ）、dummy.pdf（PDF 样例）
 └── package.json / tsconfig.base.json / pnpm-workspace.yaml   # workspace 根：脚本统一从根目录跑（cwd = agent-app）
@@ -164,7 +164,7 @@ $env:AGENT_TRACE = "1"; pnpm api     # 方式二：环境变量（HTTP API 服�
 | ⚠*    | 升级人工（编排）        | `⚠ 升级人工：「建催发工单」需人工验收`                                           |
 | ⏸*    | 编排中止（软着陆）      | `⏸ 编排中止（软着陆）：已完成 2，剩余 1`                                         |
 
-> 带 * 的图标只在 `pnpm team` 编排轨迹里出现。
+> 带 * 的图标只在 `pnpm cli team` 编排轨迹里出现。
 
 > 顺带修复：模型三分类原来走 `generateObject`（依赖网关 response_format 结构化输出），`glm-4-flash` 会静默无视导致解析失败；现改为 `generateText` + 严格 JSON 指令 + 宽松解析（`engine/json-utils.ts`）+ 不合规自动重试一次，任何 OpenAI 兼容网关行为一致。
 

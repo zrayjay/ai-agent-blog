@@ -1,9 +1,9 @@
-// team/cli.ts —— pnpm team "目标"：多 Agent 编排的 CLI 入口（BACKLOG ② 的 pnpm team 子项）。
+// team/cli.ts —— pnpm cli team "目标"：多 Agent 编排的 CLI 入口（BACKLOG ② 的 pnpm team 子项）。
 //
 // 把 orchestrator 从「建好待接的基建件」变成可用能力。两种模式：
-//   动态：pnpm team "查订单 A-1024，未发货就建催发工单"
+//   动态：pnpm cli team "查订单 A-1024，未发货就建催发工单"
 //         → LlmPlanner 把目标拆成子任务单 → DAG 派发 → 逐任务验收
-//   静态：pnpm team --plan samples/team-plan.json
+//   静态：pnpm cli team --plan samples/team-plan.json
 //         → 跳过规划，按任务单执行（拆单结果可预期，适合演示与回归）
 //
 // 编排器装配（demo 工具 + 幂等壳 + 默认三角色）上移在 engine 的
@@ -102,8 +102,8 @@ export function validatePlanFile(raw: unknown): { goal: string; tasks: TaskSpec[
 // ── 主流程 ──────────────────────────────────────────────────────────────────
 
 const USAGE = [
-  '用法：pnpm team "<目标描述>"          动态模式：LLM 把目标拆成子任务单',
-  "      pnpm team --plan <plan.json>    静态模式：按任务单执行（跳过规划）",
+  '用法：pnpm cli team "<目标描述>"          动态模式：LLM 把目标拆成子任务单',
+  "      pnpm cli team --plan <plan.json>    静态模式：按任务单执行（跳过规划）",
   "      可选：--trace   --id <编排id（断点续跑）>   --max-tokens <N>",
 ].join("\n");
 
