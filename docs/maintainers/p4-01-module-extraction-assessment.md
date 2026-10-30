@@ -9,7 +9,7 @@ ADR-0004 要求 P4「只选择 P3 确认的高价值模块」做单模块单 PR 
 
 ## 逐模块实测（2026-10-30，证据全部可复现）
 
-模块构成（13 个功能模块 + 4 个内核文件，~11k 行）：evals 3310、memory 1347、orchestrator 1099、rag 1116、tools 728、verification 688、telemetry 612、mcp 526、guardrails 500、service 382（P3-04 已裁决）、platform 266、skills 207、typings 9。
+模块构成（13 个功能模块 + src 根内核文件共 10 个 .ts，模块合计 10790 行 + 根内核 1031 行 = 11821 行）：evals 3310、memory 1347、orchestrator 1099、rag 1116、tools 728、verification 688、telemetry 612、mcp 526、guardrails 500、service 382（P3-04 已裁决）、platform 266、skills 207、typings 9。
 
 ### 门槛 1：真实依赖循环 —— 全仓库 0 违规，模块间单向
 
@@ -17,36 +17,36 @@ ADR-0004 要求 P4「只选择 P3 确认的高价值模块」做单模块单 PR 
 
 模块间依赖边实测（`grep 'from "\.\./'` 逐目录枚举，方向均自高向低）：
 
-| 模块         | 依赖（→）                                                         | 被依赖（仓内 import 计数）  |
-| ------------ | ----------------------------------------------------------------- | --------------------------- |
-| evals        | agent-loop, config, guardrails, rag, service, types, verification | 3（cli eval + examples/07） |
-| orchestrator | agent-loop, json-utils, llm, tools, types                         | 7                           |
-| memory       | config, llm, logger, rag, trace                                   | 8                           |
-| service      | agent-loop, json-utils, llm, memory, tools, trace, types          | 3                           |
-| tools        | config, guardrails, logger, rag, types                            | 7                           |
-| mcp          | config, rag, tools, types                                         | 4                           |
-| rag          | config, guardrails, llm, logger, trace                            | 13                          |
-| guardrails   | telemetry, trace, types                                           | 1（经根出口全员可用）       |
-| verification | agent-loop, telemetry, types                                      | 0（经根出口）               |
-| telemetry    | —（叶子）                                                         | 0（经根出口）               |
-| skills       | trace                                                             | 3                           |
-| platform     | —（仅 node:crypto + postgres，零引擎内边）                        | 0（独立子路径导出）         |
+| 模块         | 依赖（→）                                                         | 被依赖（仓内 import 计数）                               |
+| ------------ | ----------------------------------------------------------------- | -------------------------------------------------------- |
+| evals        | agent-loop, config, guardrails, rag, service, types, verification | 3（cli eval + examples/07）                              |
+| orchestrator | agent-loop, json-utils, llm, tools, types                         | 7                                                        |
+| memory       | config, llm, logger, rag, trace                                   | 8                                                        |
+| service      | agent-loop, json-utils, llm, memory, tools, trace, types          | 3                                                        |
+| tools        | config, guardrails, logger, rag, types                            | 7                                                        |
+| mcp          | config, rag, tools, types                                         | 4                                                        |
+| rag          | config, guardrails, llm, logger, trace                            | 13                                                       |
+| guardrails   | telemetry, trace, types                                           | 0（import 口径；chat/cli.ts 注释提及，经根出口全员可用） |
+| verification | agent-loop, telemetry, types                                      | 0（经根出口）                                            |
+| telemetry    | —（叶子）                                                         | 0（经根出口）                                            |
+| skills       | trace                                                             | 3                                                        |
+| platform     | —（仅 node:crypto + postgres，零引擎内边）                        | 0（独立子路径导出）                                      |
 
 无任何双向边（service↔evals 双向 grep 零命中，P3-04 已证；本轮复验）。分层与 dependency-cruiser 语义分层（kernel→L1→L2→L3）完全一致。
 
 ### 门槛 2：构建成本 —— 可量化上升无证据
 
-CI test job 全链 53s（2026-10-30 @PR#41 合并点实测：test 54s、evals 35s、platform-store 30s，三 job 并行）；engine tsc 在 turbo 缓存下秒级。engine 是单 tsconfig 单构建单元，拆包不会减少任何模块的实际编译量，只会增加 N 份 package.json/tsconfig/exports 配置与跨包声明解析成本。
+CI test job 全链 53s（2026-10-30 @PR#41 合并点实测：test 53s、evals 34s、platform-store 29s，三 job 并行）；engine tsc 在 turbo 缓存下秒级。engine 是单 tsconfig 单构建单元，拆包不会减少任何模块的实际编译量，只会增加 N 份 package.json/tsconfig/exports 配置与跨包声明解析成本。
 
 ### 门槛 3：独立复用方 —— 仓内消费方全部经根出口/子路径，无外部仓库
 
-13 个模块的仓内消费方（apps/api、apps/cli、examples 01~07、engine/test）合计 49 处 import，全部走 `@agent-app/engine` 根出口或既有子路径（compatibility-baseline §4 的 19 项导出）；无任何仓库外消费方。platform 零消费（仅 CI platform-store job 的契约测试 + personal-agent 规划引用，ADR-0004 第 4 条已定性「维持现状不扩展」）。
+13 个模块的仓内消费方（apps/api、apps/cli、examples 01~07，文件数口径，不含 engine 自身 test）合计 48 个消费文件，全部走 `@agent-app/engine` 根出口或既有子路径（compatibility-baseline §4 的 19 项导出）；无任何仓库外消费方。platform 零消费（仅 CI platform-store job 的契约测试 + personal-agent 规划引用，ADR-0004 第 4 条已定性「维持现状不扩展」）。
 
 ## 逐模块裁决
 
 | 模块                                    | 门槛 1 循环      | 门槛 2 构建 | 门槛 3 复用方          | 裁决                                                                                                         |
 | --------------------------------------- | ---------------- | ----------- | ---------------------- | ------------------------------------------------------------------------------------------------------------ |
-| rag / memory / tools / mcp / guardrails | 无               | 无证据      | 全仓内                 | 不拆（L1/L2 交集密集：rag↔guardrails↔tools 三角互依，拆开必加跨包边）                                        |
+| rag / memory / tools / mcp / guardrails | 无               | 无证据      | 全仓内                 | 不拆（L1/L2 交集密集：rag→guardrails、tools→rag、tools→guardrails 三角紧邻单向互连，拆开必加跨包边）         |
 | service                                 | 无               | 无证据      | 仅 api/cli             | 不拆（P3-04 已裁决，本轮复核不变）                                                                           |
 | evals                                   | 无               | 无证据      | cli + examples/07      | 不拆（依赖 service/rag/verification 三域，拆出反而制造最多跨包边）                                           |
 | orchestrator                            | 无               | 无证据      | api/cli/examples       | 不拆（依赖内核 5 模块，独立拆出无复用收益）                                                                  |
