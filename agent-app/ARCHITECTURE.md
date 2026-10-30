@@ -95,7 +95,7 @@ agent-app/                        # pnpm workspace 根（packages/* + apps/*）
 │   │   └── src/                  # index.ts CLI 路由 + selftest.ts + apps/chat|kb|service|team 编排
 │   ├── api/                      # @agent-app/api：NestJS 层（本文第 7 节；tsc 编译后 node dist 运行）
 │   │   └── src/                  # main / app.module / chat|kb|service 控制器与服务
-│   └── web/                      # 占位：week20 Next.js 前端（消费 @agent-app/shared 的 SSE 类型）
+│   └── web/                      # Next.js 前端：聊天 / kb / 客服三页（SSE 消费 + 审批/Handoff 组件）
 ├── samples/                      # 入库样例（company-faq.md 制度 FAQ / dummy.pdf）
 ├── .env / .env.example           # 网关配置（默认 GLM：open.bigmodel.cn/api/paas/v4）
 └── package.json / tsconfig.base.json / pnpm-workspace.yaml  # 根脚本统一从 agent-app 跑（cwd 决定 .env/.data 位置）

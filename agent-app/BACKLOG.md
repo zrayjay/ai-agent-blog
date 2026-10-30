@@ -64,14 +64,14 @@
 
 **仍挂账的子项**：
 
-- ~~`pnpm team "目标"` CLI 入口~~ ✅ **已落地（2026-10-13）**：`pnpm team "目标"`（动态）/ `pnpm team --plan plan.json`（静态）/ `--trace --id --max-tokens`；demo 工具过幂等壳；真实动态冒烟 3 任务全链路通过（含 critic 拒绝→打回→降级的完整验收链）；顺带修掉 extractJson 不支持 JSON 数组的引擎 bug（LlmPlanner 任务单解析必挂）
+- ~~`pnpm team "目标"` CLI 入口~~ ✅ **已落地（2026-10-13）**：`pnpm cli team "目标"`（动态）/ `pnpm cli team --plan plan.json`（静态）/ `--trace --id --max-tokens`；demo 工具过幂等壳；真实动态冒烟 3 任务全链路通过（含 critic 拒绝→打回→降级的完整验收链）；顺带修掉 extractJson 不支持 JSON 数组的引擎 bug（LlmPlanner 任务单解析必挂）
 - P1 升格叙事（半小时，零代码）：`service/README.md` 增补「你就是多 Agent：Supervisor 模式」——supervisor = 路由 Agent，workers = 三个专家 Agent（独立 system prompt + 最小权限工具表），HandoffPack = Agent 间上下文交接；对照 LangGraph supervisor / CrewAI manager+crew
 - P3 A2A 落地（week19 Day 4 的代码化）：`GET /.well-known/agent-card.json` + `POST /a2a/tasks`（接收外部 Agent 委托 → 路由到 worker 或编排流水线）；狗粮：双实例互调
 - 在线观测档位：编排事件流接 SSE（前端看拆/派/跑实时轨迹）、token 成本聚合（与 #10 共享基建）
 
 ## ③ 输出质量闸：Reflection / 生成-评审循环（待立项，2026-10-13 调研入账）
 
-> **缺口**：三条输出路径中 kb/service/chat 的「模型输出即结束」，无质量判定（编排器的 Critic 闭环只覆盖 `pnpm team`）。业界主流 = 分层质量闸光谱：**确定性代码校验（零成本）> 级联 judge（小模型）> Reflexion 循环（1.5-1.9x token）**，按「错误的代价」选闸门高度，而非在线全量 judge。
+> **缺口**：三条输出路径中 kb/service/chat 的「模型输出即结束」，无质量判定（编排器的 Critic 闭环只覆盖 `pnpm cli team`）。业界主流 = 分层质量闸光谱：**确定性代码校验（零成本）> 级联 judge（小模型）> Reflexion 循环（1.5-1.9x token）**，按「错误的代价」选闸门高度，而非在线全量 judge。
 >
 > **关键调研数据**（2026-10，来源：LangGraph/OpenAI Agents SDK/ADK 官方文档 + niteagent/solana.garden 生产复盘 + MS Foundry 评估体系）：级联触发省 20% token、质量仅 -2%；单 judge 精度 82%、3-judge 投票 91%（成本×3）；Reflexion 生产案例一次成功率 38%→71%（token 1.9x）；多 Agent 辩论式 3x 成本慎用；**质量退化检测**（重试后分数下降回退首轮）是生产复盘反复强调的保护。
 

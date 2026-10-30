@@ -6,7 +6,7 @@
 > HandoffPack 就是 Agent 间的上下文交接。对照业界：LangGraph 的 supervisor 模式、
 > CrewAI 的 manager+crew——同一思想，不同皮肤。当单 Agent 出现「工具表超载 /
 > 上下文打架 / 职责冲突 / 并行机会」四个信号时，就从这里进化到编排器
-> （`../orchestrator/`）：`pnpm team "目标"` 一条命令体验 LLM 拆单 → DAG 并行派发 →
+> （`../orchestrator/`）：`pnpm cli team "目标"` 一条命令体验 LLM 拆单 → DAG 并行派发 →
 > 逐任务验收的完整编排，深讲见 [reference · 编排器](../../../../../docs/reference/10-orchestrator.md)。
 
 > 本目录解决客服系统的"分诊"问题：一条用户消息进来，先由**确定性硬规则**把关，
