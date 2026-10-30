@@ -7,7 +7,7 @@
   "scripts": {
     "build": "turbo run build",
     "typecheck": "turbo run typecheck",
-    "lint:deps": "dependency-cruiser packages/engine/src --config dependency-cruiser.cjs",
+    "lint:deps": "dependency-cruiser packages/engine/src packages/shared/src --config dependency-cruiser.cjs",
     "cli": "tsx apps/cli/src/index.ts",
     "chat": "tsx apps/cli/src/apps/chat/cli.ts",
     "kb:ingest": "tsx apps/cli/src/apps/kb/ingest.ts",

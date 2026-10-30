@@ -87,6 +87,34 @@ module.exports = {
       to: { path: AGENT_LOOP },
     },
     {
+      // 为什么（P3-01/ADR-0004）：@agent-app/shared 是全仓共享契约包（纯类型零运行时）。
+      // 它一旦 import 引擎任何实现，类型契约就反向耦合了实现细节——所有消费方
+      // （web/api/cli/examples）都被迫跟随引擎重构。shared 必须保持叶子。
+      name: "共享包-禁止依赖引擎",
+      severity: "error",
+      comment: "@agent-app/shared 是纯类型契约叶子：禁止 import @agent-app/engine 或任何 packages 实现（当前为 0 依赖，规则防回归）。",
+      from: { path: "^packages/shared/src/" },
+      to: {
+        path: [
+          // 相对路径形式：import 到 engine 的 src（同仓直连）
+          "^packages/(engine|shared)/src/",
+          // 包名形式：doNotFollow node_modules 时 depcruise 保留裸包名（workspace 链接）
+          "^@agent-app/engine",
+        ],
+        pathNot: "^packages/shared/src/",
+      },
+    },
+    {
+      // 为什么（P3-01/ADR-0004 分层地图）：engine 是被消费的内核/能力/产品层，
+      // apps（web/api/cli）与 examples 是消费方。engine 反向 import apps 意味着
+      // 内核认识具体应用——重用一个「引擎」就要拖上整个应用目录。
+      name: "引擎-禁止依赖应用层",
+      severity: "error",
+      comment: "packages/engine 禁止 import apps/* 与 examples/*（内核不认识具体应用；ADR-0004 分层地图方向性约束）。",
+      from: { path: "^packages/engine/src/" },
+      to: { path: ["^(apps/|examples/|packages/(web|api|cli)/)", "^@agent-app/(web|api|cli)"] },
+    },
+    {
       // 为什么：孤儿模块 = 既没人 import 它、它也不 import 任何人（v18 语义）。
       // 多半是重构后的残骸——留着会误导后来者以为它还在服役。删掉或接回依赖图。
       // .d.ts 类型声明天然无依赖，不算孤儿。
@@ -95,7 +123,7 @@ module.exports = {
       comment:
         "packages/engine/src 内不允许孤儿模块（无入边也无出边，多半是重构残骸）。" +
         ".d.ts 声明文件豁免。",
-      from: { orphan: true, pathNot: "\\.d\\.ts$" },
+      from: { orphan: true, pathNot: ["\\.d\\.ts$", "^packages/shared/src/"] },
       to: {},
     },
   ],
