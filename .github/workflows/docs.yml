@@ -15,6 +15,7 @@ on:
       - "docs/.vitepress/**"
       - "scripts/p5-01-doc-check.mjs"
       - "scripts/p5-02-security-check.mjs"
+      - "scripts/p5-04-assertion-check.mjs"
       - "scripts/p0-*.mjs"
       - "package.json"
       # p0-check 的 inventory↔磁盘全覆盖网格含 agent-app 侧 md（examples/samples
@@ -35,6 +36,7 @@ on:
       - "docs/.vitepress/**"
       - "scripts/p5-01-doc-check.mjs"
       - "scripts/p5-02-security-check.mjs"
+      - "scripts/p5-04-assertion-check.mjs"
       - "scripts/p0-*.mjs"
       - "package.json"
       - "agent-app/examples/**"
@@ -86,6 +88,10 @@ jobs:
       # P5-02：密钥样式扫描（594 跟踪文件）+ learn 课程 pnpm 命令有效性抽样（34 条）
       - name: 敏感信息与命令校验（security:check）
         run: pnpm security:check
+
+      # P5-04:能力断言证据缺失检测——页面聚合 ≥3 条无证据断言即红
+      - name: 断言证据校验（assert:check）
+        run: pnpm assert:check
 
       # VitePress 构建：Vue 编译错误（如裸 HTML 标记）、死导入、frontmatter 解析在此拦截
       - name: 站点构建（docs:build）
