@@ -1,21 +1,21 @@
 oldPath,newPath,action,status,verifiedAt
-docs/guide/01-llm-basics.md,docs/learn/01-foundations/,MIGRATE,planned(P1-03),
-docs/guide/02-agent-loop.md,docs/learn/02-runtime/,MIGRATE,planned(P1-03),
-docs/guide/03-memory.md,docs/learn/03-capabilities/,MIGRATE,planned(P1-03),
-docs/guide/04-rag.md,docs/learn/03-capabilities/,MIGRATE,planned(P1-03),
-docs/guide/05-tools-hardening.md,docs/learn/03-capabilities/,MIGRATE,planned(P1-03),
-docs/guide/06-safety.md,docs/learn/05-quality/,MIGRATE,planned(P1-03),
-docs/guide/07-mcp.md,docs/learn/03-capabilities/,MIGRATE,planned(P1-03),
-docs/guide/08-evals.md,docs/learn/05-quality/,MIGRATE,planned(P1-03),
-docs/guide/09-product.md,docs/learn/07-applications/,MIGRATE,planned(P1-03),
-docs/guide/09b-multi-agent.md,docs/learn/04-orchestration/ (重编号去除 09b 插入式编号，旧 slug 保留兼容页),MIGRATE,planned(P1-03),
-docs/guide/10-frontend.md,docs/learn/06-fullstack/,MIGRATE,planned(P1-03),
-docs/guide/11-production.md,docs/learn/05-quality/,MIGRATE,planned(P1-03),
+docs/guide/01-llm-basics.md,docs/learn/01-foundations/,MIGRATE,done,2026-10-29
+docs/guide/02-agent-loop.md,docs/learn/02-runtime/,MIGRATE,done,2026-10-29
+docs/guide/03-memory.md,docs/learn/03-capabilities/,MIGRATE,done,2026-10-29
+docs/guide/04-rag.md,docs/learn/03-capabilities/,MIGRATE,done,2026-10-29
+docs/guide/05-tools-hardening.md,docs/learn/03-capabilities/,MIGRATE,done,2026-10-29
+docs/guide/06-safety.md,docs/learn/05-quality/,MIGRATE,done,2026-10-29
+docs/guide/07-mcp.md,docs/learn/03-capabilities/,MIGRATE,done,2026-10-29
+docs/guide/08-evals.md,docs/learn/05-quality/,MIGRATE,done,2026-10-29
+docs/guide/09-product.md,docs/learn/07-applications/,MIGRATE,done,2026-10-29
+docs/guide/09b-multi-agent.md,docs/learn/04-orchestration/ (重编号去除 09b 插入式编号，旧 slug 保留兼容页),MIGRATE,done,2026-10-29
+docs/guide/10-frontend.md,docs/learn/06-fullstack/,MIGRATE,done,2026-10-29
+docs/guide/11-production.md,docs/learn/05-quality/,MIGRATE,done,2026-10-29
 docs/guide/12-roadmap.md,docs/advanced/evolution.md,MIGRATE,done,2026-10-29
 docs/guide/13-interview.md,docs/advanced/interview.md,MIGRATE,done,2026-10-29
-docs/guide/index.md,docs/start/roadmap.md (双轨说明并入新路线图历史边界节),MERGE,planned(P1-01),
-docs/preface.md,docs/start/index.md (重写；修复重复段落),MIGRATE,planned(P1-01),
-docs/roadmap.md,docs/archive/ + docs/start/roadmap.md (23 周表归档并指向唯一新路线),MIGRATE,planned(P1-01),
+docs/guide/index.md,docs/start/roadmap.md (双轨说明并入新路线图历史边界节),MERGE,done,2026-10-29
+docs/preface.md,docs/start/index.md (重写；修复重复段落),MIGRATE,done,2026-10-29
+docs/roadmap.md,docs/archive/ + docs/start/roadmap.md (23 周表归档并指向唯一新路线),MIGRATE,done,2026-10-29
 docs/reference/01-agent-loop.md,docs/reference/ (KEEP: 定位为深讲参考),KEEP,decided,
 docs/reference/02-llm-config-trace.md,docs/reference/ (KEEP),KEEP,decided,
 docs/reference/03-tools.md,docs/reference/ (KEEP),KEEP,decided,
@@ -33,8 +33,8 @@ docs/products/docintel.md,docs/cases/document-intelligence.md,MIGRATE,done,2026-
 docs/how-to/EXTENDING.md,docs/advanced/extending.md,MIGRATE,done,2026-10-29
 docs/how-to/MATURITY.md,docs/advanced/maturity.md,MIGRATE,done,2026-10-29
 docs/archive/weeks/**,docs/archive/weeks/ (KEEP: 原位归档，加过时提示),KEEP,decided,
-docs/index.md,docs/index.md (REWRITE: 三入口新首页，保留 learning-path 锚点名评估),KEEP,planned(P1-01),
+docs/index.md,docs/index.md (REWRITE: 三入口新首页，保留 learning-path 锚点名评估),KEEP,done,2026-10-31
 docs/technical/,无 (空目录，不在 git 跟踪，删除本地空目录),DELETE-empty,done,2026-10-28
-docs/guide/loop/,无 (空目录，不在 git 跟踪),DELETE-empty,planned(P1-03),
-docs/guide/memory/,无 (空目录，不在 git 跟踪),DELETE-empty,planned(P1-03),
-docs/guide/rag/,无 (空目录，不在 git 跟踪),DELETE-empty,planned(P1-03),
+docs/guide/loop/,无 (空目录，不在 git 跟踪),DELETE-empty,done,2026-10-29
+docs/guide/memory/,无 (空目录，不在 git 跟踪),DELETE-empty,done,2026-10-29
+docs/guide/rag/,无 (空目录，不在 git 跟踪),DELETE-empty,done,2026-10-29
