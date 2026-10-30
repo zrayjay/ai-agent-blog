@@ -16,6 +16,7 @@ on:
       - "scripts/p5-01-doc-check.mjs"
       - "scripts/p5-02-security-check.mjs"
       - "scripts/p5-04-assertion-check.mjs"
+      - "scripts/p5-05-site-check.mjs"
       - "scripts/p0-*.mjs"
       - "package.json"
       # p0-check 的 inventory↔磁盘全覆盖网格含 agent-app 侧 md（examples/samples
@@ -37,6 +38,7 @@ on:
       - "scripts/p5-01-doc-check.mjs"
       - "scripts/p5-02-security-check.mjs"
       - "scripts/p5-04-assertion-check.mjs"
+      - "scripts/p5-05-site-check.mjs"
       - "scripts/p0-*.mjs"
       - "package.json"
       - "agent-app/examples/**"
@@ -96,3 +98,7 @@ jobs:
       # VitePress 构建：Vue 编译错误（如裸 HTML 标记）、死导入、frontmatter 解析在此拦截
       - name: 站点构建（docs:build）
         run: pnpm docs:build
+
+      # P5-05:站点构建产物回归——页面完整性/导航可达/搜索工件/viewport+资源引用/404 兜底
+      - name: 站点回归检查（site:check）
+        run: pnpm site:check
