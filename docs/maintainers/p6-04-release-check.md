@@ -3,7 +3,7 @@
 - 状态：Current（2026-10-31 执行）
 - 关联任务：P6-04（本文件即其交付物）；上位依据：方案 P6-04「完整冒烟测试、人工审阅截图/导航、发布检查、回滚预案」、§10 任务完成报告格式（rollback 列约定）
 
-## 1. 完整冒烟测试（2026-10-31 @2eb4c92 全部实跑）
+## 1. 完整冒烟测试（2026-10-31 @2eb4c92 全部实跑，14 项）
 
 ### agent-app 侧（零网络口径）
 
@@ -71,7 +71,7 @@
 
 - 部署失败 = 旧版本继续在线（deploy-pages 只在 build+artifact 成功后替换），天然无损回滚位。
 - 需要回退**内容**：`git revert <合并提交> && git push` → deploy.yml 自动重建旧版并发布（本项目全部任务为 PR 合并，逐 merge commit 可独立 revert，无交叉 revert 依赖）。
-- 自定义域名故障：切回 `zrayjay.github.io/ai-agent-blog/`（config.mts `base` 未变，双地址皆可服务）。
+- 自定义域名故障：经 DNS/用户主站重定向页恢复（github.io 原地址已被重定向页接管，非仓库操作可切回）；主回滚路径（revert + Pages 自动重建）不受域名影响。
 
 ### agent-app（消费方）
 
@@ -82,8 +82,8 @@
 ### 全项目回滚锚点
 
 - 重构起点基线：`docs/maintainers/baseline.md`（P0-01 存档）。
-- 逐任务 rollback 列：[implementation-tracker.md](./implementation-tracker.md) 每行含该任务合并提交号，35 任务全部 verified（2026-10-31）。
+- 逐任务 rollback 列：[implementation-tracker.md](./implementation-tracker.md) 每行含该任务合并提交号，35 任务全部 verified（2026-10-31；其中 P2-06 内容早已随 PR #32 交付、tracker 行在本 PR 内补闭——收官审查发现状态与内容交付脱节，如实记载）。
 
 ## 5. 结论
 
-冒烟测试 18 项全绿、线上 9 路径探测全 200、CI 三流水线稳定、回滚预案有明确单位与锚点——**发布条件成立**。人工审阅清单（5 项真机浏览器项）留待人工执行，机检面无已知阻断。
+冒烟测试 14 项（agent-app 8 + 站点 6）全绿（已知遗留：api 套件偶发不稳定——P4-04 审查发现 3 跑 1 次 93/94 负载超时特征，本日 2 跑全绿，见 tracker P4-04 行）、线上 9 路径探测全 200、CI 三流水线稳定、回滚预案有明确单位与锚点——**发布条件成立**。人工审阅清单（5 项真机浏览器项）留待人工执行，机检面无已知阻断。
