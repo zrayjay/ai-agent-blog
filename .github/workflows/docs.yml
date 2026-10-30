@@ -1,0 +1,92 @@
+# 文档质量门禁（P5-03）：docs-only PR 的独立 CI——断链/无效课元数据/丢失示例在 PR 阶段即红。
+# 与 agent-app.yml（agent-app/** 路径过滤）分工：本 workflow 管 docs/** 与站点构建链路。
+# 外部模型测试口径（方案 P5-03「可选且显式报告」）：本 workflow 全部步骤零模型零密钥；
+# 真实模型链路（eval Tier 2/3）由 agent-app.yml 的 evals job 承接——无 key 自动跳过并在
+# job 输出显式报告跳过数，不在本 workflow 伪装。
+name: docs
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "docs/**"
+      # 显式列出 .vitepress：官方文档未定义通配对点目录的匹配行为，
+      # 保守显式化（审查 MINOR-1）——config/sidebar 改动必须触发本门禁
+      - "docs/.vitepress/**"
+      - "scripts/p5-01-doc-check.mjs"
+      - "scripts/p5-02-security-check.mjs"
+      - "scripts/p0-*.mjs"
+      - "package.json"
+      # p0-check 的 inventory↔磁盘全覆盖网格含 agent-app 侧 md（examples/samples
+      # README、agent-app 根文档）——审查 MAJOR-1：整目录删除示例时
+      # examples:check/matrix:check 只遍历现存目录不报错，p0-check 是唯一拦截网
+      - "agent-app/examples/**"
+      - "agent-app/samples/**"
+      - "agent-app/docs/**"
+      - "agent-app/README.md"
+      - "agent-app/ARCHITECTURE.md"
+      - "agent-app/SECURITY.md"
+      - "agent-app/BACKLOG.md"
+      - "agent-app/AGENTS.md"
+      - ".github/workflows/docs.yml"
+  pull_request:
+    paths:
+      - "docs/**"
+      - "docs/.vitepress/**"
+      - "scripts/p5-01-doc-check.mjs"
+      - "scripts/p5-02-security-check.mjs"
+      - "scripts/p0-*.mjs"
+      - "package.json"
+      - "agent-app/examples/**"
+      - "agent-app/samples/**"
+      - "agent-app/docs/**"
+      - "agent-app/README.md"
+      - "agent-app/ARCHITECTURE.md"
+      - "agent-app/SECURITY.md"
+      - "agent-app/BACKLOG.md"
+      - "agent-app/AGENTS.md"
+      - ".github/workflows/docs.yml"
+
+concurrency:
+  group: docs-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: docs gates
+    runs-on: ubuntu-latest
+    steps:
+      # fetch-depth 0：p0-audit-lib 的 git ls-files 浅克隆亦可，但保留全历史使
+      # 校验脚本（如 lastVerifiedCommit 祖先检查）未来迁移到此 workflow 不踩坑
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: 安装依赖（VitePress 构建链路）
+        run: pnpm install --frozen-lockfile
+
+      # P0-01 审计一致性：inventory 清单 ↔ 磁盘 md 全覆盖、tracker 人工字段合并一致
+      - name: 审计清单一致性（p0-check）
+        run: node scripts/p0-check.mjs
+
+      # P5-01：课程 metadata 校验 + 站内链接/导航链接存在性（断链、无效课元数据在此拦截）
+      - name: 文档结构与链接校验（docs:check）
+        run: pnpm docs:check
+
+      # P5-02：密钥样式扫描（594 跟踪文件）+ learn 课程 pnpm 命令有效性抽样（34 条）
+      - name: 敏感信息与命令校验（security:check）
+        run: pnpm security:check
+
+      # VitePress 构建：Vue 编译错误（如裸 HTML 标记）、死导入、frontmatter 解析在此拦截
+      - name: 站点构建（docs:build）
+        run: pnpm docs:build
