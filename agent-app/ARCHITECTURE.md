@@ -5,6 +5,8 @@
 > 面向学习的实现文档：讲清每个模块**是什么、为什么这么写、踩过什么坑**。
 > 配合源码读，效果最好。快速上手（怎么跑）看 [README.md](./README.md)，本文讲"为什么"。
 
+> **四层文档分工**（同一技术细节只在一处保持正文，其他位置链接指回）：快速上手与命令清单看 [README.md](./README.md)；模块的 API 与边界看各模块目录下的 README（如 rag/、service/）；「为什么这么设计」看本文；对读者的教学叙事看站点参考库（docs/reference/）与七阶段主线（docs/learn/）。注：文中 docs/products/ 引用现指向迁移兼容跳板页，正文在 docs/cases/ 与阶段 07。
+
 ## 1. 这个项目是什么
 
 教程《AI Agent 全栈工程师 23 周》**TypeScript 主线**的可运行落地项目。教程分两条引擎路线：Python（LangGraph，选修）和 Node + TS（推荐主线）——本项目就是主线的完整实现：
@@ -236,14 +238,14 @@ PDF 解析的坑见 8.2。`pdf-parse` 必须从 `pdf-parse/lib/pdf-parse.js` 子
 
 引擎和产品逻辑零改动，外面套一层服务壳：
 
-| 方法 | 路径                   | 说明                                                          |
-| ---- | ---------------------- | ------------------------------------------------------------- |
-| GET  | `/api/health`          | 健康检查                                                      |
-| POST | `/api/chat`            | 非流式对话（runToolLoop + 会话记忆）                          |
-| GET  | `/api/chat/stream`     | SSE：`session → step(工具调用/结果) → delta(答案分片) → done` |
-| POST | `/api/kb/ingest`       | multipart 上传入库（字段 `file`）                             |
-| POST | `/api/kb/query`        | `{question, topK?}` → `{answer, citations}`                   |
-| POST | `/api/service/message` | `{sessionId?, message}` → `{route, reply, handoff?}`          |
+| 方法 | 路径                   | 说明                                                                                                                                             |
+| ---- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| GET  | `/api/health`          | 健康检查                                                                                                                                         |
+| POST | `/api/chat`            | 非流式对话（runToolLoop + 会话记忆）                                                                                                             |
+| GET  | `/api/chat/stream`     | SSE 流式对话——事件链以 [README 端点表](./README.md#http-api-nestjs--教程第-20-周-bff-形态)为单一正文源（session/step/approval/token/done/error） |
+| POST | `/api/kb/ingest`       | multipart 上传入库（字段 `file`）                                                                                                                |
+| POST | `/api/kb/query`        | `{question, topK?}` → `{answer, citations}`                                                                                                      |
+| POST | `/api/service/message` | `{sessionId?, message}` → `{route, reply, handoff?}`                                                                                             |
 
 关键实现决策：
 
@@ -321,7 +323,7 @@ PowerShell 管道向 node stdin 写中文默认 GBK，node 按 UTF-8 读成乱�
 **扩展路线**（接口都已留好缝）：
 
 1. 换真存储：`RagStore` → pgvector 实现，`SessionStore` → ioredis 实现，业务代码一行不改
-2. Next.js 前端：SSE 端点已按 `step/delta/done` 事件吐数据，前端直接消费
+2. Next.js 前端：SSE 端点按 session/step/approval/token/done 事件吐数据，前端直接消费
 3. MCP 工具生态：week11/mcp-ts.md 的 `registerTool` 接进 `tools/registry`
 4. 评估与生产化：promptfoo 评估集（week16）、限流/成本计量（week21）
 
