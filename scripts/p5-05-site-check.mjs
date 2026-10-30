@@ -5,9 +5,12 @@
 // 离线口径=响应式基础件在位：viewport meta + 主题 CSS + 侧边栏导航数据完整；
 // 真机浏览验证归 P6-04 人工审阅）：
 //  R1 页面完整性：docs/**.md 的每个页面在 dist 有对应 html（含 index 回退）
-//  R2 深链接：sidebar 配置的每个 link 在 dist 解析到 html（导航可达性，双端共用数据）
+//  R2 深链接：sidebar + config.mts 顶层导航的每个 link 在 dist 解析到 html
+//     （审查 MAJOR-2：config nav 不在其他校验覆盖内，断链会 404 全站访客；
+//      distHasPage 剥锚点——config nav 含 /#learning-path 形态）
 //  R3 搜索：local search 索引工件在位（hashmap.json + 搜索 chunk）
-//  R4 样式/资源：html 引用的 assets/css/js 相对路径存在 + viewport meta 在位（响应式基础件）
+//  R4 样式/资源：html 引用的 assets/css/js 路径存在 + viewport meta 在位；
+//     decode 安全包裹（p5-01 MAJOR-1 教训：裸 % URIError 崩溃会吞掉全部失败输出）
 //  R5 404 兜底页在位
 import { readFileSync, readdirSync, statSync, existsSync } from "node:fs";
 import { join, dirname, resolve, relative } from "node:path";
@@ -62,6 +65,15 @@ function walkMd(dir, out = []) {
   return out;
 }
 
+// decode 安全包裹（裸 % 等畸形编码 → null，调用方按失败报告）
+function decodeSafe(s) {
+  try {
+    return decodeURIComponent(s);
+  } catch {
+    return null;
+  }
+}
+
 if (!existsSync(DIST)) {
   console.error("FAIL dist/ 不存在——先跑 pnpm docs:build");
   process.exit(1);
@@ -84,21 +96,28 @@ for (const md of mdFiles) {
   if (!ok) failures.push(`R1 ${relToDocs}.md → dist 无对应 html`);
 }
 
-// ── R2：sidebar link → dist html（导航可达性）──
-const sidebarFiles = readdirSync(SIDEBAR_DIR).filter((e) => /\.mts$/.test(e));
+// ── R2：sidebar + config.mts 顶层导航 link → dist html（导航可达性）──
+const navSources = [
+  ...readdirSync(SIDEBAR_DIR)
+    .filter((e) => /\.mts$/.test(e))
+    .map((e) => ({ label: `sidebar/${e}`, path: join(SIDEBAR_DIR, e) })),
+  { label: "config.mts", path: join(DOCS, ".vitepress", "config.mts") },
+];
 let navCount = 0;
 function distHasPage(link) {
-  const clean = link.replace(/\/$/, "").replace(/^\//, "");
+  const base = decodeSafe(link.split("#")[0]);
+  if (base === null) return false;
+  const clean = base.replace(/\/$/, "").replace(/^\//, "");
   if (!clean) return htmlSet.has(join(DIST, "index.html"));
   return htmlSet.has(join(DIST, clean + ".html")) || htmlSet.has(join(DIST, clean, "index.html"));
 }
-for (const sf of sidebarFiles) {
-  const body = readFileSync(join(SIDEBAR_DIR, sf), "utf8");
+for (const src of navSources) {
+  const body = readFileSync(src.path, "utf8");
   for (const m of body.matchAll(/link: '([^']+)'/g)) {
     navCount++;
     const link = m[1];
     if (/^(https?:|mailto:)/.test(link)) continue;
-    if (!distHasPage(link)) failures.push(`R2 导航断页 → ${link}（sidebar/${sf}）`);
+    if (!distHasPage(link)) failures.push(`R2 导航断页 → ${link}（${src.label}）`);
   }
 }
 
@@ -116,21 +135,22 @@ let cssTotal = 0,
 for (const html of htmls) {
   const body = readFileSync(html, "utf8");
   if (body.includes('name="viewport"')) viewportOk++;
-  // 抽样校验资源引用（每页的 css/js 相对链接）
+  // 资源引用校验（每页的 css/js；解码失败按缺失报告而非崩溃）
   for (const m of body.matchAll(/(?:src|href)="([^"]+\.(?:css|js))"/g)) {
     const href = m[1];
     if (/^https?:/.test(href)) continue;
+    const decoded = decodeSafe(href.split("#")[0]);
+    if (decoded === null) {
+      failures.push(`R4 资源引用含非法编码 ${relative(DIST, html)} → ${href}`);
+      continue;
+    }
     assetChecked++;
-    const target = href.startsWith("/")
-      ? join(DIST, decodeURIComponent(href.slice(1)).split("#")[0])
-      : resolve(dirname(html), decodeURIComponent(href.split("#")[0]));
+    const target = decoded.startsWith("/") ? join(DIST, decoded.slice(1)) : resolve(dirname(html), decoded);
     if (!fileSet.has(target)) {
       failures.push(`R4 资源缺失 ${relative(DIST, html)} → ${href}`);
-      if (failures.length > 20) break;
     }
   }
   cssTotal++;
-  if (failures.length > 20) break;
 }
 const themeCss = all.filter((f) => f.endsWith(".css") && f.includes("assets"));
 if (themeCss.length === 0) failures.push("R4 主题 CSS 缺失（样式回归基础件）");
@@ -146,6 +166,6 @@ if (failures.length) {
   process.exit(1);
 }
 console.log(
-  `PASS: ${r1Count} md→html 全对应、${navCount} 条导航链接可达、搜索工件在位（hashmap+${searchChunks.length} chunk）、` +
+  `PASS: ${r1Count} md→html 全对应、${navCount} 条导航链接可达（含 config.mts 顶层 nav）、搜索工件在位（hashmap+${searchChunks.length} chunk）、` +
     `${cssTotal} 页 viewport/资源引用全通过（抽样 ${assetChecked} 条）、404 兜底在位`,
 );
