@@ -91,7 +91,7 @@ pnpm examples:check # 教学示例结构 + 离线 spec
 
 GitHub Pages 自动部署（`.github/workflows/deploy.yml`，OIDC 免密令牌，零 Secret 配置）。备选 Vercel/Netlify：构建命令 `pnpm docs:build`，输出目录 `docs/.vitepress/dist`。
 
-部署排错速查与 workflow 配置说明已收敛到 [docs/maintainers/](./docs/maintainers/implementation-plan.md)（原 README 内的逐命令 CI 教程按方案 P6-01 移除，避免与 workflow 实际演进脱节失效）。
+原 README 内的逐命令 CI 教程与排错速查表已按方案 P6-01 移除（见 dd185f8 的 git 历史）；部署配置以 [.github/workflows/deploy.yml](./.github/workflows/deploy.yml) 为唯一事实来源。
 
 ## 维护者
 
