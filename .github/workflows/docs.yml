@@ -10,18 +10,41 @@ on:
     branches: [main]
     paths:
       - "docs/**"
+      # 显式列出 .vitepress：官方文档未定义通配对点目录的匹配行为，
+      # 保守显式化（审查 MINOR-1）——config/sidebar 改动必须触发本门禁
+      - "docs/.vitepress/**"
       - "scripts/p5-01-doc-check.mjs"
       - "scripts/p5-02-security-check.mjs"
       - "scripts/p0-*.mjs"
       - "package.json"
+      # p0-check 的 inventory↔磁盘全覆盖网格含 agent-app 侧 md（examples/samples
+      # README、agent-app 根文档）——审查 MAJOR-1：整目录删除示例时
+      # examples:check/matrix:check 只遍历现存目录不报错，p0-check 是唯一拦截网
+      - "agent-app/examples/**"
+      - "agent-app/samples/**"
+      - "agent-app/docs/**"
+      - "agent-app/README.md"
+      - "agent-app/ARCHITECTURE.md"
+      - "agent-app/SECURITY.md"
+      - "agent-app/BACKLOG.md"
+      - "agent-app/AGENTS.md"
       - ".github/workflows/docs.yml"
   pull_request:
     paths:
       - "docs/**"
+      - "docs/.vitepress/**"
       - "scripts/p5-01-doc-check.mjs"
       - "scripts/p5-02-security-check.mjs"
       - "scripts/p0-*.mjs"
       - "package.json"
+      - "agent-app/examples/**"
+      - "agent-app/samples/**"
+      - "agent-app/docs/**"
+      - "agent-app/README.md"
+      - "agent-app/ARCHITECTURE.md"
+      - "agent-app/SECURITY.md"
+      - "agent-app/BACKLOG.md"
+      - "agent-app/AGENTS.md"
       - ".github/workflows/docs.yml"
 
 concurrency:
@@ -36,7 +59,8 @@ jobs:
     name: docs gates
     runs-on: ubuntu-latest
     steps:
-      # fetch-depth 0：p0 audit 的任务一致性与 p5-01 的 lesson 校验均读仓库历史
+      # fetch-depth 0：p0-audit-lib 的 git ls-files 浅克隆亦可，但保留全历史使
+      # 校验脚本（如 lastVerifiedCommit 祖先检查）未来迁移到此 workflow 不踩坑
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0

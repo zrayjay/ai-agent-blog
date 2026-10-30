@@ -1,11 +1,20 @@
 # 依赖安全审计（BACKLOG #7）—— 独立 workflow，失败不阻塞 deploy.yml 的 Pages 部署
 # pnpm audit 基于 lockfile 向 registry 查安全通告，无需安装依赖
-# 触发：push 到 main + 每周一定时 + Actions 页手动
+# 触发：push 到 main + 每周一定时 + Actions 页手动；
+# PR 触发（P5-03 审查 MINOR-2）：依赖变更 PR 此前零 PR 级 CI（两 lockfile 均不在
+# 任何 workflow paths），提前到 PR 阶段拦截——audit.yml 首跑曾抓到 lockfile 真实高危
 name: Dependency audit
 
 on:
   push:
     branches: [main]
+  pull_request:
+    paths:
+      - "pnpm-lock.yaml"
+      - "agent-app/pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
+      - "**/package.json"
+      - ".github/workflows/audit.yml"
   schedule:
     # 每周一 03:00 UTC（北京时间 11:00）
     - cron: "0 3 * * 1"
