@@ -49,6 +49,7 @@ function walk(dir, out = []) {
 }
 
 const failures = [];
+const pendingPrereqs = []; // {rel, ref} —— 循环结束后对 lessonIds 校验（支持前向引用）
 const mdFiles = walk(DOCS_ROOT);
 
 // ── C1/C2：lesson frontmatter 完整性与状态-证据红线 ──
@@ -79,7 +80,19 @@ for (const p of lessonFiles) {
   else if (!p.replace(/\\/g, "/").includes(`/learn/${stage}/`))
     failures.push(`C1 ${rel}: stage(${stage}) 与目录不一致`);
   if (!STATUSES.has(status ?? "")) failures.push(`C1 ${rel}: status 非法 ${status}`);
-  if (order && !/^\d+$/.test(order)) failures.push(`C1 ${rel}: order 非整数 ${order}`);
+  if (!order || !/^\d+$/.test(order)) failures.push(`C1 ${rel}: order 缺失或非整数 ${order}`);
+
+  // prerequisites 引用有效性：收集到 pendingPrereqs，lessonFiles 循环结束后二次校验
+  // （单 pass 时 lessonIds 未填满，直接查会漏前向引用）
+  const prereqBlock = fm.match(/^prerequisites:\r?\n((?:  - .+\r?\n?)+)/m)?.[1];
+  if (prereqBlock) {
+    for (const m of prereqBlock.matchAll(/- (.+)/g)) {
+      const ref = m[1].trim();
+      pendingPrereqs.push({ rel, ref });
+    }
+  } else if (!/^prerequisites: (\[\]|\[\s*\])\s*$/m.test(fm) && !/^prerequisites:/m.test(fm)) {
+    failures.push(`C1 ${rel}: 缺 prerequisites（空列表写 prerequisites: []）`);
+  }
 
   // C2 红线：implemented 缺证据；planned 出现可运行暗示
   const hasList = (k) => new RegExp(`^${k}:\\r?\\n((?:  - .+\\r?\\n?)+)`, "m").test(fm);
@@ -96,12 +109,28 @@ for (const p of lessonFiles) {
   }
 }
 
+// prerequisites 二次校验（lessonIds 已填满）
+for (const { rel, ref } of pendingPrereqs) {
+  if (!lessonIds.has(ref)) failures.push(`C1 ${rel}: prerequisites 引用不存在的 lessonId ${ref}`);
+}
+
 // ── C3：站内链接存在性 ──
 // 站内 .md 相对链接（含锚点剥离）；绝对站内链接 /xxx 按 VitePress cleanUrl 规则映射 docs/xxx(.md|/index.md)
+function decodeSafe(h) {
+  try {
+    return decodeURIComponent(h);
+  } catch {
+    return null; // 裸 % 等畸形编码 → 调用方按断链报告
+  }
+}
+
 function targetExists(fromFile, href) {
   if (/^(https?:|mailto:|#)/.test(href)) return true; // 外部/锚点跳过
   let h = href.split("#")[0];
   if (!h) return true;
+  const decoded = decodeSafe(h);
+  if (decoded === null) return false;
+  h = decoded;
   if (h.startsWith("/")) {
     // VitePress 站内绝对路径 → docs 树（目录 → index.md）
     const rel = h.replace(/^\//, "");
@@ -111,7 +140,7 @@ function targetExists(fromFile, href) {
       existsSync(join(DOCS_ROOT, rel))
     );
   }
-  const abs = resolve(dirname(fromFile), decodeURIComponent(h));
+  const abs = resolve(dirname(fromFile), h);
   if (existsSync(abs)) return true;
   // 相对链接省略 .md 的情形（VitePress 允许）
   return existsSync(abs + ".md") || existsSync(join(abs, "index.md"));
