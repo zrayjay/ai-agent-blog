@@ -12,6 +12,7 @@
     "docs:check": "node scripts/p5-01-doc-check.mjs",
     "security:check": "node scripts/p5-02-security-check.mjs",
     "assert:check": "node scripts/p5-04-assertion-check.mjs",
+    "site:check": "pnpm docs:build && node scripts/p5-05-site-check.mjs",
     "prepare": "husky",
     "lint:staged": "lint-staged",
     "format:check": "prettier --check ."
