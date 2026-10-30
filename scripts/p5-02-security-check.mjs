@@ -24,13 +24,18 @@ const trackedFiles = execFileSync("git", ["ls-files"], { cwd: REPO_ROOT, encodin
 // 新增夹具须同步此表并在夹具处注释指向（见 security-chain.spec.ts SECRET）。
 const SECRET_ALLOWLIST = new Set([
   "agent-app/packages/engine/test/security-chain.spec.ts",
+  // telemetry.spec 的 sk-proj-… 同为脱敏测试夹具（测 redactEvent 对现代
+  // sk-proj 格式的脱敏），非泄漏。新增强化模式后命中，纳入同一白名单口径。
+  "agent-app/packages/engine/test/telemetry.spec.ts",
   // 归档课教学文本：SSH 私钥「头标记词」引用（教用户去哪复制自己的密钥），
   // 非密钥本体——纯 BEGIN/END 标记不含 base64 主体，零泄漏面。归档课保持历史原貌不改。
   "docs/archive/weeks/week08/day3.md",
 ]);
 
 const SECRET_PATTERNS = [
-  [/sk-[A-Za-z0-9]{20,}/, "OpenAI 风格密钥"],
+  // sk- 后字符类含 _-：2024 起主流 sk-proj-/sk-svcacct- 格式含连字符，
+  // 旧式 [A-Za-z0-9]{20,} 在 "proj" 后即断、整串漏报（审查复现）。
+  [/sk-[A-Za-z0-9][A-Za-z0-9_-]{19,}/, "OpenAI 风格密钥"],
   [/ghp_[A-Za-z0-9]{30,}/, "GitHub PAT"],
   [/github_pat_[A-Za-z0-9_]{50,}/, "GitHub fine-grained PAT"],
   [/AKIA[0-9A-Z]{16}/, "AWS Access Key"],
@@ -60,7 +65,9 @@ const agentPkg = JSON.parse(readFileSync(join(REPO_ROOT, "agent-app", "package.j
 const validScripts = new Set([
   ...Object.keys(rootPkg.scripts ?? {}),
   ...Object.keys(agentPkg.scripts ?? {}),
-  // pnpm 内建与包管理器直呼（非 scripts 但永远有效）
+  // pnpm 内建与包管理器直呼（非 scripts 但永远有效）。
+  // 不收 dev/lint/test：两根 package.json 均无同名 script，bare 调用跑不通——
+  // 放行即失实命令（P3-02 同类问题），课程若用需先在 package.json 加 script。
   "pnpm",
   "npm",
   "npx",
@@ -73,14 +80,28 @@ const validScripts = new Set([
   "-C",
   "--dir",
   "--filter",
-  "test",
   "build",
-  "dev",
-  "lint",
   "typecheck",
 ]);
 
 const LEARN = join(REPO_ROOT, "docs", "learn");
+// workspace 包名 → 包 scripts 集（--filter <pkg> <script> 校验用）
+const workspaceScripts = new Map();
+for (const pkgPath of [
+  "apps/web",
+  "apps/api",
+  "apps/cli",
+  "packages/engine",
+  "packages/shared",
+  "examples",
+]) {
+  try {
+    const pkg = JSON.parse(readFileSync(join(REPO_ROOT, "agent-app", pkgPath, "package.json"), "utf8"));
+    workspaceScripts.set(pkg.name ?? pkgPath, new Set(Object.keys(pkg.scripts ?? {})));
+  } catch {
+    // 包不存在跳过
+  }
+}
 function walkMd(dir, out = []) {
   let entries;
   try {
@@ -127,7 +148,23 @@ for (const p of lessonFiles) {
       cmdSampled++;
       // pnpm <script> / pnpm -C x <script> / pnpm --filter y <script> / pnpm cli ...
       let scriptTok = firstTok;
-      if (scriptTok === "-C" || scriptTok === "--dir" || scriptTok === "--filter") {
+      // --filter <pkg> <script>：走 workspace 包 scripts 校验（独立分支，不落入 -C 泛化）。
+      // dev/test 属各包自有 script（web dev、engine test），bare 直呼才要求根/agent-app 有——
+      // 这里 sub 是包内 script，内建与常见包级名放行，其余对包 scripts 精确校验。
+      if (scriptTok === "--filter") {
+        const toks = rest.split(/\s+/);
+        const pkgTok = toks[1];
+        const sub = toks[2];
+        if (!sub || ["install", "add", "remove", "exec", "run", "test", "dev"].includes(sub)) continue;
+        const pkgScripts = workspaceScripts.get(pkgTok);
+        if (!pkgScripts) {
+          failures.push(`S2 ${rel}: --filter 目标包不存在 ${pkgTok}`);
+        } else if (!pkgScripts.has(sub)) {
+          failures.push(`S2 ${rel}: 包 ${pkgTok} 无 script「${sub}」`);
+        }
+        continue;
+      }
+      if (scriptTok === "-C" || scriptTok === "--dir") {
         // 跳过参数值取下一个 token
         const toks = rest.split(/\s+/);
         const idx = toks.findIndex(
@@ -141,8 +178,15 @@ for (const p of lessonFiles) {
         scriptTok = toks[idx] ?? "";
       }
       if (!scriptTok) continue;
-      if (!validScripts.has(scriptTok) && scriptTok !== "cli" && scriptTok !== "run") {
-        // cli 是 agent-app 的 scripts 项(cli),run 是 pnpm run 前缀——两者直呼合法
+      if (scriptTok === "run") {
+        // pnpm run <script>：<script> 与直呼同口径校验（不豁免，防 run 绕过）
+        const after = rest.split(/\s+/)[1];
+        if (after && !validScripts.has(after)) {
+          failures.push(`S2 ${rel}: 未知 pnpm 命令「pnpm run ${after}」（不在根/agent-app scripts）`);
+        }
+        continue;
+      }
+      if (!validScripts.has(scriptTok)) {
         failures.push(
           `S2 ${rel}: 未知 pnpm 命令「pnpm ${rest.split(/\s+/).slice(0, 3).join(" ")}」（不在根/agent-app scripts）`,
         );
