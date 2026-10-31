@@ -3,7 +3,7 @@
 // 方案 P5-04：「检测已实现/已验证断言的证据缺失；实现状态无法证实的页面自动失败或警示」。
 // 口径（摸底实测后收敛）：
 //  A1 站点正文（learn/advanced/reference/start/guide-compat/products→cases 迁移面，
-//     **排除 archive/**——161 篇历史日课保持原貌，其 ✅ 是代码注释标注非能力断言）
+//     archive/ 已随二期清理整体下线）
 //     中含「已实现/已验证/✅」能力断言的**段落**，须满足其一：
 //     ① 段落内含反引号证据路径（src/test/spec 路径）——路径存在性实测（审查 MINOR-③：
 //        引用不存在的路径不算证据）
@@ -21,20 +21,8 @@ import { fileURLToPath } from "node:url";
 const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(SCRIPT_DIR, "..");
 const DOCS_ROOT = join(REPO_ROOT, "docs");
-// 检查范围：站点正文目录（archive 历史原貌豁免——ADR-0001 与 P1-05 契约）
-const SCAN_DIRS = [
-  "learn",
-  "advanced",
-  "reference",
-  "start",
-  "how-to",
-  "guide",
-  "products",
-  "cases",
-  "preface.md",
-  "roadmap.md",
-  "index.md",
-];
+// 检查范围：站点正文目录（archive 等旧区域已随二期清理删除）
+const SCAN_DIRS = ["learn", "advanced", "reference", "start", "cases", "index.md"];
 const ASSERT_RE = /已实现|已验证|✅/;
 const EVIDENCE_RE =
   /`[^`]*(?:src|test|spec|examples|samples|\.ts|\.mjs|\.json)[^`]*`|spec\.ts|test\/|agent-app\/|engine\/src|apps\/(api|cli|web)|capability-matrix|examples\/\d{2}|source:\s|tests:\s/;

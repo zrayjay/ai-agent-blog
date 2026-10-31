@@ -185,6 +185,5 @@ pnpm chat --trace
 ## 延伸阅读
 
 - [ARCHITECTURE.md](https://github.com/zrayjay/ai-agent-blog/blob/main/agent-app/ARCHITECTURE.md) ——「一条消息的完整旅程」章节与踩坑实录
-- `docs/archive/weeks/week11/agent-loop-ts.md`——教程主线的循环深入篇（`npm run docs:dev` 起博客看）
 - [02-llm-config-trace.md](./02-llm-config-trace.md) ——循环里那个 `model` 是怎么造出来的
 - [03-tools.md](./03-tools.md) ——工具表怎么注册、审批壳与幂等壳怎么叠加
