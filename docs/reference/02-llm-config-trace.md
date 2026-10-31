@@ -283,4 +283,3 @@ Remove-Item Env:AGENT_TRACE             # 用完关掉
 - [03-tools.md](./03-tools.md) —— 工具表怎么注册、幂等壳怎么叠加在 execute 外面
 - [04-memory.md](./04-memory.md) —— 会话存储的 env 工厂正是 config 白名单键的消费方
 - [ARCHITECTURE.md](https://github.com/zrayjay/ai-agent-blog/blob/main/agent-app/ARCHITECTURE.md) ——「一条消息的完整旅程」+ 六条踩坑实录（含 generateObject 静默失败那条）
-- `docs/archive/weeks/week11/agent-loop-ts.md` —— 教程主线的循环深入篇（`npm run docs:dev` 起博客看）

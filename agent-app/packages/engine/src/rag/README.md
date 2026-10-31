@@ -2,7 +2,7 @@
 
 > 这个目录是全项目数学密度最高的模块。本文先把**原理和数学**讲清楚，
 > 再对照"哪个文件实现了哪段数学"。原理懂了，代码只是翻译。
-> 想要保姆级展开，配合教程 [week14 · RAG Pipeline 入门](../../../../../docs/archive/weeks/week14/index.md)（Day 1 概念 / Day 4 Embedding / Day 6 相似度检索）。
+> 想要保姆级展开，配合教程 [week14 · RAG Pipeline 入门](../../../../../docs/learn/03-capabilities/rag-knowledge-base.md)（Day 1 概念 / Day 4 Embedding / Day 6 相似度检索）。
 
 ---
 
@@ -32,28 +32,28 @@ RAG（Retrieval-Augmented Generation，检索增强生成）的思路：
 检索：问题 → ②Embedding(问题→向量) → ③余弦相似度 → ④Top-K → 带编号引用
 ```
 
-| 环节 | 数学算法 | 复杂度 | 代码位置 |
-| --- | --- | --- | --- |
-| ① 切块 | 定长滑动窗口（步长 = 窗口宽 − 重叠） | O(n) | `chunker.ts` → `hardCut()` |
-| ② 文本→向量 | 深度神经网络映射（Transformer + 对比学习） | 模型内部 | `embedder.ts` → `embed()` |
-| ③ 相似度 | **余弦相似度** | O(d) 每对 | `store.memory.ts` → `cosineSimilarity()` |
-| ④ 找最像 | Top-K 最近邻（本项目暴力扫；工业版 ANN 索引） | O(n·d) | `store.memory.ts` → `search()` |
+| 环节        | 数学算法                                      | 复杂度    | 代码位置                                 |
+| ----------- | --------------------------------------------- | --------- | ---------------------------------------- |
+| ① 切块      | 定长滑动窗口（步长 = 窗口宽 − 重叠）          | O(n)      | `chunker.ts` → `hardCut()`               |
+| ② 文本→向量 | 深度神经网络映射（Transformer + 对比学习）    | 模型内部  | `embedder.ts` → `embed()`                |
+| ③ 相似度    | **余弦相似度**                                | O(d) 每对 | `store.memory.ts` → `cosineSimilarity()` |
+| ④ 找最像    | Top-K 最近邻（本项目暴力扫；工业版 ANN 索引） | O(n·d)    | `store.memory.ts` → `search()`           |
 
 ### 本目录文件清单（11 个文件，各自管什么）
 
-| 文件 | 职责 |
-| --- | --- |
-| `types.ts` | 契约：`Chunk` / `RagStore`（+listDocs）/ `DocumentSummary`，换库接缝 |
-| `chunker.ts` | 递归切块三级瀑布（段落→句子→硬切），纯函数 |
-| `embedder.ts` | 批量向量化（32/批）+ 中文配置错误礼仪 |
-| `store.memory.ts` | 内存 Map 库 + 余弦相似度（NaN 安全），自检与离线场景用 |
+| 文件                | 职责                                                                                      |
+| ------------------- | ----------------------------------------------------------------------------------------- |
+| `types.ts`          | 契约：`Chunk` / `RagStore`（+listDocs）/ `DocumentSummary`，换库接缝                      |
+| `chunker.ts`        | 递归切块三级瀑布（段落→句子→硬切），纯函数                                                |
+| `embedder.ts`       | 批量向量化（32/批）+ 中文配置错误礼仪                                                     |
+| `store.memory.ts`   | 内存 Map 库 + 余弦相似度（NaN 安全），自检与离线场景用                                    |
 | `store.pgvector.ts` | **PostgreSQL + pgvector 实现**（HNSW 索引 + `<=>` 余弦距离），`RAG_STORE=pgvector` 时启用 |
-| `store.factory.ts` | **env 工厂总开关**：`RAG_STORE=memory\|json\|pgvector` 一行换库，默认 json |
-| `persistence.ts` | JSON 快照装饰器（`.data/kb-store.json`），内存库的跨进程存档 |
-| `retrieve.ts` | 总装出口：`searchKnowledge`（检索）+ `formatCitations`（引用）+ `setRagStore` 换库 |
-| `ingest.ts` | **入库核心**（CLI 与 HTTP API 共用）：抽文本 → 切块 → 向量化 → upsert |
-| `index.ts` | 桶导出（`@agent-app/engine/rag` 子路径的公共面） |
-| `README.md` | 本文 |
+| `store.factory.ts`  | **env 工厂总开关**：`RAG_STORE=memory\|json\|pgvector` 一行换库，默认 json                |
+| `persistence.ts`    | JSON 快照装饰器（`.data/kb-store.json`），内存库的跨进程存档                              |
+| `retrieve.ts`       | 总装出口：`searchKnowledge`（检索）+ `formatCitations`（引用）+ `setRagStore` 换库        |
+| `ingest.ts`         | **入库核心**（CLI 与 HTTP API 共用）：抽文本 → 切块 → 向量化 → upsert                     |
+| `index.ts`          | 桶导出（`@agent-app/engine/rag` 子路径的公共面）                                          |
+| `README.md`         | 本文                                                                                      |
 
 典型组合：`RAG_STORE=json`（默认，零依赖）或 `RAG_STORE=pgvector`（`pnpm infra:up` 起库后切换）——检索代码一行不改。
 
@@ -122,15 +122,15 @@ cos(a,c) = (1×0 + 0×1) / 1 = 0                                    ← 无关�
 
 ## 七、原理 → 代码的对照表（学习检查清单）
 
-| 你应该能回答 | 对应实现 |
-| --- | --- |
-| 为什么不整篇文档入库，要切块？ | `chunker.ts` 头注释：一篇多主题文档只会得到一个"四不像向量" |
-| 为什么相邻块要有重叠？ | `chunker.ts` `hardCut` 步长 = maxLen − overlap |
-| "语义近 = 距离近"是谁保证的？ | embedding 模型的对比学习训练（模型外部，理解即可） |
-| 余弦公式分子分母各是什么？为什么除模长？ | `store.memory.ts` `cosineSimilarity()` |
-| 检索为什么查询也要向量化？ | `retrieve.ts` `searchKnowledge()`：必须同一坐标空间才有夹角可言 |
-| 暴力扫和 HNSW 差在哪？什么时候需要换？ | `store.memory.ts` `search()` 头注释；**工业版已落地：`store.pgvector.ts`（`RAG_STORE=pgvector` 切换，HNSW 索引见其建表注释）** |
-| 模型的 JSON 输出不可信，靠什么挡？ | `supervisor.ts` + `json-utils.ts`：zod 校验 + 宽松解析（另一个"边界"思想） |
+| 你应该能回答                             | 对应实现                                                                                                                       |
+| ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| 为什么不整篇文档入库，要切块？           | `chunker.ts` 头注释：一篇多主题文档只会得到一个"四不像向量"                                                                    |
+| 为什么相邻块要有重叠？                   | `chunker.ts` `hardCut` 步长 = maxLen − overlap                                                                                 |
+| "语义近 = 距离近"是谁保证的？            | embedding 模型的对比学习训练（模型外部，理解即可）                                                                             |
+| 余弦公式分子分母各是什么？为什么除模长？ | `store.memory.ts` `cosineSimilarity()`                                                                                         |
+| 检索为什么查询也要向量化？               | `retrieve.ts` `searchKnowledge()`：必须同一坐标空间才有夹角可言                                                                |
+| 暴力扫和 HNSW 差在哪？什么时候需要换？   | `store.memory.ts` `search()` 头注释；**工业版已落地：`store.pgvector.ts`（`RAG_STORE=pgvector` 切换，HNSW 索引见其建表注释）** |
+| 模型的 JSON 输出不可信，靠什么挡？       | `supervisor.ts` + `json-utils.ts`：zod 校验 + 宽松解析（另一个"边界"思想）                                                     |
 
 能全答上来，再往下读实现代码；答不上来，回到对应章节。
 
@@ -144,18 +144,18 @@ cos(a,c) = (1×0 + 0×1) / 1 = 0                                    ← 无关�
 原理 → 数据形状 → 纯函数 → 有状态 → 带副作用 → 总装 → 实战
 ```
 
-| 步骤 | 文件 | 学什么 | 通关标准（能做到才往下走） | 时间 |
-| --- | --- | --- | --- | --- |
-| **0** | 本文（原理篇） | Embedding 是什么、余弦公式、手算例子 | 能回答第七节的 7 个自测问题 | 30min |
-| **1** | `types.ts` | 全部数据形状：`Chunk` 五个字段为什么存在、`RagStore` 四方法 = 知识库的一生 | 合上文件能画出 Chunk 的字段图 | 10min |
-| **2** | `chunker.ts` | 三级瀑布（段落→句子→硬切）+ overlap 机制 | 拿一段真实文本，手动预测 `chunkText` 的输出块数和边界，跑 `pnpm selftest` 验证 | 40min |
-| **3** | `store.memory.ts` | 余弦相似度公式逐行对照第四节 + Map 存储 + NaN 防御 | 能手算 2 维例子；能说出 `search()` 三步（圈候选→打分→排序截断） | 30min |
-| **4** | ✋ 动手验证 | 离线零件全测过 | `pnpm selftest` 全绿，且能说出每项在测什么 | 10min |
-| **5** | `embedder.ts` | 第一个碰网的文件：批量分批、**下标即对应**契约、配置错误礼仪 | 能说出为什么 32 条一批、为什么乱序是灾难 | 15min |
-| **6** | `persistence.ts` | 装饰器模式 + `ready ??=` 懒加载 + 双写一致性 | 能解释"为什么要 snapshot 镜像"（内存库 Map 是私有的） | 20min |
-| **7** | `retrieve.ts` | 总装：`setRagStore` 换库接缝、引用编号后端分配 | 能画出"入库方向 / 问答方向"两条调用链 | 15min |
-| **8** | 🚀 全链路实战 | 真实数据流动 | 下面的命令跑通，开着 trace 看每一环 | 30min |
-| **9** | 延伸 | 工业版对比 | 读教程 week14~15。✅ pgvector 挑战**已实现**：`store.pgvector.ts` + env 工厂 `store.factory.ts`（`RAG_STORE=memory\|json\|pgvector`，默认 json；集成测试 `test/infra.pgvector.spec.ts`）；剩余挑战：写一个 `store.bm25.ts` | 不限 |
+| 步骤  | 文件              | 学什么                                                                     | 通关标准（能做到才往下走）                                                                                                                                                                                                 | 时间  |
+| ----- | ----------------- | -------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----- |
+| **0** | 本文（原理篇）    | Embedding 是什么、余弦公式、手算例子                                       | 能回答第七节的 7 个自测问题                                                                                                                                                                                                | 30min |
+| **1** | `types.ts`        | 全部数据形状：`Chunk` 五个字段为什么存在、`RagStore` 四方法 = 知识库的一生 | 合上文件能画出 Chunk 的字段图                                                                                                                                                                                              | 10min |
+| **2** | `chunker.ts`      | 三级瀑布（段落→句子→硬切）+ overlap 机制                                   | 拿一段真实文本，手动预测 `chunkText` 的输出块数和边界，跑 `pnpm selftest` 验证                                                                                                                                             | 40min |
+| **3** | `store.memory.ts` | 余弦相似度公式逐行对照第四节 + Map 存储 + NaN 防御                         | 能手算 2 维例子；能说出 `search()` 三步（圈候选→打分→排序截断）                                                                                                                                                            | 30min |
+| **4** | ✋ 动手验证       | 离线零件全测过                                                             | `pnpm selftest` 全绿，且能说出每项在测什么                                                                                                                                                                                 | 10min |
+| **5** | `embedder.ts`     | 第一个碰网的文件：批量分批、**下标即对应**契约、配置错误礼仪               | 能说出为什么 32 条一批、为什么乱序是灾难                                                                                                                                                                                   | 15min |
+| **6** | `persistence.ts`  | 装饰器模式 + `ready ??=` 懒加载 + 双写一致性                               | 能解释"为什么要 snapshot 镜像"（内存库 Map 是私有的）                                                                                                                                                                      | 20min |
+| **7** | `retrieve.ts`     | 总装：`setRagStore` 换库接缝、引用编号后端分配                             | 能画出"入库方向 / 问答方向"两条调用链                                                                                                                                                                                      | 15min |
+| **8** | 🚀 全链路实战     | 真实数据流动                                                               | 下面的命令跑通，开着 trace 看每一环                                                                                                                                                                                        | 30min |
+| **9** | 延伸              | 工业版对比                                                                 | 读教程 week14~15。✅ pgvector 挑战**已实现**：`store.pgvector.ts` + env 工厂 `store.factory.ts`（`RAG_STORE=memory\|json\|pgvector`，默认 json；集成测试 `test/infra.pgvector.spec.ts`）；剩余挑战：写一个 `store.bm25.ts` | 不限  |
 
 ### 第 8 步实战命令（最有体感的一步）
 

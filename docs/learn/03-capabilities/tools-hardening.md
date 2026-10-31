@@ -202,7 +202,6 @@ return composeToolShells(baseTools, shells); // shells[0] 最外：审批在外�
 - 下一课：[06 · 护栏与安全红队](/learn/05-quality/guardrails-safety) —— 工具之外的防线：脱敏、防注入、审计账本，全部来自真实红队实验
 - [参考库 · 工具箱](/reference/03-tools) —— 注册表 / 幂等层 / 壳组合器的完整语义与代码走读
 - [扩展指南](/advanced/extending) —— 加一个自定义工具的完整步骤与验收清单
-- 归档周教程：[week11 · 工具三件套与循环](/archive/weeks/week11/) · [week18 · Day 5-6 安全护栏与审批](/archive/weeks/week18/)
 
 ---
 

@@ -271,6 +271,5 @@ CI 侧：博客仓库根的 `.github/workflows/agent-app.yml` 有独立 `evals` 
 
 - [src/evals/README.md](https://github.com/zrayjay/ai-agent-blog/blob/main/agent-app/packages/engine/src/evals/README.md) ——本模块深度篇：评审套件「宁可误杀」设计、13 问自测清单、推荐学习顺序
 - [ARCHITECTURE.md](https://github.com/zrayjay/ai-agent-blog/blob/main/agent-app/ARCHITECTURE.md) ——整套引擎的架构图与踩坑实录（评测是其中「质量闸」一环）
-- `docs/archive/weeks/week16/evals-ts.md`——教程主线的评估工程篇（`npm run docs:dev` 起博客看，仓库外层 `ai-agent-blog/docs/archive/weeks/week16/`）
 - [09-service.md](./09-service.md) ——路由套件断言的 `checkHardRules` 就住在那边
 - [01-agent-loop.md](./01-agent-loop.md) ——轨迹套件穿透的被测系统 `runToolLoop` 的实现讲解

@@ -17,14 +17,14 @@ import { withBase } from 'vitepress'
       编排，最后交付可交互的全栈应用。 每一步都回到代码与验证。
     </p>
     <div class="jhi-actions">
-      <a class="jbtn jbtn-primary" :href="withBase('/guide/01-llm-basics')">
-        开始主线学习 <span aria-hidden="true">→</span>
+      <a class="jbtn jbtn-primary" :href="withBase('/start/')">
+        从这里开始 <span aria-hidden="true">→</span>
       </a>
       <a class="jbtn jbtn-ghost" href="#learning-path">查看学习路线</a>
     </div>
     <p class="jhi-status">
       面向有 JavaScript / TypeScript 基础的开发者
-      <a :href="withBase('/archive/weeks/week01/')">补齐基础 →</a>
+      <a :href="withBase('/start/environment')">环境与前置 →</a>
     </p>
   </div>
 </template>

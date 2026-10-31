@@ -5,14 +5,14 @@
 > 面向学习的实现文档：讲清每个模块**是什么、为什么这么写、踩过什么坑**。
 > 配合源码读，效果最好。快速上手（怎么跑）看 [README.md](./README.md)，本文讲"为什么"。
 
-> **四层文档分工**（同一技术细节只在一处保持正文，其他位置链接指回）：快速上手与命令清单看 [README.md](./README.md)；模块的 API 与边界看各模块目录下的 README（如 rag/、service/）；「为什么这么设计」看本文；对读者的教学叙事看站点参考库（docs/reference/）与七阶段主线（docs/learn/）。注：文中 docs/products/ 引用现指向迁移兼容跳板页，正文在 docs/cases/ 与阶段 07。
+> **四层文档分工**（同一技术细节只在一处保持正文，其他位置链接指回）：快速上手与命令清单看 [README.md](./README.md)；模块的 API 与边界看各模块目录下的 README（如 rag/、service/）；「为什么这么设计」看本文；对读者的教学叙事看站点参考库（docs/reference/）与七阶段主线（docs/learn/）。
 
 ## 1. 这个项目是什么
 
 教程《AI Agent 全栈工程师 23 周》**TypeScript 主线**的可运行落地项目。教程分两条引擎路线：Python（LangGraph，选修）和 Node + TS（推荐主线）——本项目就是主线的完整实现：
 
 - **共享引擎**：手写多步工具循环、RAG 检索、三层记忆（对应教程 week11 的四篇 TS 补篇）
-- **两条产品线**：知识库问答（kb）、智能客服（service）（对应 `docs/products/` 的组装说明书）
+- **两条产品线**：知识库问答（kb）、智能客服（service）（组装说明见 [案例库](../docs/cases/knowledge-base.md) 与 [客服案例](../docs/cases/customer-service.md)）
 - **HTTP API 层**：NestJS 服务壳（对应教程 week20 的 BFF 形态）
 
 技术栈：`ai`（Vercel AI SDK 5.0.266）+ `@ai-sdk/openai`（OpenAI 兼容网关，默认智谱 GLM）+ `zod` + TypeScript（NodeNext ESM）+ NestJS 12 + pnpm。
@@ -311,14 +311,14 @@ PowerShell 管道向 node stdin 写中文默认 GBK，node 按 UTF-8 读成乱�
 
 ## 10. 与教程的映射 & 扩展路线
 
-| 模块                                              | 教程出处                 |
-| ------------------------------------------------- | ------------------------ |
-| 手写工具循环 / ToolLoopAgent / 多 Agent 模式      | week11/agent-loop-ts.md  |
-| RAG 全链路（切块/嵌入/检索/引用/降级）            | week11/rag-ts.md         |
-| 三层记忆（窗口压缩/偏好/情景）                    | week11/memory-ts.md      |
-| 客服 Supervisor / 硬规则 / HandoffPack / 降级链路 | docs/products/service.md |
-| 知识库引用问答 / 降级预案                         | docs/products/kb.md      |
-| NestJS BFF / SSE 流式                             | week20                   |
+| 模块                                              | 教程出处                       |
+| ------------------------------------------------- | ------------------------------ |
+| 手写工具循环 / ToolLoopAgent / 多 Agent 模式      | week11/agent-loop-ts.md        |
+| RAG 全链路（切块/嵌入/检索/引用/降级）            | week11/rag-ts.md               |
+| 三层记忆（窗口压缩/偏好/情景）                    | week11/memory-ts.md            |
+| 客服 Supervisor / 硬规则 / HandoffPack / 降级链路 | docs/cases/customer-service.md |
+| 知识库引用问答 / 降级预案                         | docs/cases/knowledge-base.md   |
+| NestJS BFF / SSE 流式                             | week20                         |
 
 **扩展路线**（接口都已留好缝）：
 

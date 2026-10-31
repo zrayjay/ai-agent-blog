@@ -37,7 +37,7 @@
 
 > **落地说明**：照下方设计稿实现，改动边界守约（只动 `compression.ts` 水位策略 + factory 组装 + session 两实现透传 + config 一个 key）。与设计稿的一处升级：估算②「字符数×系数」层直接被 `memory/token-estimate.ts`（tiktoken/chars 可切）取代，比字符系数更精确。实现：配置 `MODEL_CONTEXT_TOKENS`（env 直配或按 OPENAI_MODEL 查表，查表未命中**有告警**后不启用——40d534a 消除静默失效）后，压缩按 token 水位触发（全窗口估算 > 窗口×75%），保留量从尾部贪心至 ≤ 窗口×50%（targetRatio 0.5，审查纠正过误用 bufferRatio 的 25% 语义）；未配置走条数阈值现状行为逐字节不变。watermark 用例：首批 8 例 + 40d534a 增补 2 例（扩充命中/空模型名不告警）共 10 例，全量 248 过。
 
-**触发条件**：学完 `docs/archive/weeks/week17/day2.md`（短期记忆/compaction）——适合自己动手当练习，做完我验收；也可指定由我实现。
+**触发条件**：学完 [03 站 · 记忆与上下文压缩](../docs/learn/03-capabilities/memory-context.md)（短期记忆/compaction）——适合自己动手当练习，做完我验收；也可指定由我实现。
 
 **现状的问题**（红队之外的诚实差距）：`compression.ts` 写死「40 条消息」触发压缩。工业做法（opencode / Claude Code）是**按模型上下文窗口算水位线**——条数不是 token 的合格代理变量（40 条"你好" vs 40 条 10KB 日志天差地别）；换小窗口模型或长文本工具输出时会失守。
 
@@ -95,10 +95,10 @@
 | 项                                                                                                                                                                 | 来源                                              | 触发条件                                           |
 | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------- | -------------------------------------------------- |
 | Skills 第二批：**渐进披露**——system prompt 只放「name: description」清单 + 内置工具 `load_skill(name)`（Agent 判断需要时自己读全文）；几十个技能时的上下文成本正解 | skills/ 第一批落地（2026-10-15）                  | 技能数量 >10 或出现真实上下文压力时                |
-| Skills 教学篇：docs 站补「能力扩展 vs 知识扩展」对照章（MCP 给锤子 / Skill 给手册，--mcp 与 --skills 并排讲），含写一个技能的动手任务                              | skills/ 第一批落地（2026-10-15）                  | 下次动 docs/guide 或 MCP 专题教程时顺手            |
+| Skills 教学篇：docs 站补「能力扩展 vs 知识扩展」对照章（MCP 给锤子 / Skill 给手册，--mcp 与 --skills 并排讲），含写一个技能的动手任务                              | skills/ 第一批落地（2026-10-15）                  | 下次动 docs/learn 或 MCP 专题教程时顺手            |
 | Skills 接入 API 层：chat.service 三处注入点（非流式/流式/审批流，裸 SYSTEM_PROMPT）接 `renderSkillsPrompt`，暴露 `SKILLS_DIR` 读取（compose 风格容器装配）         | skills/ 第一批落地（2026-10-15，只接了 CLI chat） | web/API 形态需要技能时                             |
 | 在线评估（trace 回流数据集）                                                                                                                                       | evals/README 路线图                               | 有真实流量后                                       |
 | MCP 服务器身份 TOFU 指纹 / 检索内容沙箱                                                                                                                            | SECURITY.md 结构性档                              | 安全篇深入时                                       |
 | 认证 / 多租户 / CORS 收紧                                                                                                                                          | README「后续扩展」                                | week20 生产化阶段（限流+helmet 已落地 2026-10-13） |
 | evals 注入回归集（红队 E1-E8 载荷入 evals）                                                                                                                        | SECURITY.md 结构性档                              | 学 evals 时顺手做                                  |
-| EXTENDING.md 增补编排器/幂等扩展指引（per-task 预算、IDEMPOTENCY_STORE 切换、llmCallPolicy 定制）                                                                  | 四轮复查遗留的可选文档债                          | 下次动 docs/how-to 时顺手                          |
+| EXTENDING.md 增补编排器/幂等扩展指引（per-task 预算、IDEMPOTENCY_STORE 切换、llmCallPolicy 定制）                                                                  | 四轮复查遗留的可选文档债                          | 下次动 docs/advanced 时顺手                        |

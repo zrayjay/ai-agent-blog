@@ -64,19 +64,19 @@ P2 的示例目标设计得很妙：「查订单 A-1024，未发货就建催发�
 
 **⑤ 在线评估**。76 例是离线考卷；真实流量回流成数据集（trace 里躺着现成的样本），「有真实流量后」是它的触发条件——你自己的项目有流量那天，就是开工那天。
 
-**⑥ 语义缓存与成本面板**。pgvector 存「问题 → 答案」，相似问题直接命中不再调模型；配套 token 用量聚合（usage 现在飘过就丢）。素材：[week21 Day 6](/archive/weeks/week21/day6)。
+**⑥ 语义缓存与成本面板**。pgvector 存「问题 → 答案」，相似问题直接命中不再调模型；配套 token 用量聚合（usage 现在飘过就丢）。挂账：`agent-app/BACKLOG.md`。
 
-**⑦ OTel 可观测**。结构化日志 + 请求关联 ID 贯穿 + OTel GenAI 规范的 trace 导出——从 stderr 图标流升到工业级三件套（日志/指标/追踪）。素材：[week21 Day 1](/archive/weeks/week21/day1)。
+**⑦ OTel 可观测**。结构化日志 + 请求关联 ID 贯穿 + OTel GenAI 规范的 trace 导出——从 stderr 图标流升到工业级三件套（日志/指标/追踪）。挂账：`agent-app/BACKLOG.md`。
 
 **先做哪个**？按「设计稿完整度 ÷ 改动边界」排序：压缩水位线最适合先动手（设计稿带验收标准，只动 `compression.ts` 一个文件）；重试退避次之（工业差距审查的 bug 级条目）；生产壳与 OTel 等你有真实部署再开——BACKLOG 的触发条件纪律本来就是「到条件再开工，不提前透支」。
 
 ## 三、生态选型观：框架与平台的边界
 
-学完手写再看生态，你的视角和入门者完全不同（素材：[week12 加餐 · LangChain 生态地图](/archive/weeks/week12/langchain)）：
+学完手写再看生态，你的视角和入门者完全不同：
 
 - **LangChain/LangGraph 不是一个框架，是一组分层的库**：core（消息/工具/模型抽象）、langchain 1.0（`create_agent` + middleware 快捷方式）、langgraph（编排引擎）、langsmith（可观测）。`create_agent` 幕后生成的正是你在 02 站手写的那约 30 行装配与路由——学手写不是为了拒绝快捷方式，是为了快捷方式对你不再是黑盒。
 - **旧范式为什么死，看一眼就懂**：LCEL 的管道符 `|` 串的是直线（`prompt | llm | parser`），装不下 Agent 的环——执行工具、回填、再调模型的循环它从语法上就表达不了，这是旧 Chains 整体归进 classic 遗留包的根本原因。1.0 的扩展点是 middleware：`SummarizationMiddleware`（历史超阈值自动摘要——你在 03 站手写过的东西）、`HumanInTheLoopMiddleware`（工具执行前等人批准——你在 05 站套过的壳）。框架的进化方向，正是把你手写的那些「壳」收编成配置项。
-- **Dify / Coze 是低代码平台**（素材：[week19 Day 5](/archive/weeks/week19/day5) · [Day 6](/archive/weeks/week19/day6)）：把高频管道固化成拖拽节点，原型半天出师；代价是表达力锁死在节点类型提供的范围里。平台「到顶」的三个信号：多 Agent 状态机、深度人机协同、评估体系——见一个就知道该回代码了。选型先答三个问题，答案自己会浮出来：
+- **Dify / Coze 是低代码平台**：把高频管道固化成拖拽节点，原型半天出师；代价是表达力锁死在节点类型提供的范围里。平台「到顶」的三个信号：多 Agent 状态机、深度人机协同、评估体系——见一个就知道该回代码了。选型先答三个问题，答案自己会浮出来：
 
 | 问题             | 云端 Coze      | 自托管 Dify            | 自建（手写/框架） |
 | ---------------- | -------------- | ---------------------- | ----------------- |
@@ -88,10 +88,9 @@ P2 的示例目标设计得很妙：「查订单 A-1024，未发货就建催发�
 
 ## 四、面试衔接：把这段经历变成 offer
 
-主线十三站是一份现成的项目叙事，归档里备好了冲刺材料：
+主线十三站是一份现成的项目叙事，面试材料见下：
 
-- **[week22 · 系统设计与复盘](/archive/weeks/week22/)**：系统设计方法论（缓存三件套 / 队列 / 异步任务）、STAR 法则复盘三个里程碑、简历写成成果导向——你的「里程碑」就是 agent-app 这套东西；
-- **[week23 · 面试冲刺](/archive/weeks/week23/)**：Agent 八股（ReAct / RAG / MCP / A2A / 评估 / 安全 / 框架对比——每一样你都做过实物）、模拟面试、面试速查卡。
+- **系统设计 / 复盘 / 简历方法 / Agent 八股**：见[面试实战](/advanced/interview)——系统设计方法论（缓存三件套 / 队列 / 异步任务）、STAR 法则复盘三个里程碑、简历写成成果导向；八股逐题落到本项目（ReAct / RAG / MCP / 评估 / 安全——每一样你都做过实物）。你的「里程碑」就是 agent-app 这套东西。
 
 被问「你会 LangChain 吗」，低分答法是背组件名；高分答法是从分层开始答，最后补一句「等价的循环我自己手写过」——这半句你现在说得出口。
 
@@ -138,5 +137,4 @@ Agent 这个领域还在高速变化，但你在 02 站握住的那台发动机�
 - [agent-app/BACKLOG.md（GitHub）](https://github.com/zrayjay/ai-agent-blog/blob/main/agent-app/BACKLOG.md)
 - 下一站：[13 · 面试实战：带着问题通关](/advanced/interview) —— 用十七道高频面试题反向验收十三站 —— 演进方向的真实挂账：每项带触发条件与设计稿
 - [how-to · MATURITY](/advanced/maturity) —— 生产前置清单；[扩展指南](/advanced/extending) —— 加工具 / 加存储 / 换网关的最小步骤
-- 归档周教程：[week21 · 可观测与成本](/archive/weeks/week21/) · [week22 · 系统设计与简历](/archive/weeks/week22/) · [week23 · 面试冲刺](/archive/weeks/week23/)
 - 下一站：**毕业** —— 主线到此收束；新故事从你往 `examples/` 里加的那个工具开始

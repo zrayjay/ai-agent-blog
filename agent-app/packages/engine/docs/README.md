@@ -2,11 +2,11 @@
 
 > 本包的深度教学文档已整体迁入博客站点（仓库根 docs/，pnpm docs:dev 本地预览）。本文件仅作指路：
 
-> | 内容 | 位置（仓库根相对） |
-> | --- | --- |
-> | 参考库 · 模块深讲（十篇） | docs/reference/01-agent-loop.md ~ 10-orchestrator.md |
-> | 指南 · 扩展与成熟度 | docs/how-to/EXTENDING.md 与 docs/how-to/MATURITY.md |
-> | 主线课程 · 从 0 到生产（十二站） | docs/guide/ |
-> | 最小可运行示例 | packages/engine/examples/（pnpm examples） |
+> | 内容                                    | 位置（仓库根相对）                                      |
+> | --------------------------------------- | ------------------------------------------------------- |
+> | 参考库 · 模块深讲（十篇）               | docs/reference/01-agent-loop.md ~ 10-orchestrator.md    |
+> | 指南 · 扩展与成熟度                     | docs/advanced/extending.md 与 docs/advanced/maturity.md |
+> | 主线课程 · 从 0 到生产（12 课，七阶段） | docs/learn/                                             |
+> | 最小可运行示例                          | packages/engine/examples/（pnpm examples）              |
 
 > 在线阅读：GitHub Pages（本仓库 Actions 自动部署）。

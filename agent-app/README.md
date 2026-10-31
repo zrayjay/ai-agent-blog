@@ -40,24 +40,24 @@ pnpm typecheck
 
 ## 命令与教程周次映射
 
-| 命令                                       | 作用                                                                                                               | 对应教程                                                                                                                           |
-| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------- |
-| `pnpm chat`                                | readline 聊天 REPL：会话窗口 + 手写工具循环 + 演示工具                                                             | [week11 主线补篇 · Agent 循环 TS 深入](../docs/archive/weeks/week11/agent-loop-ts.md)                                              |
-| `pnpm chat --selftest` / `pnpm selftest`   | 无网络自检（切块 / 余弦检索 / 会话存储）                                                                           | [week11 · RAG TS 全链路](../docs/archive/weeks/week11/rag-ts.md)、[week11 · 记忆 TS 版](../docs/archive/weeks/week11/memory-ts.md) |
-| `pnpm chat --mcp "cmd /c pnpm mcp:server"` | 聊天 REPL 接入外部 MCP 服务器（spawn stdio 子进程，工具表自动合并）                                                | —（MCP 专题教程规划中）                                                                                                            |
-| `pnpm chat --skills .agent-skills`         | 聊天 REPL 加载 SKILL.md 技能（agent 的「知识扩展」，与 MCP 的「能力扩展」互补；默认目录 `.agent-skills` 自动加载） | —（Skills 专题教程规划中）                                                                                                         |
-| `pnpm cli chat`                            | 入口路由：聊天                                                                                                     | 同 `pnpm chat`                                                                                                                     |
-| `pnpm cli kb` / `pnpm kb`                  | 知识库问答 REPL：检索 top5 → 带引用回答                                                                            | [products · 知识库问答](../docs/products/kb.md)、[week11 · RAG TS](../docs/archive/weeks/week11/rag-ts.md)                         |
-| `pnpm kb:ingest <文件>`                    | 知识库入库：切块 → 向量化 → 快照落盘（.txt / .md / .pdf）                                                          | [week11 · RAG TS](../docs/archive/weeks/week11/rag-ts.md)                                                                          |
-| `pnpm cli service` / `pnpm service`        | 智能客服 REPL：硬规则 + 三分类路由 + 三工人 + 转人工                                                               | [products · 客服系统](../docs/products/service.md)                                                                                 |
-| `pnpm cli team "目标"`                     | 多 Agent 编排：LLM 拆单 → DAG 并行派发 → 逐任务验收（`--plan` 静态任务单 / `--trace` 全轨迹 / `--id` 断点续跑）    | [reference · 编排器](../docs/reference/10-orchestrator.md)                                                                         |
-| `pnpm test:service`                        | 客服硬规则离线自测（纯函数断言，无网络）                                                                           | [products · 客服系统](../docs/products/service.md)                                                                                 |
-| `pnpm infra:up` / `pnpm infra:down`        | 真实持久化基座：pgvector(pg16) + redis(7) 容器起停                                                                 | [week14](../docs/archive/weeks/week14/index.md)、[week17](../docs/archive/weeks/week17/index.md)                                   |
-| `pnpm test:infra`                          | 基础设施集成测试（RUN_INFRA_TESTS=1，需先 `infra:up`）                                                             | week14 / week17 实战                                                                                                               |
-| `pnpm typecheck`                           | `tsc --noEmit` 零错误检查                                                                                          | —                                                                                                                                  |
-| `pnpm verify`                              | 聚合自检一条命令：typecheck → engine/api 测试 → selftest → examples 类型检查 → 架构红线                            | —                                                                                                                                  |
-| `pnpm examples`                            | 跑两个最小可运行示例（最小 Agent / 自定义工具，需先 `pnpm build` + 配好 key）                                      | [EXTENDING 扩展指南](../docs/how-to/EXTENDING.md)                                                                                  |
-| `pnpm eval`                                | 跑评测考卷（76 例三档判分，无 key 自动跳过需网关的档位）                                                           | [week16/evals-ts.md](../docs/archive/weeks/week16/evals-ts.md)                                                                     |
+| 命令                                       | 作用                                                                                                               | 对应教程                                                                                                                                           |
+| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm chat`                                | readline 聊天 REPL：会话窗口 + 手写工具循环 + 演示工具                                                             | [02 站 · 手写工具循环](../docs/learn/02-runtime/agent-loop.md)                                                                                     |
+| `pnpm chat --selftest` / `pnpm selftest`   | 无网络自检（切块 / 余弦检索 / 会话存储）                                                                           | [04 站 · RAG 知识库](../docs/learn/03-capabilities/rag-knowledge-base.md)、[03 站 · 记忆与上下文](../docs/learn/03-capabilities/memory-context.md) |
+| `pnpm chat --mcp "cmd /c pnpm mcp:server"` | 聊天 REPL 接入外部 MCP 服务器（spawn stdio 子进程，工具表自动合并）                                                | —（MCP 专题教程规划中）                                                                                                                            |
+| `pnpm chat --skills .agent-skills`         | 聊天 REPL 加载 SKILL.md 技能（agent 的「知识扩展」，与 MCP 的「能力扩展」互补；默认目录 `.agent-skills` 自动加载） | —（Skills 专题教程规划中）                                                                                                                         |
+| `pnpm cli chat`                            | 入口路由：聊天                                                                                                     | 同 `pnpm chat`                                                                                                                                     |
+| `pnpm cli kb` / `pnpm kb`                  | 知识库问答 REPL：检索 top5 → 带引用回答                                                                            | [案例 · 知识库问答](../docs/cases/knowledge-base.md)、[04 站 · RAG 知识库](../docs/learn/03-capabilities/rag-knowledge-base.md)                    |
+| `pnpm kb:ingest <文件>`                    | 知识库入库：切块 → 向量化 → 快照落盘（.txt / .md / .pdf）                                                          | [04 站 · RAG 知识库](../docs/learn/03-capabilities/rag-knowledge-base.md)                                                                          |
+| `pnpm cli service` / `pnpm service`        | 智能客服 REPL：硬规则 + 三分类路由 + 三工人 + 转人工                                                               | [案例 · 智能客服](../docs/cases/customer-service.md)                                                                                               |
+| `pnpm cli team "目标"`                     | 多 Agent 编排：LLM 拆单 → DAG 并行派发 → 逐任务验收（`--plan` 静态任务单 / `--trace` 全轨迹 / `--id` 断点续跑）    | [reference · 编排器](../docs/reference/10-orchestrator.md)                                                                                         |
+| `pnpm test:service`                        | 客服硬规则离线自测（纯函数断言，无网络）                                                                           | [案例 · 智能客服](../docs/cases/customer-service.md)                                                                                               |
+| `pnpm infra:up` / `pnpm infra:down`        | 真实持久化基座：pgvector(pg16) + redis(7) 容器起停                                                                 | [04 站 · RAG](../docs/learn/03-capabilities/rag-knowledge-base.md)、[03 站 · 记忆](../docs/learn/03-capabilities/memory-context.md)                |
+| `pnpm test:infra`                          | 基础设施集成测试（RUN_INFRA_TESTS=1，需先 `infra:up`）                                                             | week14 / week17 实战                                                                                                                               |
+| `pnpm typecheck`                           | `tsc --noEmit` 零错误检查                                                                                          | —                                                                                                                                                  |
+| `pnpm verify`                              | 聚合自检一条命令：typecheck → engine/api 测试 → selftest → examples 类型检查 → 架构红线                            | —                                                                                                                                                  |
+| `pnpm examples`                            | 跑两个最小可运行示例（最小 Agent / 自定义工具，需先 `pnpm build` + 配好 key）                                      | [扩展指南 · 往 engine 加自己的东西](../docs/advanced/extending.md)                                                                                 |
+| `pnpm eval`                                | 跑评测考卷（76 例三档判分，无 key 自动跳过需网关的档位）                                                           | [08 站 · 评估框架](../docs/learn/05-quality/evals-quality-gate.md)                                                                                 |
 
 ## 目录结构（pnpm workspace 单仓）
 
@@ -93,7 +93,7 @@ agent-app/
 
 ## 产品线一 · 知识库问答（kb）
 
-两步走：先入库，再提问。对应教程 [products/kb.md](../docs/products/kb.md)（零件组装）与 [week11 · RAG TS](../docs/archive/weeks/week11/rag-ts.md)（链路实现）。
+两步走：先入库，再提问。对应教程 [案例 · 知识库问答](../docs/cases/knowledge-base.md)（零件组装）与 [04 站 · RAG 知识库](../docs/learn/03-capabilities/rag-knowledge-base.md)（链路实现）。
 
 ```powershell
 # 1. 入库：读文件 → 切块 → 向量化 → 落盘快照（支持 .txt / .md / .pdf）
@@ -113,7 +113,7 @@ REPL 效果与边界：
 
 ## 产品线二 · 智能客服（service）
 
-Supervisor 路由 + 三个业务工人 + 转人工退路，对应教程 [products/service.md](../docs/products/service.md)。
+Supervisor 路由 + 三个业务工人 + 转人工退路，对应教程 [案例 · 智能客服](../docs/cases/customer-service.md)。
 
 ```powershell
 pnpm service        # 等价 pnpm cli service
@@ -301,7 +301,7 @@ pnpm --filter @agent-app/web dev        # 前端开发服务器（默认 3000；
 
 ## HTTP API（NestJS · 教程第 20 周 BFF 形态）
 
-引擎与产品逻辑不变，外面套一层 NestJS 服务壳（模块 / 控制器 / DTO 校验 / 全局异常过滤），对应教程 [week20](../docs/archive/weeks/week20/index.md) 的 BFF 架构层：
+引擎与产品逻辑不变，外面套一层 NestJS 服务壳（模块 / 控制器 / DTO 校验 / 全局异常过滤），对应教程 [10 站 · Web 前端与 SSE](../docs/learn/06-fullstack/web-sse-frontend.md) 的 BFF 架构层：
 
 ```powershell
 pnpm api        # 等价：构建 @agent-app/engine + @agent-app/api 后 node apps/api/dist/main.js，默认端口 3000（PORT 可改）

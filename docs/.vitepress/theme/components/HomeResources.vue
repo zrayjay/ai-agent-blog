@@ -41,17 +41,6 @@ const resources = [
         <span class="resource-action">{{ resource.label }} <span aria-hidden="true">↗</span></span>
       </a>
     </div>
-    <aside class="archive-note" aria-label="旧版课程入口">
-      <p class="archive-title">还在跟着 23 周课程学习？</p>
-      <p class="archive-description">
-        按周教程已归档，可继续按原有节奏阅读，也可用来补齐 TypeScript、全栈与 Python 基础。
-      </p>
-      <div class="archive-links">
-        <a :href="withBase('/archive/weeks/week01/')">按周索引 →</a>
-        <a :href="withBase('/roadmap')">旧版路线图 →</a>
-        <a :href="withBase('/guide/')">双轨学习指南 →</a>
-      </div>
-    </aside>
   </section>
 </template>
 
@@ -91,34 +80,6 @@ const resources = [
   color: var(--vp-c-brand-1);
   font-size: 12px;
   white-space: nowrap;
-}
-.archive-note {
-  margin-top: 32px;
-  padding: 22px 24px;
-  border-left: 2px solid var(--vp-c-border);
-  background: var(--jerry-wash);
-}
-.archive-title {
-  font-size: 14px;
-  font-weight: 600;
-}
-.archive-description {
-  margin-top: 8px;
-  font-size: 13px;
-  line-height: 1.9;
-  color: var(--vp-c-text-2);
-}
-.archive-links {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px 24px;
-  margin-top: 14px;
-  font-size: 13px;
-  color: var(--vp-c-brand-1);
-}
-.archive-links a:hover {
-  text-decoration: underline;
-  text-underline-offset: 4px;
 }
 @media (max-width: 760px) {
   .resource-link {

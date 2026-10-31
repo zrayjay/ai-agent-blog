@@ -6,7 +6,7 @@
 > 与 `rag/`、`memory/` 同一套工程哲学：**协议在边界上被消化，agent-loop 零感知**——
 > schema 单一真源（zod 只写一份）、离线优先（测试用 InMemoryTransport 走真实
 > JSON-RPC 往返，但零网络零 spawn）。
-> 配合教程 [week18 · MCP 协议 + 工具生态](../../../../../docs/archive/weeks/week18/index.md)
+> 配合教程 [week18 · MCP 协议 + 工具生态](../../../../../docs/learn/03-capabilities/mcp-integration.md)
 > （教程主线是 Python FastMCP / LangGraph，本项目为官方 TS SDK
 > `@modelcontextprotocol/sdk` 的同题材适配，命令行为可直接跑）。
 
@@ -34,22 +34,22 @@ listResources / readResource 四个动词发现并调用它们**。stdio 传输�
 
 ## 二、核心设计：协议消化在边界上，循环零感知
 
-| 文件 | 方向 | 职责 |
-| --- | --- | --- |
-| `server.ts` | 出 | 引擎工具 → MCP 服务器：三工具 zod 直传 + `docs://kb/{docId}` 资源模板 + stdio 挂载 |
-| `client.ts` | 进 | 外部 MCP 服务器 → 桥：stdio spawn / InMemory 同进程对两条通道，同一桥形状 |
-| `adapter.ts` | 进 | MCP 工具描述符 → 引擎 `AgentTool`：JSON Schema 照单全收 + 结果映射 |
-| `index.ts` | — | 桶导出（`@agent-app/engine/mcp` 子路径的公共面） |
+| 文件         | 方向 | 职责                                                                               |
+| ------------ | ---- | ---------------------------------------------------------------------------------- |
+| `server.ts`  | 出   | 引擎工具 → MCP 服务器：三工具 zod 直传 + `docs://kb/{docId}` 资源模板 + stdio 挂载 |
+| `client.ts`  | 进   | 外部 MCP 服务器 → 桥：stdio spawn / InMemory 同进程对两条通道，同一桥形状          |
+| `adapter.ts` | 进   | MCP 工具描述符 → 引擎 `AgentTool`：JSON Schema 照单全收 + 结果映射                 |
+| `index.ts`   | —    | 桶导出（`@agent-app/engine/mcp` 子路径的公共面）                                   |
 
 外围文件（不在本目录，但属于同一条链路）：
 
-| 文件 | 职责 |
-| --- | --- |
-| `apps/cli/src/apps/mcp-server/cli.ts` | `pnpm mcp:server` 入口：createMcpServer + connectStdio，横幅打 stderr |
-| `apps/cli/src/apps/chat/cli.ts`（`--mcp` 段） | 工具表合并：重名 MCP 胜出 + 中文告警 + 退出清理 |
-| `scripts/mcp-dogfood.mjs` | 狗粮冒烟（真模型 + 真子进程，非 vitest）：`pnpm test:mcp-dogfood` |
-| `test/mcp-server.spec.ts` | 出方向协议往返测试：InMemoryTransport 对连，零网络 |
-| `test/mcp-client.spec.ts` | 进方向桥与适配器测试：含"循环不可区分"头号断言 |
+| 文件                                          | 职责                                                                  |
+| --------------------------------------------- | --------------------------------------------------------------------- |
+| `apps/cli/src/apps/mcp-server/cli.ts`         | `pnpm mcp:server` 入口：createMcpServer + connectStdio，横幅打 stderr |
+| `apps/cli/src/apps/chat/cli.ts`（`--mcp` 段） | 工具表合并：重名 MCP 胜出 + 中文告警 + 退出清理                       |
+| `scripts/mcp-dogfood.mjs`                     | 狗粮冒烟（真模型 + 真子进程，非 vitest）：`pnpm test:mcp-dogfood`     |
+| `test/mcp-server.spec.ts`                     | 出方向协议往返测试：InMemoryTransport 对连，零网络                    |
+| `test/mcp-client.spec.ts`                     | 进方向桥与适配器测试：含"循环不可区分"头号断言                        |
 
 **头牌原则：MCP 工具与本地工具对循环不可区分。** `runToolLoop` 只认
 `Record<string, AgentTool>`（description / inputSchema / execute 三件套），
@@ -157,28 +157,28 @@ server / client / adapter 三个文件的**边界**上；循环、评估、观�
   聊天代理通过客户端桥消费引擎自己的 MCP 服务器，进出两个方向在同一条
   stdio 管线上互验。`pnpm test:mcp-dogfood` 已实测：真实 GLM 模型选择调用
   MCP 来源的 getOrderStatus（trace 的 `⚙ 行动 step 1 → 要调 1 个工具：
-  getOrderStatus` 事件为证），重名覆盖警告与 `✓ 观察` 回灌都在案，干净退出
+getOrderStatus` 事件为证），重名覆盖警告与 `✓ 观察` 回灌都在案，干净退出
   码 0。它独立于 vitest 而存在，正因为这条链路要真 spawn + 真模型，不满足
   离线铁律。
 
 ## 四、原理 → 代码对照表（学习自测清单）
 
-| 你应该能回答 | 对应实现 |
-| --- | --- |
-| 工具为什么要上协议？一句话？ | 本文第一节：点对点集成 M×N 份胶水 → 协议化 M+N，schema/校验/发现协议全包 |
-| server 端 schema 为什么敢直传 zod？ | `server.ts` `registerEngineTool`：收窄检查后同一 zod 对象递给 registerTool（SDK 直接吃 zod），单一真源零复制 |
-| 为什么 escalateToHuman 不挂出去？ | `server.ts` 头注释：转人工吃会话上下文（HandoffPack），MCP 是无会话边界 |
-| content 与 structuredContent 各给谁读？ | `server.ts` 双通道：文本 JSON 给人/旧客户端，原对象给程序；适配器①优先消费后者 |
-| 知识库资源为什么用 ResourceTemplate？ | `server.ts`：文档运行时增删，静态注册拍快照会过期；模板 list 回调现查 listDocs |
-| resolveStore 怎么做到"宿主的库绝不覆盖"？ | `server.ts`：模块加载时快照出厂库引用，只有引用仍 === 出厂库才按 env 换库 |
-| stdio 的 stdout 里跑的是什么？日志为什么走 stderr？ | 换行分隔的 JSON-RPC 帧；stdout 打日志 = 塞脏字节，客户端解析当场崩 |
-| Windows 为什么要 `cmd /c`？为什么不开 shell:true？ | `client.ts` 头注释：spawn 不开 shell 直唤 .cmd 会 ENOENT；shell:true 是注入口，文档化命令形态才是正解 |
-| SDK 的 env 为什么必须合并 getDefaultEnvironment？ | `client.ts`：env 是整体替换，只传覆盖项会丢 PATH，cmd /c pnpm 解析失败 |
-| close 收子进程的三段序列？ | `client.ts` 头注释（SDK 1.31.0 源码核实）：stdin EOF 等 2s → SIGTERM 等 2s → SIGKILL |
-| 适配器为什么刻意不 import zod？ | `adapter.ts`：接进来的 schema 是 JSON Schema，引 zod 即"翻译"，翻译即失真；jsonSchema() 原样透传 |
-| isError 为什么翻译成异常而不是当返回值？ | `adapter.ts`：引擎循环的 errorOutput 通道（✗ 观察）靠异常接住失败 |
-| 重名工具谁胜出？为什么要警告？ | `chat/cli.ts` `mergeMcpTools`：MCP 胜出（显式接入优先）+ console.warn——静默覆盖变悬案 |
-| 测试怎么零网络验证协议？ | 两个 spec：InMemoryTransport 同进程对连，走真实 JSON-RPC 往返，不 spawn 不碰网 |
+| 你应该能回答                                        | 对应实现                                                                                                     |
+| --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| 工具为什么要上协议？一句话？                        | 本文第一节：点对点集成 M×N 份胶水 → 协议化 M+N，schema/校验/发现协议全包                                     |
+| server 端 schema 为什么敢直传 zod？                 | `server.ts` `registerEngineTool`：收窄检查后同一 zod 对象递给 registerTool（SDK 直接吃 zod），单一真源零复制 |
+| 为什么 escalateToHuman 不挂出去？                   | `server.ts` 头注释：转人工吃会话上下文（HandoffPack），MCP 是无会话边界                                      |
+| content 与 structuredContent 各给谁读？             | `server.ts` 双通道：文本 JSON 给人/旧客户端，原对象给程序；适配器①优先消费后者                               |
+| 知识库资源为什么用 ResourceTemplate？               | `server.ts`：文档运行时增删，静态注册拍快照会过期；模板 list 回调现查 listDocs                               |
+| resolveStore 怎么做到"宿主的库绝不覆盖"？           | `server.ts`：模块加载时快照出厂库引用，只有引用仍 === 出厂库才按 env 换库                                    |
+| stdio 的 stdout 里跑的是什么？日志为什么走 stderr？ | 换行分隔的 JSON-RPC 帧；stdout 打日志 = 塞脏字节，客户端解析当场崩                                           |
+| Windows 为什么要 `cmd /c`？为什么不开 shell:true？  | `client.ts` 头注释：spawn 不开 shell 直唤 .cmd 会 ENOENT；shell:true 是注入口，文档化命令形态才是正解        |
+| SDK 的 env 为什么必须合并 getDefaultEnvironment？   | `client.ts`：env 是整体替换，只传覆盖项会丢 PATH，cmd /c pnpm 解析失败                                       |
+| close 收子进程的三段序列？                          | `client.ts` 头注释（SDK 1.31.0 源码核实）：stdin EOF 等 2s → SIGTERM 等 2s → SIGKILL                         |
+| 适配器为什么刻意不 import zod？                     | `adapter.ts`：接进来的 schema 是 JSON Schema，引 zod 即"翻译"，翻译即失真；jsonSchema() 原样透传             |
+| isError 为什么翻译成异常而不是当返回值？            | `adapter.ts`：引擎循环的 errorOutput 通道（✗ 观察）靠异常接住失败                                            |
+| 重名工具谁胜出？为什么要警告？                      | `chat/cli.ts` `mergeMcpTools`：MCP 胜出（显式接入优先）+ console.warn——静默覆盖变悬案                        |
+| 测试怎么零网络验证协议？                            | 两个 spec：InMemoryTransport 同进程对连，走真实 JSON-RPC 往返，不 spawn 不碰网                               |
 
 ## 五、推荐学习顺序（总计约 2 小时）
 
@@ -186,31 +186,31 @@ server / client / adapter 三个文件的**边界**上；循环、评估、观�
 原理 → 最小的适配器 → 出方向 → 进方向 → 接线 → 测试 → 动手狗粮
 ```
 
-| 步骤 | 文件 | 学什么 | 通关标准 |
-| --- | --- | --- | --- |
-| 0 | 本文 | 双向价值 + 头牌原则（边界消化协议） | 能回答第四节 14 问 |
-| 1 | `adapter.ts` | 最小的一个文件：照单全收 + 依赖倒置 + 四级映射 | 能说出"为什么不 import zod"与 McpToolCaller 的接缝意义 |
-| 2 | `server.ts` | 出方向：zod 直传 / 资源模板 / 惰性装配 / stdio 纪律 | 能解释 pristine-default 探测与 ResourceTemplate 的 list 回调 |
-| 3 | `client.ts` | 进方向：两条通道 / env 合并 / close 序列 / Windows 纪律 | 能复述 close 三段序列与 cmd /c 是文档约定的理由 |
-| 4 | `apps/mcp-server/cli.ts` + chat 的 `--mcp` 段 | 两端入口：横幅走 stderr、工具表合并、退出清理 | 能说出重名时谁胜出、连接失败时退出码是多少 |
-| 5 | 两个 `test/*.spec.ts` | 协议往返怎么离线测；头号断言"循环不可区分"长什么样 | 能指出剧本模型从哪借来、断言的 output 为什么是结构化对象 |
-| 6 | ✋ 动手 | `pnpm test:mcp-dogfood`（需 .env 配 key） | 亲眼看到 ⚙ 行动调 getOrderStatus + 重名警告 + 退出码 0 |
+| 步骤 | 文件                                          | 学什么                                                  | 通关标准                                                     |
+| ---- | --------------------------------------------- | ------------------------------------------------------- | ------------------------------------------------------------ |
+| 0    | 本文                                          | 双向价值 + 头牌原则（边界消化协议）                     | 能回答第四节 14 问                                           |
+| 1    | `adapter.ts`                                  | 最小的一个文件：照单全收 + 依赖倒置 + 四级映射          | 能说出"为什么不 import zod"与 McpToolCaller 的接缝意义       |
+| 2    | `server.ts`                                   | 出方向：zod 直传 / 资源模板 / 惰性装配 / stdio 纪律     | 能解释 pristine-default 探测与 ResourceTemplate 的 list 回调 |
+| 3    | `client.ts`                                   | 进方向：两条通道 / env 合并 / close 序列 / Windows 纪律 | 能复述 close 三段序列与 cmd /c 是文档约定的理由              |
+| 4    | `apps/mcp-server/cli.ts` + chat 的 `--mcp` 段 | 两端入口：横幅走 stderr、工具表合并、退出清理           | 能说出重名时谁胜出、连接失败时退出码是多少                   |
+| 5    | 两个 `test/*.spec.ts`                         | 协议往返怎么离线测；头号断言"循环不可区分"长什么样      | 能指出剧本模型从哪借来、断言的 output 为什么是结构化对象     |
+| 6    | ✋ 动手                                       | `pnpm test:mcp-dogfood`（需 .env 配 key）               | 亲眼看到 ⚙ 行动调 getOrderStatus + 重名警告 + 退出码 0       |
 
 ## 六、随时可回的加油站
 
-- **协议原语（tools/resources）忘了** → week18 [Day 1 概念篇](../../../../../docs/archive/weeks/week18/day1.md)；Day 2/3 是 Python FastMCP / LangGraph 对照版
+- **协议原语（tools/resources）忘了** → 概念篇见 [07 站 · MCP 标准插口](../../../../../docs/learn/03-capabilities/mcp-integration.md)（Day 2/3 的 Python 对照版已随归档下线）
 - **stdio / close 序列看不懂** → `client.ts` 文件头注释（从 SDK 1.31.0 源码核实的原话）
 - **测试怎么不 spawn 就测协议** → 两个 spec 的 beforeAll：InMemoryTransport.createLinkedPair + server 先 connect
 - **实现读不懂** → 每个文件头部注释 = 该文件的小地图，"为什么"都写在代码旁边
 
 ## 七、扩展路线（安全闭环已落地）
 
-| 方向 | 内容 | 状态 |
-| --- | --- | --- |
-| 安全护栏 | week18 Day 5：本目录隔壁 `../guardrails/`——白名单 / 注入扫描 / 人工确认 / PII 脱敏四件套；chat CLI 的装配**只给 MCP 来源的工具套闸**（`AGENT_GUARD_*` 环境开关，全关 = 零变化，与引入前逐字节一致） | ✅ 已实现 |
-| 人工审批 | week18 Day 6：apps/api 的 SSE `approval` 事件 + `POST /api/chat/approve` 裁决端点（`AGENT_CONFIRM_TOOLS` 名单，默认 createTicket；60s 超时自动拒绝）——引擎 `agent-loop.ts` 一行未改，API 层对工具表包壳实现 | ✅ 已实现 |
-| streamable-http 传输 | 服务器要部署到别的机器、给多个 Agent 共用时的正解（week18 Day 2 的选型对照：本地单 Host 用 stdio 什么都不用配）。注意 week18 周索引的提醒：MCP 规范 2026-07-28 版已改为无状态协议（移除 initialize 握手）——本目录基于 SDK 1.31.0（有握手的版本），升级时留意规范版本差 | ⏳ |
-| prompts 原语 | MCP 三大原语的第三个（Server 暴露可复用 prompt 模板）；本项目只用了 tools + resources 两个 | ⏳ |
+| 方向                 | 内容                                                                                                                                                                                                                                                                   | 状态      |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
+| 安全护栏             | week18 Day 5：本目录隔壁 `../guardrails/`——白名单 / 注入扫描 / 人工确认 / PII 脱敏四件套；chat CLI 的装配**只给 MCP 来源的工具套闸**（`AGENT_GUARD_*` 环境开关，全关 = 零变化，与引入前逐字节一致）                                                                    | ✅ 已实现 |
+| 人工审批             | week18 Day 6：apps/api 的 SSE `approval` 事件 + `POST /api/chat/approve` 裁决端点（`AGENT_CONFIRM_TOOLS` 名单，默认 createTicket；60s 超时自动拒绝）——引擎 `agent-loop.ts` 一行未改，API 层对工具表包壳实现                                                            | ✅ 已实现 |
+| streamable-http 传输 | 服务器要部署到别的机器、给多个 Agent 共用时的正解（week18 Day 2 的选型对照：本地单 Host 用 stdio 什么都不用配）。注意 week18 周索引的提醒：MCP 规范 2026-07-28 版已改为无状态协议（移除 initialize 握手）——本目录基于 SDK 1.31.0（有握手的版本），升级时留意规范版本差 | ⏳        |
+| prompts 原语         | MCP 三大原语的第三个（Server 暴露可复用 prompt 模板）；本项目只用了 tools + resources 两个                                                                                                                                                                             | ⏳        |
 
 **安全为什么只闸 MCP 工具**：外部服务器是我们控制不了的面——schema 它说了算、
 执行体在它进程里；本地演示工具是自己写的代码。信任边界在哪，闸就装在哪

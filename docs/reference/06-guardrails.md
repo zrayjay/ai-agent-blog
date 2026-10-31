@@ -19,7 +19,7 @@
 ③ 会自作主张（高危无闸）：建工单这类写操作，模型觉得该调就调，没有人这一道闸
 ```
 
-**红队背景**：这些不是假想的威胁。week19 的八实验矩阵（E1~E8）用真实攻击载荷打穿了加固前的系统——E2 证明 `ign0re prev1ous` 类混淆变体能绕过字面黑名单、E3 证明知识库投毒能让模型把注入指令当指令执行。每条护栏都是对着实验发现补的（详见 `SECURITY.md` 与 `docs/archive/weeks/week19/redteam-notes.md`）。
+**红队背景**：这些不是假想的威胁。week19 的八实验矩阵（E1~E8）用真实攻击载荷打穿了加固前的系统——E2 证明 `ign0re prev1ous` 类混淆变体能绕过字面黑名单、E3 证明知识库投毒能让模型把注入指令当指令执行。每条护栏都是对着实验发现补的（详见 `agent-app/SECURITY.md`，八实验矩阵完整报告）。
 
 ---
 
@@ -213,6 +213,4 @@ Get-Content .\.data\audit.log | Select-Object -Last 3 # 审计账本里躺着 in
 
 - [../../packages/engine/src/guardrails/README.md](https://github.com/zrayjay/ai-agent-blog/blob/main/agent-app/packages/engine/src/guardrails/README.md) —— 本模块原理篇：13 问自测清单 + 学习顺序
 - [../../SECURITY.md](https://github.com/zrayjay/ai-agent-blog/blob/main/agent-app/SECURITY.md) —— 红队加固清单与残余风险（每条护栏对应哪个实验洞）
-- [../archive/weeks/week19/redteam-notes.md](../archive/weeks/week19/redteam-notes.md) —— 八实验矩阵的攻击复盘（E2 混淆变体 / E3 知识库投毒）
-- [../archive/weeks/week18/day5.md](../archive/weeks/week18/day5.md)、[day6.md](../archive/weeks/week18/day6.md) —— 教程主线：MCP 安全护栏 / 人工审批
 - [01-agent-loop.md](./01-agent-loop.md) —— 工具表在哪里被调度（护栏的包壳为什么对循环透明）

@@ -21,6 +21,6 @@ title: 主线课程 · 七阶段结构
 
 阶段编号即推荐学习顺序；04（编排）依赖 02 之后即可进入，与 03 可并行。
 
-## 迁移状态（如实说明）
+## 课程状态（如实说明）
 
-主线正文目前仍在 `guide/`（13 站），正按实施方案 P1-03 逐篇迁入本目录；各阶段索引页中的课程表给出**当前正文位置**。迁移完成前，`guide/` 与本目录的链接互为镜像，不存在两份正文。每课的 `status`（implemented / partial / planned）以课程元数据 Schema 为准，来源与测试证据记录在各课 frontmatter。
+全部 12 课已落位本目录。每课的 `status`（implemented / partial / planned）以课程元数据 Schema 为准，来源与测试证据记录在各课 frontmatter。

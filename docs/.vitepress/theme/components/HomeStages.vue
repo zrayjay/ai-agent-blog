@@ -34,9 +34,7 @@ import { learningStages } from './home-content'
       </article>
     </div>
     <p class="path-footnote">
-      第 01 章正在整理正文，可先读
-      <a :href="withBase('/archive/weeks/week11/day1')">LLM API 原始教程</a>；
-      其余章节按主线阅读，遇到实现细节再查模块参考。
+      每课配有可运行示例与离线测试；遇到实现细节再查模块参考。
     </p>
   </section>
 </template>

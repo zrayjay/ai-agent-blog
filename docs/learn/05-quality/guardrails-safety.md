@@ -18,7 +18,7 @@ lastVerifiedCommit: bb3f55b
 
 # 护栏与安全红队
 
-> **这一站解决「怎么知道你的防线真的存在」**：不是抄一份安全清单，而是先当攻击者把自己的系统打一遍，再按弹孔补墙。学完你将掌握：一套三原则红队方法论（先挨打后加固 / FAIL 记 FAIL / 载荷入回归）、四件套护栏（脱敏、注入扫描、审批闸、审计账本——每道都对应 week19 八个实验里真实发现的洞），以及「默认应该是部署形态的属性，不是安全属性」的灰度哲学。
+> **这一站解决「怎么知道你的防线真的存在」**：不是抄一份安全清单，而是先当攻击者把自己的系统打一遍，再按弹孔补墙。学完你将掌握：一套三原则红队方法论（先挨打后加固 / FAIL 记 FAIL / 载荷入回归）、四件套护栏（脱敏、注入扫描、审批闸、审计账本——每道都对应红队八个实验（E1~E8，全记录见 agent-app/SECURITY.md）里真实发现的洞），以及「默认应该是部署形态的属性，不是安全属性」的灰度哲学。
 
 **前置**：[05 · 工具层加固与幂等](/learn/03-capabilities/tools-hardening)（API 审批壳已在那里深讲——本章看它在护栏体系里的位置；E3 头条打的正是 [04 站](/learn/03-capabilities/rag-knowledge-base)建的知识库）
 **配套跑起来**：`pnpm kb:ingest .\samples\red-team\poisoned-note.md`（投毒入库实测被拒）+ 打开 `agent-app\.data\audit.log` 对账
@@ -28,7 +28,7 @@ lastVerifiedCommit: bb3f55b
 
 ## 一、为什么：先雇小偷来撬自家的锁
 
-新家装修完，你会先请一位开锁师傅来试试自家门锁——**红队就是这一步的工程版**：用真实攻击载荷打自己的系统，FAIL 就记 FAIL，打完再验证加固能把 FAIL 变成回归用例。week19 在真实 GLM 上跑了八个实验（E1~E8），总账先看：
+新家装修完，你会先请一位开锁师傅来试试自家门锁——**红队就是这一步的工程版**：用真实攻击载荷打自己的系统，FAIL 就记 FAIL，打完再验证加固能把 FAIL 变成回归用例。红队阶段在真实 GLM 上跑了八个实验（E1~E8），总账先看：
 
 ```text
 E1 提示泄露       PARTIAL   无逐字泄露，但中文直给 1/3 次复述了角色设定
@@ -187,7 +187,7 @@ await this.sessionStore.append(sessionId, { role: "user", content: input.message
 - 上一课：[05 · 工具层加固与幂等](/learn/03-capabilities/tools-hardening)
 - 下一课：[07 · MCP 标准插口](/learn/03-capabilities/mcp-integration) —— 把别人家的工具按行业标准接进来
 - [参考库 · 护栏](/reference/06-guardrails) —— 四个零件的代码走读与设计取舍
-- [week19 红队实录](/archive/weeks/week19/)（含[红队实测记录](/archive/weeks/week19/redteam-notes)——本章故事的完整版）· [SECURITY.md 完整报告](https://github.com/zrayjay/ai-agent-blog/blob/main/agent-app/SECURITY.md)
+- [SECURITY.md 完整报告](https://github.com/zrayjay/ai-agent-blog/blob/main/agent-app/SECURITY.md)
 
 ---
 

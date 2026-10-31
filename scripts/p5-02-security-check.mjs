@@ -27,9 +27,6 @@ const SECRET_ALLOWLIST = new Set([
   // telemetry.spec 的 sk-proj-… 同为脱敏测试夹具（测 redactEvent 对现代
   // sk-proj 格式的脱敏），非泄漏。新增强化模式后命中，纳入同一白名单口径。
   "agent-app/packages/engine/test/telemetry.spec.ts",
-  // 归档课教学文本：SSH 私钥「头标记词」引用（教用户去哪复制自己的密钥），
-  // 非密钥本体——纯 BEGIN/END 标记不含 base64 主体，零泄漏面。归档课保持历史原貌不改。
-  "docs/archive/weeks/week08/day3.md",
 ]);
 
 const SECRET_PATTERNS = [

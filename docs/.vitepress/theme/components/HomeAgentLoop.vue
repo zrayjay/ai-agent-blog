@@ -27,7 +27,7 @@ const steps = [
       </li>
     </ol>
     <div class="loop-return"><span aria-hidden="true">↳</span> 需要更多信息？带着结果回到「决策」</div>
-    <a class="loop-link" :href="withBase('/guide/02-agent-loop')"
+    <a class="loop-link" :href="withBase('/learn/02-runtime/agent-loop')"
       >02 · 看懂工具循环 <span aria-hidden="true">→</span></a
     >
   </div>
