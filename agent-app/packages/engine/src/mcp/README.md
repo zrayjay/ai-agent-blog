@@ -6,7 +6,7 @@
 > 与 `rag/`、`memory/` 同一套工程哲学：**协议在边界上被消化，agent-loop 零感知**——
 > schema 单一真源（zod 只写一份）、离线优先（测试用 InMemoryTransport 走真实
 > JSON-RPC 往返，但零网络零 spawn）。
-> 配合教程 [week18 · MCP 协议 + 工具生态](../../../../docs/learn/03-capabilities/mcp-integration.md)
+> 配合教程 [week18 · MCP 协议 + 工具生态](../../../../../docs/learn/03-capabilities/mcp-integration.md)
 > （教程主线是 Python FastMCP / LangGraph，本项目为官方 TS SDK
 > `@modelcontextprotocol/sdk` 的同题材适配，命令行为可直接跑）。
 

@@ -6,8 +6,8 @@
 > 与 `rag/`、`memory/` 同一套工程哲学：
 > **离线优先**——Tier 1 套件零依赖零网络零 key，`pnpm eval` 任何机器上确定性跑通；
 > Tier 2 检索套件与 Tier 3 评审套件需要 API key，有 key 自动加跑、无 key 整套跳过
-> （跳过 ≠ 失败）。配合教程 [week16 · Agent 评估工程](../../../../docs/learn/05-quality/evals-quality-gate.md)
-> 与 [week15 · 检索质量指标](../../../../docs/learn/03-capabilities/rag-knowledge-base.md)（Recall@k / MRR 已在 P2 落地）。
+> （跳过 ≠ 失败）。配合教程 [week16 · Agent 评估工程](../../../../../docs/learn/05-quality/evals-quality-gate.md)
+> 与 [week15 · 检索质量指标](../../../../../docs/learn/03-capabilities/rag-knowledge-base.md)（Recall@k / MRR 已在 P2 落地）。
 
 ---
 
