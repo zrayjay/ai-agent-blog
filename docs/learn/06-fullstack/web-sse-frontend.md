@@ -80,9 +80,19 @@ export type ChatStreamEvent =
 
 ### 手解析：为什么不用 EventSource
 
-浏览器自带的 `EventSource` 看似现成，两条硬伤：**不便携带 sessionId 查询参数**（多轮对话的命脉）、**拿不到非 200 响应的错误体**（BFF 的中文错误提示直接丢失）。所以 [lib/api.ts](https://github.com/zrayjay/ai-agent-blog/blob/main/agent-app/apps/web/lib/api.ts) 的 `streamChat` 用 fetch + ReadableStream 手解析：
+浏览器自带的 `EventSource` 看似现成，两条硬伤：**不便携带 sessionId 查询参数**（多轮对话的命脉）、**拿不到非 200 响应的错误体**（BFF 的中文错误提示直接丢失）。所以 [lib/api.ts](https://github.com/zrayjay/ai-agent-blog/blob/main/agent-app/apps/web/lib/api.ts) 的 `streamChat` 用 fetch + ReadableStream 手解析。先看连接与读循环：
 
 ```ts
+// agent-app/apps/web/lib/api.ts（节选）
+const params = new URLSearchParams({ message: input.message });
+if (input.sessionId) params.set("sessionId", input.sessionId);
+
+const res = await fetch(`${API_BASE}/api/chat/stream?${params.toString()}`, {
+  headers: { Accept: "text/event-stream" },
+});
+if (!res.ok) throw new Error(await readErrorMessage(res));
+if (res.body === null) throw new Error("响应没有可读流（当前环境不支持流式读取）");
+
 const reader = res.body.getReader();
 const decoder = new TextDecoder("utf-8");
 let buffer = "";
@@ -90,18 +100,18 @@ for (;;) {
   const { done, value } = await reader.read();
   if (done) break;
   buffer += decoder.decode(value, { stream: true });
-  let sep = buffer.indexOf("\n\n"); // SSE 帧分隔符 = 空行
+  let sep = buffer.indexOf("\n\n");
   while (sep !== -1) {
-    emitFrame(buffer.slice(0, sep), onEvent); // 一帧可能含多行
+    emitFrame(buffer.slice(0, sep), onEvent);
     buffer = buffer.slice(sep + 2);
     sep = buffer.indexOf("\n\n");
   }
 }
 buffer += decoder.decode(); // flush 尾字节
-emitFrame(buffer, onEvent); // 最后一帧可能没等到空行
+emitFrame(buffer, onEvent); // 流结束时可能还剩最后一帧没等到空行
 ```
 
-`emitFrame` 逐行取 `data:` 前缀 → `JSON.parse` → 回调。三个容易漏的细节：**按 `\n\n` 切帧而不是按 chunk**（一次 read 可能半帧也可能多帧）；**流结束时 flush 尾帧**；**非 200 也要解析错误体**（`readErrorMessage` 优先读统一错误体的中文 message，非 JSON 落到「请求失败（HTTP xxx）」兜底）。
+这段在做什么：sessionId 走查询参数拼进 URL（EventSource 做不到的第一件事）；非 200 时 `readErrorMessage` 读 BFF 统一错误体的中文 message 再抛（EventSource 做不到的第二件事）。读循环的核心是 **buffer 累积 + 按 `\n\n` 循环切帧**：一次 `reader.read()` 可能返回半帧也可能好几帧，所以字节先进 `buffer`，切剩的半帧留在原地等下一个 chunk 来拼。`decoder.decode(value, { stream: true })` 的 `stream: true` 处理 UTF-8 多字节字符被 chunk 从中间劈开的情形；循环结束后 `decoder.decode()` 空参 flush 尾字节，再补发最后一帧——它可能没等到空行就流结束了。`emitFrame` 逐行取 `data:` 前缀 → `JSON.parse` → 回调（SSE 注释行与空行自动忽略）。三个容易漏的细节：**按 `\n\n` 切帧而不是按 chunk**（一次 read 可能半帧也可能多帧）；**流结束时 flush 尾帧**；**非 200 也要解析错误体**（`readErrorMessage` 优先读统一错误体的中文 message，非 JSON 落到「请求失败（HTTP xxx）」兜底）。
 
 ## 四、对话状态机：事件序列 → 界面状态
 
