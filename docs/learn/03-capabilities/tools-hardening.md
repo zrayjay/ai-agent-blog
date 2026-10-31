@@ -156,7 +156,7 @@ const shells: ((table: ToolSet) => ToolSet)[] = [];
 if (approval !== undefined && approval.confirmTools.size > 0) {
   shells.push((table) => wrapToolsWithApproval(table, approval.confirmTools, {/* … */}));
 }
-shells.push((table) => wrapToolsWithIdempotency(table, idempotency, { scope: sessionId }));
+shells.push((table) => wrapToolsWithIdempotencyAuto(table, idempotency, { scope: sessionId })); // Auto 变体：内置默认幂等键派生
 return composeToolShells(baseTools, shells); // shells[0] 最外：审批在外、幂等在内
 ```
 
