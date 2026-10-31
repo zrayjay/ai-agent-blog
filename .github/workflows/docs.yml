@@ -19,6 +19,7 @@ on:
       - "scripts/p5-05-site-check.mjs"
       - "scripts/p0-*.mjs"
       - "package.json"
+      - "README.md"
       # p0-check 的 inventory↔磁盘全覆盖网格含 agent-app 侧 md（examples/samples
       # README、agent-app 根文档）——审查 MAJOR-1：整目录删除示例时
       # examples:check/matrix:check 只遍历现存目录不报错，p0-check 是唯一拦截网
@@ -41,6 +42,7 @@ on:
       - "scripts/p5-05-site-check.mjs"
       - "scripts/p0-*.mjs"
       - "package.json"
+      - "README.md"
       - "agent-app/examples/**"
       - "agent-app/samples/**"
       - "agent-app/docs/**"

@@ -13,6 +13,8 @@ import { fileURLToPath } from "node:url";
 const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(SCRIPT_DIR, "..");
 const DOCS_ROOT = join(REPO_ROOT, "docs");
+// 根 README 纳入门禁（P6-01 NOTE-1 落地）——链接与 security:check 同口径扫描
+const ROOT_README = join(REPO_ROOT, "README.md");
 const SIDEBAR_DIR = join(DOCS_ROOT, ".vitepress", "sidebar");
 const STAGES = new Set([
   "01-foundations",
@@ -147,7 +149,9 @@ function targetExists(fromFile, href) {
 }
 
 let linkCount = 0;
-for (const p of mdFiles) {
+// 根 README 纳入链接扫描（P6-01 NOTE-1 落地）——仅 C3 链接检查，不参与 C1/C2 lesson 规则
+const c3Targets = [...mdFiles, ROOT_README];
+for (const p of c3Targets) {
   const body = readFileSync(p, "utf8");
   // 剥离代码块（``` 围栏）与行内代码（`…`）——避免把示例代码/正则字面量当链接（P0-02 已知误报口径）
   const prose = body.replace(/^```[\s\S]*?^```/gm, "").replace(/`[^`\n]*`/g, "");
