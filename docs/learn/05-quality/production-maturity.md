@@ -88,11 +88,11 @@ api 容器内：  PG_CONNECTION_STRING=postgres://agent:agent@postgres:5432/agen
 - **博客站（本教程站）**：GitHub Actions 自动部署 GitHub Pages——push 到 main 即构建发布，OIDC 短期令牌免密，全程零 Secret；
 - **应用站**：`Dockerfile.api` / `Dockerfile.web`（Next.js standalone）两个镜像，`pnpm stack:up` 本地即生产形态。
 
-可观测的现状是一档半：**有** trace——`AGENT_TRACE=1` 后每步思考/行动/观察/路由/检索/压缩带图标打到 stderr，`pnpm stack:logs` 容器里同样生效；**诚实承认没有**——结构化日志（JSON 行）、请求关联 ID 贯穿、指标与告警、OTel 全链路追踪，全部未做（生产前置项，素材见 [week21](/archive/weeks/week21/) 的 LangSmith / Langfuse / OTel GenAI 议题）。演示级图标流与工业级可观测的分界线，我们画在明处。
+可观测的现状是一档半：**有** trace——`AGENT_TRACE=1` 后每步思考/行动/观察/路由/检索/压缩带图标打到 stderr，`pnpm stack:logs` 容器里同样生效；**诚实承认没有**——结构化日志（JSON 行）、请求关联 ID 贯穿、指标与告警、OTel 全链路追踪，全部未做（生产前置项：结构化日志、指标告警、OTel GenAI trace 导出）。演示级图标流与工业级可观测的分界线，我们画在明处。
 
 ## 五、成本意识：token 是线性烧的
 
-手写循环每一轮都把**全部历史重发**一遍——成本随轮数线性上涨，这是结构性成本不是 bug。第一道闸已经在 03 站装好：滚动摘要压缩（超 40 条触发，旧消息压成 ≤150 字摘要，窗口回到 20 条）。第二道闸「语义缓存」（相似问题直接返回缓存答案，不再调模型）**未做**——生产前置项，做法素材见 [week21 Day 6](/archive/weeks/week21/day6)。配套的 token 用量聚合与成本面板也挂了账：usage 现在飘过就丢。
+手写循环每一轮都把**全部历史重发**一遍——成本随轮数线性上涨，这是结构性成本不是 bug。第一道闸已经在 03 站装好：滚动摘要压缩（超 40 条触发，旧消息压成 ≤150 字摘要，窗口回到 20 条）。第二道闸「语义缓存」（相似问题直接返回缓存答案，不再调模型）**未做**——生产前置项，做法：用 pgvector 存『问题→答案』对，相似问法直接命中。配套的 token 用量聚合与成本面板也挂了账：usage 现在飘过就丢。
 
 ## 六、诚实清单：生产前置未做项
 
@@ -147,7 +147,6 @@ pnpm stack:down                                     # ⑤ 只撤 api+web，pg/re
 
 - [how-to · MATURITY](/advanced/maturity) —— 每个模块的档位与生产前置项（本章诚实清单的全文版）
 - [参考库 · 三层记忆](/reference/04-memory) —— 存储接口契约与契约测试挂法
-- 归档周教程：[week14 · pgvector](/archive/weeks/week14/) · [week17 · Redis 记忆](/archive/weeks/week17/) · [week21 · 可观测与成本](/archive/weeks/week21/) · [week22 · 系统设计](/archive/weeks/week22/)
 - 上一课：[10 · Web 前端与 SSE](/learn/06-fullstack/web-sse-frontend)
 - 下一课：[12 · 学完之后：演进方向](/advanced/evolution) —— 十三站走完，这张诚实清单就是你的下一份地图
 

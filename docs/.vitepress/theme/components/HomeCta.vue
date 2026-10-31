@@ -11,7 +11,7 @@ import { withBase } from 'vitepress'
         <p class="jc-sub">从一次模型调用开始，把学习落在代码、结果和你的解释上。</p>
       </div>
       <div class="jc-right">
-        <a class="jc-btn" :href="withBase('/guide/01-llm-basics')">
+        <a class="jc-btn" :href="withBase('/learn/01-foundations/llm-structured-output')">
           <span>开始第 01 章</span>
           <span class="jc-btn-arr" aria-hidden="true">→</span>
         </a>

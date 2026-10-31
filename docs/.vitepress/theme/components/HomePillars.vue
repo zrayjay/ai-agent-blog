@@ -6,14 +6,14 @@ const entries = [
     no: '01',
     title: '第一次学 Agent',
     description: '从 LLM API 起步，按主线逐章阅读、运行示例，再对照通关标准验证。',
-    href: '/guide/01-llm-basics',
+    href: '/learn/01-foundations/llm-structured-output',
     action: '从第 01 章开始'
   },
   {
     no: '02',
     title: '已经会调模型',
     description: '从手写工具循环切入，弄清工具结果如何回填、循环何时停止。',
-    href: '/guide/02-agent-loop',
+    href: '/learn/02-runtime/agent-loop',
     action: '理解 Agent 内核'
   },
   {

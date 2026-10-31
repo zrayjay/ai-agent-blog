@@ -176,7 +176,6 @@ pnpm chat --trace             # 全功能版：轨迹打开，每一步打到终
 - 下一课：[03 · 记忆与上下文压缩](/learn/03-capabilities/memory-context) —— 循环之外的另一半：让 Agent 记得说过什么
 - [参考库 · 工具循环深读](/reference/01-agent-loop) —— `src/agent-loop.ts` 逐行走读 + 设计取舍表
 - [参考库 · 工具箱](/reference/03-tools) —— 工具注册、幂等层、壳组合器的完整语义
-- 归档周教程（内容完整）：[week11 · LLM API 周](/archive/weeks/week11/) · [循环深入补篇](/archive/weeks/week11/agent-loop-ts)
 
 ---
 

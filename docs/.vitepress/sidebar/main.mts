@@ -9,9 +9,6 @@ export const mainSidebar: DefaultTheme.SidebarItem[] = [
         { text: '从这里开始', link: '/start/' },
         { text: '学习路线图 · 唯一正式路线', link: '/start/roadmap' },
         { text: '运行环境 · 版本与排错', link: '/start/environment' },
-        { text: '旧版前言（历史）', link: '/preface' },
-        { text: '学习指南 · 旧版双轨路径（历史）', link: '/guide/' },
-        { text: '旧版路线图 · 23 周（历史）', link: '/roadmap' }
       ]
   },
   {
@@ -29,7 +26,7 @@ export const mainSidebar: DefaultTheme.SidebarItem[] = [
       ]
   },
   {
-      text: '🚀 主线正文 · 13 站（原 guide，已落位 learn/）',
+      text: '🚀 主线正文 · 13 课',
       collapsed: false,
       items: [
         { text: '总览（首页）', link: '/' },
@@ -42,11 +39,11 @@ export const mainSidebar: DefaultTheme.SidebarItem[] = [
         { text: '07 · MCP 标准插口', link: '/learn/03-capabilities/mcp-integration' },
         { text: '08 · 评估框架：跑分说话', link: '/learn/05-quality/evals-quality-gate' },
         { text: '09 · 产品线组装：客服系统', link: '/learn/07-applications/service-product-line' },
-        { text: '09b · 多 Agent 编排（已迁至阶段 04）', link: '/learn/04-orchestration/multi-agent-orchestration' },
+        { text: '09b · 多 Agent 编排', link: '/learn/04-orchestration/multi-agent-orchestration' },
         { text: '10 · Web 前端与 SSE 流式', link: '/learn/06-fullstack/web-sse-frontend' },
         { text: '11 · 生产化与成熟度', link: '/learn/05-quality/production-maturity' },
-        { text: '12 · 学完之后：演进方向（已迁至进阶）', link: '/advanced/evolution' },
-        { text: '13 · 面试实战（已迁至进阶）', link: '/advanced/interview' }
+        { text: '12 · 学完之后：演进方向', link: '/advanced/evolution' },
+        { text: '13 · 面试实战', link: '/advanced/interview' }
       ]
   },
   {

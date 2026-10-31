@@ -230,5 +230,3 @@ pnpm kb --trace                           # 问答 REPL，看 🔎 检索轨迹
 - [../../packages/engine/src/rag/README.md](https://github.com/zrayjay/ai-agent-blog/blob/main/agent-app/packages/engine/src/rag/README.md) —— 本模块原理篇：数学地图（embedding / 余弦 / Top-K）+ 八步学习顺序
 - [ARCHITECTURE.md](https://github.com/zrayjay/ai-agent-blog/blob/main/agent-app/ARCHITECTURE.md) ——「4.2 RAG 四件套」与踩坑实录
 - [01-agent-loop.md](./01-agent-loop.md) —— 检索结果如何作为工具结果回灌循环（Agentic RAG 的基础）
-- [../archive/weeks/week11/rag-ts.md](../archive/weeks/week11/rag-ts.md) —— 教程主线的 RAG TS 全链路篇（`npm run docs:dev` 起博客看）
-- [../archive/weeks/week14/index.md](../archive/weeks/week14/index.md) —— RAG Pipeline 入门周（pgvector / HNSW 主线）

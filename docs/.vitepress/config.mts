@@ -1,8 +1,5 @@
 import { defineConfig } from 'vitepress'
 import { mainSidebar } from './sidebar/main.mts'
-import { archiveWeeksSidebar } from './sidebar/archive-weeks.mts'
-import { archiveASidebar } from './sidebar/archive-a.mts'
-import { archiveBSidebar } from './sidebar/archive-b.mts'
 
 export default defineConfig({
   lang: 'zh-CN',
@@ -73,9 +70,6 @@ export default defineConfig({
 
     sidebar: [
       ...mainSidebar,
-      ...archiveWeeksSidebar,
-      ...archiveASidebar,
-      ...archiveBSidebar,
     ]
   }
 })

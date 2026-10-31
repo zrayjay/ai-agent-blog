@@ -30,7 +30,6 @@
 | `docs/learn/`                                | **七阶段能力主线**（01 基础 → 07 产品案例），每课有可执行示例与离线测试映射 | [主线总览](./docs/learn/index.md)                        |
 | `docs/start/` `docs/advanced/` `docs/cases/` | 学习入口 / 毕业进阶 / 完整案例                                              | [从这里开始](./docs/start/index.md)                      |
 | `docs/reference/`                            | 模块深讲与 API/架构契约（与 learn 分工：叙事 vs 走读）                      | [参考库](./docs/reference/README.md)                     |
-| `docs/archive/weeks/`                        | 23 周按天历史课程（161 篇，原貌保留，不参与主线导航）                       | [归档索引](./docs/archive/weeks/index.md)                |
 | `agent-app/apps/web/`                        | Next.js 对话、知识库、客服页面（SSE 流式）                                  | [Web README](./agent-app/apps/web/README.md)             |
 | `agent-app/apps/api/`                        | NestJS REST/SSE BFF、数据校验、限流、审批、Team 端点                        | [应用说明](./agent-app/README.md)                        |
 | `agent-app/apps/cli/`                        | Chat、KB、Service、Team、Eval、MCP Server 命令入口                          | [应用说明](./agent-app/README.md)                        |

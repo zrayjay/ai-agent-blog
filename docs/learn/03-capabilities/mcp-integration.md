@@ -179,7 +179,6 @@ pnpm chat --mcp "cmd /c pnpm mcp:server" --trace   # 让 cmd.exe 当垫片层（
 - 上一课：[06 · 护栏与安全红队](/learn/05-quality/guardrails-safety)
 - 下一课：[08 · 评估框架：跑分说话](/learn/05-quality/evals-quality-gate) —— 插口接好了，怎么证明它没接坏？上秤
 - [参考库 · MCP 集成深读](/reference/07-mcp) —— 协议往返测试、close 序列、安全护栏只闸 MCP 工具的理由
-- 归档周教程：[week18 · MCP 协议 + 工具生态](/archive/weeks/week18/) · [week11 · MCP TS 版](/archive/weeks/week11/mcp-ts)
 
 ---
 

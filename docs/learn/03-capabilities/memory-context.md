@@ -146,7 +146,6 @@ EPISODIC_STORE=memory | pgvector    # 情景记忆（向量召回）
 ## 延伸
 
 - [参考库 · 三层记忆](/reference/04-memory) —— 11 个文件逐行走读 + 接口契约 + 契约测试挂法
-- 归档周教程：[week17 · 记忆架构 + 上下文工程](/archive/weeks/week17/)（四分类/短期/长期/向量/拼装六天）· [week12 记忆概念](/archive/weeks/week12/)
 - 上一课：[02 · 手写工具循环](/learn/02-runtime/agent-loop)
 - 下一课：[04 · RAG 知识库与检索](/learn/03-capabilities/rag-knowledge-base) —— 记忆管「聊过什么」，RAG 管「世界上有什么」
 
