@@ -38,3 +38,9 @@ docs/technical/,无 (空目录，不在 git 跟踪，删除本地空目录),DELE
 docs/guide/loop/,无 (空目录，不在 git 跟踪),DELETE-empty,done,2026-10-29
 docs/guide/memory/,无 (空目录，不在 git 跟踪),DELETE-empty,done,2026-10-29
 docs/guide/rag/,无 (空目录，不在 git 跟踪),DELETE-empty,done,2026-10-29
+docs/archive/weeks/**,无 (二期删除：旧体系整体下线，git 历史即存档),DELETE,done,2026-11-01
+docs/guide/**,无 (二期删除：跳转页与旧正文，正文已在 learn/),DELETE,done,2026-11-01
+docs/products/**,无 (二期删除：跳板页，正文已在 cases/),DELETE,done,2026-11-01
+docs/how-to/**,无 (二期删除：跳板页，正文已在 advanced/),DELETE,done,2026-11-01
+docs/preface.md,无 (二期删除：旧前言),DELETE,done,2026-11-01
+docs/roadmap.md,无 (二期删除：旧路线图，唯一正式路线为 start/roadmap),DELETE,done,2026-11-01
