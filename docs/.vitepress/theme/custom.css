@@ -490,8 +490,14 @@ body {
    -------------------------------------------------------------------------- */
 .jsec {
   scroll-margin-top: 96px;
-  padding: 56px 0;
+  padding: 56px 28px;
   border-bottom: 0.5px solid var(--claude-line);
+}
+
+@media (min-width: 960px) {
+  .jsec {
+    padding: 56px 40px;
+  }
 }
 
 .jsec:last-of-type {
