@@ -593,46 +593,6 @@ body {
 /* --------------------------------------------------------------------------
    12. 大序号(HomePillars):衬线数字,弱化为纸面水印感
    -------------------------------------------------------------------------- */
-
-/* --------------------------------------------------------------------------
-    11b. 学习起点(HomePillars jp-grid)与深入查阅(HomeResources)间距规范
-   -------------------------------------------------------------------------- */
-.jp-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 18px;
-}
-
-.jp-item {
-  display: flex;
-  gap: 18px;
-  padding: 24px;
-}
-
-.jp-desc {
-  margin: 6px 0 0;
-  line-height: 1.75;
-  font-size: 14px;
-  color: var(--claude-text-2);
-}
-
-@media (max-width: 959px) {
-  .jp-grid {
-    grid-template-columns: 1fr;
-    gap: 14px;
-  }
-  .jp-item {
-    padding: 20px;
-    gap: 14px;
-  }
-  .resource-list {
-    gap: 12px;
-  }
-  .resource-link {
-    padding: 20px 16px;
-  }
-}
-
 .jp-no {
   font-family: var(--claude-heading-font);
   font-size: 15px;
