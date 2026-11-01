@@ -112,6 +112,37 @@ pnpm eval                        # 之后再跑：自动比对基线，回归 �
 suite 汇总：trajectory 10/10 · routing 8/8 · retrieval skipped · judge skipped
 ```
 
+刚才的输出是 `pnpm eval` CLI（`apps/cli/src/apps/eval/cli.ts`）打出来的；报告本身怎么读、退出码怎么定，`examples/07-evals` 的 22 行教学版最一目了然（消费的是同一个 `runEvals()` 返回值）：
+
+```ts
+// agent-app/examples/07-evals/src/main.ts（节选）
+import { runEvals } from "@agent-app/engine/evals";
+
+const report = await runEvals();
+
+console.log(`[评测] 数据集版本 ${report.datasetVersion} · 总耗时 ${report.durationMs}ms`);
+console.log(
+  `[评测] 总计：passed ${report.totals.passed} / failed ${report.totals.failed} / skipped ${report.totals.skipped}` +
+    "（skipped 数取决于环境：有 key 为 0，无 key 为 N + 中文原因，vitest 进程缺席）",
+);
+for (const [suite, reason] of Object.entries(report.skipReasons ?? {})) {
+  console.log(`[评测] 跳过原因：${suite}=${reason.slice(0, 40)}…`);
+}
+```
+
+这段在做什么：`runEvals()` 是评测运行器总入口（Tier 1 零密钥全跑，Tier 2/3 按环境三态门控），返回的结构化报告在控制台只打三样——数据集版本与总耗时、`totals` 三态计数、逐套件的跳过原因。关键在 `totals` 把 **passed / failed / skipped 分成三个字段分开数**：前文「skipped ≠ failed」不是文案措辞，是报告结构本身的形状；`skipReasons` 里每个被跳过的套件都挂着中文原因，文件头注释里那句「跳过 ≠ 失败，也绝不假装跑过」由这里兑现。
+
+```ts
+// agent-app/examples/07-evals/src/main.ts（节选）
+if (report.totals.failed > 0) {
+  console.error("[评测] 存在失败用例（Tier 1 失败即门禁失败）");
+  process.exit(1);
+}
+console.log("[评测] 全部 Tier 1 用例通过 → 退出码 0");
+```
+
+这段在做什么：退出码的裁决——**只有 `failed > 0` 才 `process.exit(1)`**。无 key 机器上 Tier 2/3 整表 skipped，走到这里 `failed` 仍是 0，退出码 0，CI 不被误拦；Tier 1 任何一条失败都会打成退出码 1。自测题第 3 问的答案就落在这几行上。
+
 想逐事件看评测在干什么：`pnpm cli eval --trace` 会追加引擎 trace（▶⚙✓ 逐事件），调试单条用例时再用。
 
 ## 四、诚实的现状清单（每一句都是取舍）

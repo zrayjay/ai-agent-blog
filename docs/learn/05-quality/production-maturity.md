@@ -51,6 +51,25 @@ PREFERENCE_STORE=memory | pg            # 用户偏好
 EPISODIC_STORE=memory | pgvector        # 情景记忆（向量召回）
 ```
 
+开关背后是工厂本体——以 `RAG_STORE` 为例，整个「换库」逻辑就是一个 switch：
+
+```ts
+// agent-app/packages/engine/src/rag/store.factory.ts（节选）
+export function createRagStoreFromEnv(env: Record<string, string> = loadEnv()): RagStore {
+  switch (normalizeKind(env.RAG_STORE)) {
+    case "memory":
+      return createInMemoryRagStore();
+    case "pgvector":
+      return createPgVectorRagStore();
+    case "json":
+    default:
+      return createJsonRagStore();
+  }
+}
+```
+
+这段在做什么：消费方只在启动时装一次 `setRagStore(createRagStoreFromEnv())`，之后底层实现完全由 env 决定——`normalizeKind` 先做 trim + 小写规范化，**不认识的值打告警并回 `json` 默认**（不炸启动），`default` 分支正是「不配置 = 与改造前完全一致」这条纪律在代码里的兑现。要加第四种实现，工厂里添一个 `case`，业务代码零改动。
+
 三条工程纪律撑住这次升级：
 
 1. **不配置 = 与改造前完全一致**（离线优先铁律：没装 Docker 的机器照常跑 `pnpm chat`；不认识的 store 值会警告并回退内存默认）；

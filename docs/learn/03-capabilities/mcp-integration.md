@@ -116,6 +116,40 @@ return { name, tools, close: () => client.close() };
 ④ 都没有                       → 中文报错（宁可报错，也不静默吞掉）
 ```
 
+### Skills：与 MCP 互补的另一条扩展线
+
+MCP 是「能力扩展」（把工具接进来），还有一条「知识扩展」的姊妹线：`packages/engine/src/skills/` 按 `agentskills.io` 布局加载 `<技能名>/SKILL.md`，把流程知识拼进 system prompt。仓库里的活实例是 `agent-app/.agent-skills/refund-flow/`；`examples/05-mcp-skills` 用临时目录搭了同一布局的最小离线版：
+
+```ts
+// agent-app/examples/05-mcp-skills/src/main.ts（节选）
+// ③ Skills：目录布局 = <技能名>/SKILL.md（与 .agent-skills/refund-flow 同款）
+const skillsDir = mkdtempSync(join(tmpdir(), "agent-app-skills-"));
+const skillDir = join(skillsDir, "refund-flow");
+mkdirSync(skillDir);
+writeFileSync(
+  join(skillDir, "SKILL.md"),
+  [
+    "---",
+    "name: refund-flow",
+    "description: 客服退款处理流程：判断何时可退、先查订单再建工单",
+    "---",
+    "",
+    "## 退款流程",
+    "1. 先查订单状态（getOrderStatus）",
+    "2. 符合退款条件 → createTicket 建工单",
+    "3. 不确定 → escalateToHuman 转人工",
+  ].join("\n"),
+);
+const { skills, warnings } = loadSkillsFromDir(skillsDir);
+console.log(`[Skills] 加载 ${skills.length} 个技能：${skills.map((s) => s.name).join(", ")}`);
+
+// ④ 注入 prompt：技能正文拼进 system prompt（「知识扩展」与 MCP 的「能力扩展」互补）
+const prompt = renderSkillsPrompt(skills);
+console.log(`[Skills] 注入 prompt 的技能段含描述：${prompt.includes("退款处理流程") ? "是" : "否"}`);
+```
+
+这段在做什么：目录布局是**一个技能一个子目录，入口文件固定叫 `SKILL.md`**——frontmatter 的 `name`/`description` 是元数据，正文是流程知识。`loadSkillsFromDir` 扫目录解析后返回 `{ skills, warnings }` 两件：加载结果与告警清单（解析失败/缺字段的技能跳过并收集告警，绝不抛出中断整个目录——单技能坏不拖死全部）。随后 `renderSkillsPrompt` 把技能正文拼进 system prompt——模型由此「知道」退款流程该怎么走，但调用的还是原来那批工具。和 MCP 对着看：**MCP 给模型新的手，Skills 给模型新的脑**，两者互补且互不感知。另外加载器带安全四件套（路径遍历防护、单技能 16KB/总数 32/总注入 64KB 上限、永不执行 SKILL.md 捆绑的 scripts、重名先到先得），SKILL.md 进的是 system prompt——上下文成本与提示注入面，不设限就是敞口。
+
 ## 三、跑起来：亲眼看它工作
 
 ```powershell

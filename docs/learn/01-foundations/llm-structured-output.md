@@ -20,7 +20,7 @@ lastVerifiedCommit: 5a2e947
 > 把模型当成「会接龙的文本函数」来用：原生 API 调用、流式、提示词工程、function calling 与 JSON 模式的可靠性差异、多网关切换。学完你能徒手调通任何 OpenAI 兼容网关。
 
 ::: info 章节状态（诚实声明）
-**status: partial** —— 本课的**能力全部已实现**（模型工厂 / 宽松 JSON 抽取 / 配置白名单，均有源码与离线测试），但正文仍是**精简框架版**：核心结论与最小实现先行，代码细节按小节逐步展开。这不影响后续课程——02 站起正文完整。
+**status: partial** —— 本课的**能力全部已实现**（模型工厂 / 宽松 JSON 抽取 / 配置白名单，均有源码与离线测试），代码片段已内嵌（下方「结构化输出可靠性」节）；「业务问题与最小场景」「自测题」两节仍待正文重组时补齐。这不影响后续课程——02 站起正文完整。
 :::
 
 ## 核心结论先行（本章最重要的三句话）
@@ -33,6 +33,7 @@ lastVerifiedCommit: 5a2e947
 
 - 前置：TypeScript 基础、[运行环境](/start/environment)就绪（Node 22 + pnpm 11.17）
 - 本课命令大多需要 `.env` 配置 API Key（见 [环境页 · 离线 vs 真实](/start/environment#离线-vs-真实路径)）；`pnpm selftest` 与类型检查零密钥可跑
+- **可离线跟做**：下方「结构化输出可靠性」全部代码来自 `agent-app/examples/02-structured-output`（mock 模型驱动，`pnpm examples:check` 保证与仓库行为一致），无需 Key
 
 ## 核心原理：一张图看懂模型调用
 
@@ -52,6 +53,61 @@ messages[] ──POST─────────▶ /chat/completions ───�
 - **模型无状态**：每次调用都要把全部历史塞回 `messages`——这是 [阶段 03 记忆](/learn/03-capabilities/memory-context) 存在的根本原因
 - **网关兼容层很薄**：`createOpenAI({ apiKey, baseURL })` 指到哪就是哪家的模型（`engine/src/llm.ts:14`）
 - **配置白名单**：`OPENAI_API_KEY/BASE_URL/MODEL` + `EMBEDDING_MODEL` 四件套走 `config.ts` 手动解析（不引 dotenv，启动即校验）
+
+## 结构化输出可靠性：四场景逐段走（可离线复现）
+
+要 JSON 时最容易踩的坑，用四段真实代码走一遍。全部摘自 `agent-app/examples/02-structured-output/src/main.ts`（离线 mock 驱动，可信复现）。
+
+**第一步：定义你期望的结构**。用 zod 把「我要什么样的 JSON」写成可执行的契约，而不是写在提示词里求模型遵守：
+
+```ts
+// agent-app/examples/02-structured-output/src/main.ts（节选）
+import { z } from "zod";
+
+const verdictSchema = z.object({
+  city: z.string().min(1),
+  hotter: z.boolean(),
+});
+```
+
+这段在做什么：`city` 必须是非空字符串、`hotter` 必须是布尔——任何缺失或类型不对，`.parse()` 会直接抛错。这个 schema 就是后面第 3 步的「最后一道闸」。
+
+**第二步：裸 JSON 指令会怎样（可靠性排序第 3 档）**。把格式要求写进提示词，然后用严格的 `JSON.parse` 等结果：
+
+```ts
+// agent-app/examples/02-structured-output/src/main.ts（节选）
+try {
+  const raw = await ask(driftyModel(), '比较北京和上海，只输出 JSON：{"city":…,"hotter":…}');
+  JSON.parse(raw);
+} catch {
+  // 跑偏文本不是合法 JSON——严格路径必炸（教学点本身）
+}
+```
+
+这段在做什么：提示词里已经明确「只输出 JSON」，但弱模型（这里是 mock 的 `driftyModel`，复刻真实 glm-4-flash 的跑偏行为）会在 JSON 前后垫解释性散文——`JSON.parse` 遇到散文直接抛错。**这不是边缘案例，是裸 JSON 指令的常态**。
+
+**第三步：宽松抽取兜底（第 2 档）**。同样的跑偏文本，换 `extractJson` 从散文里抠出 JSON：
+
+```ts
+// agent-app/examples/02-structured-output/src/main.ts（节选）
+const driftedText = await ask(driftyModel(), "同上");
+const extracted = extractJson(driftedText);
+console.log(`[场景 2] 同样的跑偏文本 + extractJson 宽松抽取 —— 成功抠出 ${JSON.stringify(extracted)}`);
+```
+
+这段在做什么：`extractJson`（引擎 `json-utils.ts` 提供）会扫描文本找到 JSON 边界并提取——模型跑偏垫的散文被剥掉，`{"city":"上海","hotter":true}` 被成功抠出。这就是可靠性排序里「工程兜底」的含金量。
+
+**第四步：zod 校验把关（最后一道闸）**。抽出来的 JSON 结构对不对，还得过 schema：
+
+```ts
+// agent-app/examples/02-structured-output/src/main.ts（节选）
+const verdict = verdictSchema.parse(extracted);
+console.log(`[场景 3] zod 校验把关 —— 通过 ${JSON.stringify(verdict)}`);
+```
+
+这段在做什么：即使抠出了合法 JSON，字段可能缺失或类型不对（模型幻觉）——`.parse()` 逐字段校验，不合规即抛。三步组合起来 = 排序第 2 档的完整工程链：**宽松抽取 + 校验，失败则重试**。
+
+> 第 4 个场景（纯闲聊）连 `extractJson` 也救不了——文本里根本没有 JSON，会抛中文错误由上层决定重试。完整四场景可运行版：`cd agent-app && pnpm exec tsx examples/02-structured-output/src/main.ts`（mock 驱动，零密钥零网络即可跑全场景；把 `driftyModel()/chattyModel()` 换成 `getModel()` 才需要 Key）。
 
 ## 最小可执行实现
 
@@ -89,7 +145,7 @@ pnpm examples:minimal  # 38 行最小 Agent：模型自己决定查几次天气
 
 ## 测试与验收
 
-- 离线：`pnpm selftest`、`pnpm typecheck`、`cd agent-app && pnpm --filter @agent-app/engine test -- llm-policy config-env`
+- 离线：`pnpm selftest`、`pnpm typecheck`、`cd agent-app && pnpm --filter @agent-app/engine test -- llm-policy config-env`、`pnpm examples:check`（含本课四场景 spec）
 - 真实（可选，需 Key）：`pnpm examples:minimal` 走通三步天气查询
 
 ## 常见误区
@@ -107,7 +163,7 @@ pnpm examples:minimal  # 38 行最小 Agent：模型自己决定查几次天气
 ---
 
 ::: info 章节结构说明
-本课为**精简框架版**（partial）：十章结构中核心原理/最小实现/工程位置/异常边界/测试验收/常见误区已达标，「业务问题与最小场景」「自测题」待正文重组时补齐——与开篇状态声明一致，不构成虚假完成。
+本课为 partial：十章结构中核心原理/最小实现/工程位置/异常边界/测试验收/常见误区已达标，**代码片段已内嵌**（四场景逐段讲解）；「业务问题与最小场景」「自测题」待正文重组时补齐——与开篇状态声明一致，不构成虚假完成。
 :::
 
 有疑问随时问 AI 老师（本项目的开发助手）。其他章节：[学习路线图](/start/roadmap)

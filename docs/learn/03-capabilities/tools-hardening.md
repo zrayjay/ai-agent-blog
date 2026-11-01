@@ -156,7 +156,7 @@ const shells: ((table: ToolSet) => ToolSet)[] = [];
 if (approval !== undefined && approval.confirmTools.size > 0) {
   shells.push((table) => wrapToolsWithApproval(table, approval.confirmTools, {/* … */}));
 }
-shells.push((table) => wrapToolsWithIdempotency(table, idempotency, { scope: sessionId }));
+shells.push((table) => wrapToolsWithIdempotencyAuto(table, idempotency, { scope: sessionId })); // Auto 变体：按 registry 实现自动分发（内存/Redis）
 return composeToolShells(baseTools, shells); // shells[0] 最外：审批在外、幂等在内
 ```
 

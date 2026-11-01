@@ -74,6 +74,37 @@ throw new Error(`步数用完（${maxSteps}）`);       // 保险丝（见防御
 
 **为什么手写而不用框架**：框架的价值是省事，代价是黑盒。手写 200 行，每一步都能插桩（日志、审批、缓存、中止）——后面你会看到，五个工程防御全部是在这 200 行上「加壳」实现的，框架里你连壳往哪加都找不到。
 
+骨架落到真实 API 上是同一个形状。下面是离线可跑版（`pnpm examples:check` 的素材）——工具注册 + 一次 `runToolLoop` 调用，就这么多：
+
+```ts
+// agent-app/examples/01-tool-loop-offline/src/main.ts（节选）
+const getWeather = tool({
+  description: "查询某城市当前天气（温度与天气状况）",
+  inputSchema: z.object({ city: z.string() }),
+  execute: async ({ city }) => ({
+    city,
+    condition: "晴",
+    temperatureC: city.includes("上海") ? 28 : 23,
+  }),
+});
+
+// …
+
+const result = await runToolLoop({
+  model: scriptedWeatherModel(),
+  messages: [{ role: "user", content: "北京和上海今天哪个更热？" }],
+  tools: { getWeather },
+  maxSteps: 5,
+  onStep: (e) => {
+    const line = `[step ${e.step}] 调用 ${e.toolCall.toolName}(${JSON.stringify(e.toolCall.input)})`;
+    console.log(line);
+    events.push(line);
+  },
+});
+```
+
+**骨架 vs 真实 API 对照**：15 行脉络收敛成一个 `runToolLoop({...})` 调用，骨架四步一件不少——`tools` 是三件套注册表（`description` 写给模型、`inputSchema` 供执行前校验、`execute` 是真身）；`maxSteps: 5` 就是防御 1 的保险丝；`onStep` 回调就是上一节说的「现场直播」出口，每步工具名与入参从这里流出去（`events` 只是收集轨迹的数组，`// …` 处连同 import 一并省略）。对照点在模型这一行：这里是零密钥的 `scriptedWeatherModel()`（离线 mock），换成 `getModel()`（`@agent-app/engine/llm`）就是打真实网关的同一套代码——mock 与真实的边界只有一行，循环本体不变。
+
 ---
 
 ## 三、跑起来（先有体感再读实现）

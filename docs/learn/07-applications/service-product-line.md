@@ -60,7 +60,24 @@ export function checkHardRules(state: SupervisorState): RouteDecision | null {
 }
 ```
 
-优先级是刻意的：**未解决计数 ≥2 > 转人工关键词（转人工/找真人/换人工/人工客服/换个人）> 高危白名单（退款争议/投诉/起诉/律师/法院/媒体）**——最需要兜底的排最前。计数本身不在 supervisor 里：`SupervisorState` 是纯数据，CLI 每轮按「命中追问信号 +1、正常提问清零」维护后传进来——状态归应用循环管，判定归纯函数管。
+优先级是刻意的：**未解决计数 ≥2 > 转人工关键词（转人工/找真人/换人工/人工客服/换个人）> 高危白名单（退款争议/投诉/起诉/律师/法院/媒体）**——最需要兜底的排最前。计数本身不在 supervisor 里：`SupervisorState` 是纯数据，CLI 每轮按「命中追问信号 +1、正常提问清零」维护后传进来——状态归应用循环管，判定归纯函数管。硬规则与模型的先后关系收敛在一个总入口里：
+
+```ts
+// agent-app/packages/engine/src/service/supervisor.ts（节选）
+export async function supervise(state: SupervisorState, history: ChatTurn[]): Promise<RouteDecision> {
+  const hard = checkHardRules(state);
+  if (hard !== null) {
+    trace("🧭", `路由 → 硬规则命中（不问模型）：${hard.reason} ⇒ ${hard.target}`);
+    return hard;
+  }
+  trace("🧭", "路由 → 硬规则全不命中，交给模型三分类…");
+  const decision = await classifyWithLlm(history);
+  trace("🧭", `路由 → 模型分类：${decision.target}（${decision.reason}）`);
+  return decision;
+}
+```
+
+这段在做什么：`supervise` 是对外的唯一约定——先问纯函数，命中即返回（一条 trace 都不发 LLM 请求）；全不命中才走 `classifyWithLlm`。顺序本身就是设计：把「必须转的场景」放在任何模型调用之前，模型偶尔判漏一次的可能性在结构上就进不了这条路径；`🧭 路由` 的两行 trace 与 `pnpm service --trace` 里看到的一一对应。
 
 **② 模糊地带才问模型**。`classifyWithLlm` 用 `generateText` + 严格 JSON 指令 + 宽松解析（`extractJson`）+ zod 三分类校验（`z.enum` 把 route 锁死为三选一——能枚举就硬），输出不合规自动重试一次（第二次的 system 追加「你上一次的回复不是合法 JSON」），两次仍失败才抛错交给降级。为什么不用 `generateObject`？glm-4-flash 这类轻薄模型会静默无视网关的 `response_format`——格式必须写进提示词才网关无关。分类喂的是最近 10 轮窗口，否则一句「那退款呢」会分错类。
 
@@ -77,7 +94,48 @@ const WORKER_TOOLS: Record<WorkerName, AgentToolSet> = {
 
 order 工人建不了工单——不是提示词求它别建，是它手里**根本没有这个工具**。误伤面从工具表上就掐掉，比任何「请不要…」的提示词都可靠。职责提示词同时写清边界与出口：order「查不到如实告知，禁止编造订单信息」、refund「争议无法判定时建议转人工，不要自行承诺」、knowledge「先检索、只依据检索结果作答、句末标 [1][2]、检索不到老实说不知道」。工人本体只是 `runToolLoop` 的薄封装（全文件 66 行，`maxSteps` 用库默认 5）——引擎零件备得好，产品层就薄。
 
-**④ 转人工带上下文包（HandoffPack 四件套）**。最毁体验的一幕是转过去后人工第一句「请问有什么可以帮您」。`handoff.ts` 的 `buildHandoffPack` 组装**工单号 / 判定原因 / 用户摘要 / 最近对话（最近 10 轮文稿）**——接手人不用用户复述。摘要提示词明写「禁止添加对话中没有出现的信息」（摘要幻觉出「用户已确认收货」会把接手人带进沟里）；摘要模型挂了降级为最近 3 条用户消息拼接——不猜、不编，只交出可信的已知。`RouteTarget` 里 `human` 与三个工人**并列**——转人工是业务流程的正常一步，不是异常，更不是报错。
+**④ 转人工带上下文包（HandoffPack 四件套）**。最毁体验的一幕是转过去后人工第一句「请问有什么可以帮您」。`handoff.ts` 的 `buildHandoffPack` 组装**工单号 / 判定原因 / 用户摘要 / 最近对话（最近 10 轮文稿）**——接手人不用用户复述。摘要提示词明写「禁止添加对话中没有出现的信息」（摘要幻觉出「用户已确认收货」会把接手人带进沟里）；摘要模型挂了降级为最近 3 条用户消息拼接——不猜、不编，只交出可信的已知。`RouteTarget` 里 `human` 与三个工人**并列**——转人工是业务流程的正常一步，不是异常，更不是报错。组装顺序看源码：
+
+```ts
+// agent-app/packages/engine/src/service/handoff.ts（节选）
+export async function buildHandoffPack(input: {
+  reason: string;
+  turns: ChatTurn[];
+}): Promise<ServiceHandoffPack> {
+  const transcript = formatTranscript(input.turns);
+
+  let userSummary: string;
+  try {
+    const { text } = await generateText({
+      model: getModel(),
+      system: PACK_PROMPT,
+      prompt: transcript || "（空会话）",
+      ...llmCallPolicy(),
+    });
+    userSummary = text.trim() || fallbackSummary(input.turns);
+  } catch {
+    userSummary = fallbackSummary(input.turns); // 摘要模型挂了也要转得出去：降级为原文拼接
+  }
+
+  // 建工单（mock 实现，离线可用）：判定原因进 subject，接手人扫一眼就知道为什么转过来
+  const ticketId = await createHandoffTicket(`转人工：${input.reason}`, userSummary);
+```
+
+这段在做什么：前三步顺序就是降级纪律的落法——**拼文稿 → LLM 摘要（`catch` 降级为 `fallbackSummary` 原文拼接）→ 建工单**。摘要模型挂了工单照出：`catch` 分支里没有任何重抛，「转得出去」永远优先于「摘要好看」；工单 subject 带判定原因，接手人扫一眼就知道为什么转过来；完全离线时 `createTicket` 是 mock，链路照走。
+
+```ts
+// agent-app/packages/engine/src/service/handoff.ts（节选）
+  return {
+    ticketId,
+    reason: input.reason,
+    userSummary,
+    recentTranscript: transcript,
+    createdAt: new Date().toISOString(),
+  };
+}
+```
+
+这段在做什么：**HandoffPack 四件套**在这里定格——工单号、判定原因、用户摘要、最近对话文稿。接手人打开工单就有完整上下文，用户不需要复述；`createdAt` 用 ISO 时间戳，接真实工单系统时这份对象就是 payload。
 
 ## 三、跑起来（先体感）
 
