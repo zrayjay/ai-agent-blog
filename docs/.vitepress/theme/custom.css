@@ -820,3 +820,59 @@ body {
 body::after {
   display: none; /* 噪点颗粒退役 */
 }
+
+/* --------------------------------------------------------------------------
+    5b. 移动端 Hero 兼容(≤959px):纵向堆叠、字号收敛、内边距
+   -------------------------------------------------------------------------- */
+@media (max-width: 959px) {
+  .VPHome .VPHero .container {
+    flex-direction: column-reverse;
+    gap: 36px;
+    padding: 44px 24px 40px;
+  }
+  .VPHome .VPHero .main,
+  .VPHome .VPHero .image {
+    flex: none;
+    width: 100%;
+  }
+  .jhi-title {
+    font-size: 34px;
+    line-height: 1.18;
+  }
+  .jhi-tagline {
+    font-size: 15.5px;
+  }
+  .jhi-actions {
+    margin-top: 22px;
+  }
+  .jbtn.jbtn-primary,
+  .jbtn.jbtn-ghost,
+  .jc-btn {
+    padding: 10px 18px;
+    font-size: 14px;
+  }
+  .jstats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0;
+    padding: 0 8px;
+    margin-top: 24px;
+  }
+  .jstats-cell {
+    padding: 16px 12px;
+  }
+  .jstats-n {
+    font-size: 30px;
+  }
+  .jsec {
+    padding: 40px 0;
+  }
+  .jsec-title {
+    font-size: 24px;
+  }
+  .jc-band {
+    padding: 30px 24px;
+  }
+  .jc-title {
+    font-size: 22px;
+  }
+}
