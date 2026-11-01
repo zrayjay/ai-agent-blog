@@ -77,6 +77,65 @@ pnpm kb                                   # 问答 REPL
 - **降级体验**：临时把 `.env` 的 OPENAI_API_KEY 清空再问——LLM 挂了返回**检索原文 + 出处**而不是报错页（降级要降得可用）；
 - **Agentic 形态**：`pnpm chat --trace` 里问知识库问题——`searchKnowledgeBase` 是个**工具**，模型自己决定查不查（对比 kb REPL 的「每次必查」——工具化让「查不查」也成了模型的决策）。
 
+### 代码逐段走：入库 → 检索 → 引用（可离线复现）
+
+上面两条命令背后的链路，用三段真实代码走一遍：前两段摘自 `agent-app/examples/04-rag/src/main.ts`（手造向量直插内存库、查询向量同样手造——绕开 embedding API 的最小离线形态），第三段摘自 `packages/engine/src/rag/chunker.ts`。
+
+**入库：两个动作挂上内存库，接口与真实路径共用**。
+
+```ts
+// agent-app/examples/04-rag/src/main.ts（节选）
+const store = createInMemoryRagStore();
+setRagStore(store);
+
+// 手造 4 块：两篇文档各 2 块，向量手算（单位向量，同向=1 正交=0）
+const chunks: Chunk[] = [
+  // …
+];
+await store.upsert(chunks);
+console.log(`[入库] 2 文档 ${chunks.length} 块`);
+```
+
+这段在做什么：入库半场只有两个动作——`createInMemoryRagStore()` 建内存库、`setRagStore(store)` 把它挂进全局检索入口。真实路径里这一步是 `ingestSource(fileName, text)`（切块 + 真实 embedding + 按 `RAG_STORE` 选库），但**到 store 为止的接口不变**，仍是 `store.upsert(chunks)`。示例为了让检索半场零密钥离线可跑，把向量手算成单位向量：同向余弦 = 1、正交 = 0，检索结果完全可预期——这正是 `RagStore` 接口的设计意图：检索半场（余弦 / top-k / 引用拼装）与 embedding 完全解耦。
+
+**检索 + 引用拼装：余弦 topK 与「编号由代码生成」**。
+
+```ts
+// agent-app/examples/04-rag/src/main.ts（节选）
+// 检索 1：查询向量与差旅块同向（真实路径里 = embed("出差住宿标准") 的产物）
+const hitsTravel = await store.search([1, 0], 1);
+console.log(
+  `[检索] 「出差住宿标准」top1：${hitsTravel[0]?.title} · score ${hitsTravel[0]?.score.toFixed(3)}`,
+);
+
+// 检索 2：查询向量与财务块同向
+const hitsFinance = await store.search([0, 1], 1);
+console.log(`[检索] 「发票」top1：${hitsFinance[0]?.title} · score ${hitsFinance[0]?.score.toFixed(3)}`);
+
+// 引用拼装：编号由代码生成，模型只负责看着引用说话
+console.log("[引用]");
+console.log(formatCitations([...hitsTravel, ...hitsFinance]));
+```
+
+这段在做什么：`store.search(向量, k)` 就是 §一·④ 的余弦 topK——查询向量 `[1, 0]` 与「差旅制度」块完全同向（满分命中），正交的财务块被拉开；第二次查询同理命中财务块。真实路径里手造向量换成 `searchKnowledge(query, k)`（内部先 `embed([query])`，默认 k=5、函数级钳制上限 50）。尾部的 `formatCitations` 把命中块拼成 `[1] 差旅制度` 式编号清单——**编号由代码生成**，这就是 §一·⑤「模型只能引用、不能编造出处」的机制来源。
+
+**切块参数：递归瀑布的两个旋钮**。
+
+```ts
+// agent-app/packages/engine/src/rag/chunker.ts（节选）
+/** 切块参数：maxLen 每块字符上限，overlap 相邻块重叠字符 */
+export interface ChunkOptions {
+  maxLen?: number;
+  overlap?: number;
+}
+
+/** 默认参数同教程：每块上限 500 字，相邻块重叠 80 字（约 15%） */
+const DEFAULT_MAX_LEN = 500;
+const DEFAULT_OVERLAP = 80;
+```
+
+这段在做什么：对应 §一·① 递归瀑布的参数面——每块上限 500 字符、相邻块重叠 80（约 15%）。chunker 头注释把「为什么」讲得直白：整篇入库只会得到一个「四不像向量」，切成块才能「每块一个向量」命中；overlap 防一句话被拦腰切断后在相邻两块里都读不懂。动手任务 2 要调的 `maxLen` 就是这里的参数。
+
 ---
 
 ## 三、坑与取舍（真实案例）

@@ -89,6 +89,89 @@ pnpm cli team --plan samples/team-plan.json --id demo-run-1
 
 注意子任务 2 的故事线：**验收拒绝了它 → 打回重做 → 重做仍不达标 → 降级跳过 → 编排继续**。这条链就是「质量闭环 + 失败退路」的实战形态——降级不阻塞主线，占位产出让后续子任务知道上游缺失。
 
+### 代码逐段走：拆什么 · 怎么装配 · 轨迹从哪来
+
+上面三条命令背后的语义，用三段真实代码走一遍：第一段是「拆」的产物契约，摘自 `packages/engine/src/orchestrator/types.ts`；后两段分别来自 `examples/06-orchestration` 的编排器装配与引擎的事件→轨迹映射（离线桩驱动，`pnpm examples:check` 保证与仓库行为一致）。
+
+**拆：子任务规格的显式验收字段**。
+
+```ts
+// agent-app/packages/engine/src/orchestrator/types.ts（节选）
+/** 验收标准：critic 判定「完成」的显式依据（生产级分水岭：完成必须有定义） */
+export type Acceptance =
+  | { type: "llm-judge"; rubric: string } // LLM 对照 rubric 二元判定
+  | { type: "contains"; anyOf: string[] } // 产出包含任一关键词（快速校验）
+  | { type: "manual" } // 必须人工验收 → 走 escalate
+  | { type: "none" }; // 无验收（纯执行，产出即结果）
+
+/** 子任务规格：编排器调度的最小单元 */
+export interface TaskSpec {
+  /** 稳定 id（结果引用 / 重试定位 / 幂等键的组成部分） */
+  readonly id: string;
+  /** 人读标题（事件与日志用） */
+  readonly title: string;
+  /** 目标描述：拼进 worker 的 prompt */
+  readonly goal: string;
+  /** 依赖的子任务 id（DAG 并行派发按依赖解锁；循环依赖在执行前拒绝） */
+  readonly dependsOn?: readonly string[];
+  /** 验收标准（缺省 = none） */
+  readonly acceptance?: Acceptance;
+  // …（tools / maxTokens / maxDurationMs 三个覆盖字段从略）
+}
+```
+
+这段在做什么：Planner 的产物就是 `TaskSpec[]`——§二 表格里「拆」的一行，落到代码是这九个字段。三个最值得盯的：`dependsOn` 声明依赖边，派发按它分波并行、循环依赖在执行前拒绝（动手任务 4 验证的就是这句注释）；`acceptance` 是三条生产级语义第一条「验收闭环」的类型形态——`contains` 快速校验、`llm-judge` 对照 rubric、`manual` 直接升级人工；`id` 必须稳定，因为断点续跑、重试定位、幂等键都引用它。
+
+**装配并触发：桩三件套跑通编排协议**。
+
+```ts
+// agent-app/examples/06-orchestration/src/main.ts（节选）
+const orch1 = new Orchestrator({
+  stateStore: new MemoryStateStore(),
+  planner: happyPlanner(),
+  executor: happyExecutor(),
+  critic: passCritic,
+});
+const r1 = await orch1.runAsync({
+  id: "orch-demo-1",
+  goal: "查订单并汇总",
+  tasks: [
+    { id: "t1", title: "查订单", goal: "查订单 A-1024 状态" },
+    { id: "t2", title: "写摘要", goal: "汇总查询结果", dependsOn: ["t1"] },
+  ],
+});
+console.log(`[编排 1] 两任务 DAG：状态 ${r1.state}，产出 ${r1.outputs.length} 条`);
+```
+
+这段在做什么：`Orchestrator` 构造参数就是「拆 · 派 · 跑」的三角色位（planner / executor / critic）加上状态存储——示例注入确定性桩（roles.ts 的剧本：t1 查订单 → t2 汇总，产出含「完成」，验收直接过），所以零模型、零网络也能跑通完整编排协议。`runAsync` 是引擎留给「不会 Effect 的调用方」的 Promise 出口（§四 第三问），传 `OrchestrationSpec`（静态任务单）触发一次编排。真实路径不手动 new：`assembleTeamOrchestrator()` 装配 LLM 默认三件套（LlmPlanner / LoopExecutor / AcceptanceCritic）+ 过幂等壳的工具表——`pnpm cli team "目标" --trace` 走的就是它；测试同样从这些角色位注入桩，离线验证编排语义。
+
+**事件流：编排器只发事件，轨迹展示是映射**。
+
+```ts
+// agent-app/packages/engine/src/orchestrator/team-assembly.ts（节选）
+/** 编排事件 → [图标, 文本]（cli/api 共用的展示映射；返回 null = 不展示） */
+export function mapEventToTrace(event: OrchestrationEvent): [string, string] | null {
+  switch (event.type) {
+    case "state-changed":
+      return ["🧭", `编排 ${event.id} 状态：${event.from} → ${event.to}`];
+    case "task-completed":
+      // 降级占位（「（降级跳过）」）不是真完成——用 ⚠ 而非 ✓，避免观察者误读
+      if (event.text.includes("（降级跳过）")) {
+        return ["⚠", `子任务 ${event.taskId} 降级跳过（重试耗尽或验收未过，占位产出续链）`];
+      }
+      return [
+        "✓",
+        `子任务 ${event.taskId} 完成（产出 ${event.text.length} 字，消耗 ${event.tokensUsed} tokens）`,
+      ];
+    case "task-failed":
+      return ["✗", `子任务 ${event.taskId} 失败：${event.message}`];
+    // …（escalated / interrupted / default 分支从略）
+  }
+}
+```
+
+这段在做什么：编排器内部只负责发结构化事件（`onEvent` 回调），`--trace` 看到的 🧭/✓/✗/⚠ 轨迹全部由这个纯函数映射——CLI 与 API 的 `/api/team/stream` 消费同一份映射（这也是「装配逻辑放 engine 而不是各端」防漂移的同一设计）。最值得学的是 `task-completed` 里的分支：降级占位产出也走 `task-completed` 事件，展示层刻意把它标成 ⚠ 而非 ✓——「降级跳过」不是真完成，观察者不该被图标骗了。§三 轨迹图里子任务 2 的 ⚠ 行，来源就是这里。
+
 ---
 
 ## 四、设计取舍（三问三答）

@@ -47,6 +47,62 @@ lastVerifiedCommit: 5a2e947
 
 **接口先行**：三层各自是一个极小的接口（如 SessionStore 只有 `append / getWindow / clear / listSessions / getHistory` 五个方法）——先定契约，实现随便换。
 
+下面的三个片段逐字摘自 `agent-app/examples/03-memory/src/main.ts`（三层工厂全部走内存实现，零密钥离线可跑），每层各看一个核心动作。
+
+**会话窗口：追加两轮，再读回**。
+
+```ts
+// agent-app/examples/03-memory/src/main.ts（节选）
+const sessionStore = createSessionStoreFromEnv({ SESSION_STORE: "memory" });
+// ① 会话窗口：追加两轮再读回
+await sessionStore.append("s_001", { role: "user", content: "我叫小张，查一下订单 A-1024" });
+await sessionStore.append("s_001", { role: "assistant", content: "你好小张，A-1024 已发货。" });
+const window = await sessionStore.getWindow("s_001");
+console.log(
+  `[会话窗口] ${window.length} 轮：${window[0]?.role}: ${window[0]?.content.slice(0, 10)}… / ${window[1]?.role}: ${window[1]?.content.slice(0, 8)}…`,
+);
+```
+
+这段在做什么：`append(sessionId, 消息)` 只存问答文本、按 sessionId 归档——这正是坑 1「会话历史只存问答文本」的存法；`getWindow` 读回的就是 §三 压缩机制拼命保住的那个窗口（默认 limit 20，示例里两轮全在）。工厂函数 `createSessionStoreFromEnv` 读 env 装配实现：示例显式传 `{ SESSION_STORE: "memory" }`，真实应用不传就读 `.env`——「换存储只改一个环境变量」的接缝从装配的第一行就成立。
+
+**用户偏好：跨会话的「认识你」**。
+
+```ts
+// agent-app/examples/03-memory/src/main.ts（节选）
+import { createPreferenceStoreFromEnv } from "@agent-app/engine/memory/factory";
+const preferenceStore = createPreferenceStoreFromEnv({ PREFERENCE_STORE: "memory" });
+// ② 用户偏好：写入后读回（跨会话的"认识你"）
+await preferenceStore.set("u_001", "回复风格", "简洁，别废话");
+const style = await preferenceStore.get("u_001", "回复风格");
+console.log(`[偏好] u_001 的回复风格 = ${style}`);
+```
+
+这段在做什么：偏好层按键值对组织（userId → 键 → 值），生命周期与「聊过什么」无关——`u_001` 的「回复风格=简洁」跨会话长期成立，下一场对话开场就该进 system prompt。注意键是 **userId 不是 sessionId**：这是三层表格里「会话窗口按 sessionId、用户偏好按 userId」的代码形态，也是坑 3「重要实体应进偏好/情景层」的落点。三个工厂同出 `memory/factory` 一个模块——三层各自的 env 开关都汇到这一处装配。
+
+**情景记忆：归档摘要，按向量召回**。
+
+```ts
+// agent-app/examples/03-memory/src/main.ts（节选）
+const episodicStore = createEpisodicStoreFromEnv({ EPISODIC_STORE: "memory" });
+// ③ 情景记忆：归档两条历史会话摘要，再按当前问题向量召回最像的一条
+await episodicStore.remember({
+  sessionId: "s_old_1",
+  summary: "用户咨询了订单 A-1024 的物流",
+  embedding: [1, 0.1],
+  createdAt: "2026-10-29T08:00:00Z",
+});
+await episodicStore.remember({
+  sessionId: "s_old_2",
+  summary: "用户咨询了发票开具流程",
+  embedding: [0.1, 1],
+  createdAt: "2026-10-29T09:00:00Z",
+});
+const recalled = await episodicStore.recall([1, 0.05], 1);
+console.log(`[情景召回] top1：${recalled[0]?.summary}（score≈${recalled[0]?.score.toFixed(1)}）`);
+```
+
+这段在做什么：`remember` 归档的**不是原话，是摘要 + 向量**——为「以前聊过什么」建一条可检索的索引；`recall(向量, k)` 按余弦相似度召回最像的历史会话（查询向量 `[1, 0.05]` 与 s_old_1 的 `[1, 0.1]` 几乎同向，召回的正是物流那条，发票条被拉开）。示例的向量是手造的（绕开 embedding API）；真实实现里向量来自同一个 embedding 模型（RAG 的「同模型铁律」在此同样适用），切 pgvector 后召回下推给 PG 的向量索引，接口不变——`remember ≈ upsert、recall ≈ search`，情景记忆就是一张只加不改的微型知识库。
+
 ---
 
 ## 三、压缩机制：滚动摘要（本章的核心算法）
