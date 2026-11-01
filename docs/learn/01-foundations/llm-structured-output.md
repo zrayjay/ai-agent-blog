@@ -107,7 +107,7 @@ console.log(`[场景 3] zod 校验把关 —— 通过 ${JSON.stringify(verdict)
 
 这段在做什么：即使抠出了合法 JSON，字段可能缺失或类型不对（模型幻觉）——`.parse()` 逐字段校验，不合规即抛。三步组合起来 = 排序第 2 档的完整工程链：**宽松抽取 + 校验，失败则重试**。
 
-> 第 4 个场景（纯闲聊）连 `extractJson` 也救不了——文本里根本没有 JSON，会抛中文错误由上层决定重试。完整四场景可运行版：`cd agent-app && pnpm examples`（需配 Key 走真实模型；离线走 `pnpm examples:check` 的 spec 断言）。
+> 第 4 个场景（纯闲聊）连 `extractJson` 也救不了——文本里根本没有 JSON，会抛中文错误由上层决定重试。完整四场景可运行版：`cd agent-app && pnpm exec tsx examples/02-structured-output/src/main.ts`（mock 驱动，零密钥零网络即可跑全场景；把 `driftyModel()/chattyModel()` 换成 `getModel()` 才需要 Key）。
 
 ## 最小可执行实现
 

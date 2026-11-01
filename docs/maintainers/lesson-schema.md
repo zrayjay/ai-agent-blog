@@ -82,10 +82,10 @@ lastVerifiedCommit: 2aed7bf # 已验证时的短 SHA
 1. **长度**：每块 ≤30 行；超过拆多块，块间夹讲解。
 2. **溯源头注释**：块首行标真实来源，如 `// agent-app/examples/04-rag/src/main.ts（节选）`。
 3. **讲解配比**：每块后必须跟 ≥1 段「这段在做什么 / 为什么这么写」。
-4. **语言标注**：一律 `ts（终端输出用 `text，命令用 ```powershell/bash）。
+4. **语言标注**：一律 `ts`（终端输出用 `text`，命令用 `powershell/bash`）。
 5. **防漂移铁律**：片段必须**逐字摘自** `examples/` 或 `src/`（允许删行，以 `// …` 标注；行尾注释不得自拟改写），**禁止为课文新写演示代码**——examples 的离线 spec 保证片段与仓库真实行为一致。
 
-存量豁免：tools-hardening / guardrails-safety 两课写作时的行尾注释改写与字符串缩写属风格档，不回溯执法；事实性错误（如函数名与源不符）发现即改。
+存量豁免：存量课（tools-hardening / guardrails-safety / mcp-integration / evals-quality-gate / service-product-line 等）写作时的行尾注释改写、删行概括与字符串缩写属风格档，不回溯执法；事实性错误（如函数名与源不符）发现即改。
 
 ## 校验归属
 
