@@ -9,7 +9,19 @@ export default defineConfig({
   description:
     '以 TypeScript 为主线的 AI Agent 工程教程：从模型调用、工具循环、记忆与 RAG，到安全、评估、多 Agent 编排与全栈交付。',
 
-  head: [['link', { rel: 'icon', type: 'image/png', href: '/logo.png' }]],
+  head: [
+    ['link', { rel: 'icon', type: 'image/png', href: '/logo.png' }],
+    // Source Serif 4:英文标题衬线(免费替代 Anthropic Serif;preconnect 减握手)
+    ['preconnect', { href: 'https://fonts.googleapis.com' }],
+    ['preconnect', { href: 'https://fonts.gstatic.com', crossorigin: '' }],
+    [
+      'link',
+      {
+        rel: 'stylesheet',
+        href: 'https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,500&display=swap'
+      }
+    ]
+  ],
 
   markdown: {
     lineNumbers: true,
