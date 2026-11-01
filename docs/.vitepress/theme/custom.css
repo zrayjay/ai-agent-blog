@@ -934,3 +934,31 @@ body::after {
     font-size: 22px;
   }
 }
+
+/* --------------------------------------------------------------------------
+    11c. 深入查阅(HomeResources):间隔与内边距规范(穿透 scoped)
+   -------------------------------------------------------------------------- */
+.VPHome .resource-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+.VPHome .resource-link {
+  display: grid;
+  grid-template-columns: 140px 1fr auto;
+  align-items: center;
+  gap: 24px;
+  padding: 24px 20px;
+}
+
+@media (max-width: 959px) {
+  .VPHome .resource-list {
+    gap: 14px;
+  }
+  .VPHome .resource-link {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    padding: 20px 16px;
+  }
+}
