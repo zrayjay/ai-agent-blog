@@ -831,18 +831,6 @@ body::after {
     5b. 移动端 Hero 兼容(≤959px):纵向堆叠、字号收敛、内边距
    -------------------------------------------------------------------------- */
 @media (max-width: 959px) {
-  /* 移动端内容与视窗两侧保持舒适留白(用户反馈:太贴边) */
-  .VPContent .VPDoc .container,
-  .VPContent .VPDoc .content-container {
-    padding-left: 20px !important;
-    padding-right: 20px !important;
-  }
-  .vp-doc {
-    padding: 0 4px;
-  }
-}
-
-@media (max-width: 959px) {
   .VPHome .VPHero .container {
     flex-direction: column-reverse;
     gap: 36px;
