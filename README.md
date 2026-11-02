@@ -98,3 +98,7 @@ GitHub Pages 自动部署（`.github/workflows/deploy.yml`，OIDC 免密令牌�
 - 架构决策记录：[architecture-decisions/](./docs/maintainers/architecture-decisions/ADR-001-learning-architecture.md)
 - 兼容性基线（导出面即契约）：[compatibility-baseline.md](./docs/maintainers/compatibility-baseline.md)
 - 本地校验命令全集：`pnpm docs:check` / `security:check` / `assert:check` / `site:check`（站点）/ `matrix:check`、`lint:deps`、`examples:check`（agent-app 内）
+
+## 开源协议
+
+本项目采用 [MIT License](./LICENSE) 开源。第三方依赖及引用内容仍遵循各自的许可证和版权要求。
